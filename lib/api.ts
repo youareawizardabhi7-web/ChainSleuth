@@ -8,7 +8,11 @@ import {
   TransferEdge,
 } from "./types";
 
-const USE_MOCK_DATA = process.env.NEXT_PUBLIC_USE_MOCK_DATA !== "false";
+export const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_URL || "https://chain-sleuth-backend.onrender.com/api/v1"
+).replace(/\/+$/, "");
+
+const USE_MOCK_DATA = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
 
 // 12-Node Realistic TRON Crypto-Fraud Investigation Mock Graph
 const MOCK_NODES: WalletNode[] = [
@@ -299,14 +303,15 @@ export async function createTrace(req: TraceRequest): Promise<TraceResult> {
     });
   }
 
-  const res = await fetch("/api/trace", {
+  const res = await fetch(`${API_BASE_URL}/trace/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(req),
   });
 
   if (!res.ok) {
-    throw new Error("Failed to create trace");
+    const errorText = await res.text().catch(() => "");
+    throw new Error(`Failed to create trace: ${res.status} ${errorText}`);
   }
 
   return res.json();
@@ -320,10 +325,10 @@ export async function getCase(caseId: string): Promise<TraceResult> {
     });
   }
 
-  const res = await fetch(`/api/case/${caseId}`);
+  const res = await fetch(`${API_BASE_URL}/cases/${caseId}`);
 
   if (!res.ok) {
-    throw new Error(`Failed to fetch case ${caseId}`);
+    throw new Error(`Failed to fetch case ${caseId}: ${res.status}`);
   }
 
   return res.json();
@@ -334,10 +339,10 @@ export async function getCases(): Promise<CaseSummary[]> {
     return Promise.resolve(MOCK_CASES);
   }
 
-  const res = await fetch("/api/cases");
+  const res = await fetch(`${API_BASE_URL}/cases/`);
 
   if (!res.ok) {
-    throw new Error("Failed to fetch cases");
+    throw new Error(`Failed to fetch cases: ${res.status}`);
   }
 
   return res.json();
@@ -354,17 +359,24 @@ export async function parseFir(complaintText: string): Promise<Partial<TraceRequ
     });
   }
 
-  const res = await fetch("/api/fir/parse", {
+  const res = await fetch(`${API_BASE_URL}/fir/parse`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ complaintText }),
   });
 
   if (!res.ok) {
-    throw new Error("Failed to parse FIR complaint text");
+    throw new Error(`Failed to parse FIR complaint text: ${res.status}`);
   }
 
-  return res.json();
+  const data = await res.json();
+  return {
+    suspect_address: data.suspect_wallet_address || data.suspect_address || "",
+    chain: (data.blockchain_type || data.chain || "tron") as Chain,
+    max_hops: data.max_trace_hops || data.max_hops || 5,
+    value_threshold_pct: 2.0,
+    complaint_id: data.complaint_id,
+  };
 }
 
 export async function generateNotice(
@@ -377,17 +389,27 @@ export async function generateNotice(
     });
   }
 
-  const res = await fetch("/api/notice/generate", {
+  const res = await fetch(`${API_BASE_URL}/notices/generate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
 
   if (!res.ok) {
-    throw new Error("Failed to generate legal freeze notice");
+    const errorText = await res.text().catch(() => "");
+    throw new Error(`Failed to generate legal freeze notice: ${res.status} ${errorText}`);
   }
 
-  return res.json();
+  const data = await res.json();
+  const origin = API_BASE_URL.replace(/\/api\/v1\/?$/, "");
+  const pdfUrl = data.pdf_url?.startsWith("http")
+    ? data.pdf_url
+    : `${origin}${data.pdf_url}`;
+
+  return {
+    pdfUrl,
+    sha256_evidence_hash: data.sha256_evidence_hash,
+  };
 }
 
 export const runTrace = createTrace;
