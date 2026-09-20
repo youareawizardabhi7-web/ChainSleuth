@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAppStore } from "@/lib/store";
@@ -17,11 +17,19 @@ import {
   Building2,
 } from "lucide-react";
 
+const emptySubscribe = () => () => {};
+
 export function Sidebar() {
   const pathname = usePathname();
   const { currentRole } = useAppStore();
 
-  const isSupervisor = currentRole === "supervisory_officer";
+  const isClient = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
+
+  const isSupervisor = isClient && currentRole === "supervisory_officer";
 
   const navItems = [
     {
@@ -75,7 +83,8 @@ export function Sidebar() {
     },
   };
 
-  const currentRoleInfo = roleLabelMap[currentRole] || roleLabelMap.investigating_officer;
+  const currentRoleInfo =
+    roleLabelMap[currentRole] || roleLabelMap.investigating_officer;
   const RoleIcon = currentRoleInfo.icon;
 
   return (
@@ -98,12 +107,16 @@ export function Sidebar() {
 
         {/* Role Indicator Banner */}
         <div className="p-2.5 border-b border-slate-800 bg-slate-900/30">
-          <div className="text-[9px] text-slate-500 mb-1 uppercase font-semibold">Active Access Role</div>
+          <div className="text-[9px] text-slate-500 mb-1 uppercase font-semibold">
+            Active Access Role
+          </div>
           <div
             className={`flex items-center gap-1.5 px-2 py-1 rounded border text-[11px] font-semibold ${currentRoleInfo.color}`}
           >
             <RoleIcon className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate">{currentRoleInfo.name}</span>
+            <span className="truncate">
+              {isClient ? currentRoleInfo.name : "Loading..."}
+            </span>
           </div>
         </div>
 
@@ -122,7 +135,11 @@ export function Sidebar() {
                     : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/50"
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 shrink-0 ${active ? "text-teal-400" : "text-slate-500"}`} />
+                <Icon
+                  className={`w-3.5 h-3.5 shrink-0 ${
+                    active ? "text-teal-400" : "text-slate-500"
+                  }`}
+                />
                 <span className="truncate">{item.label}</span>
               </Link>
             );
@@ -132,7 +149,9 @@ export function Sidebar() {
 
       {/* Role Switcher in Sidebar Footer */}
       <div className="p-2.5 border-t border-slate-800 space-y-1.5">
-        <div className="text-[9px] text-slate-500 uppercase font-semibold">Switch Operational Role</div>
+        <div className="text-[9px] text-slate-500 uppercase font-semibold">
+          Switch Operational Role
+        </div>
         <RoleSwitcher />
       </div>
     </aside>

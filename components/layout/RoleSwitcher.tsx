@@ -1,26 +1,32 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useSyncExternalStore } from "react";
 import { useAppStore } from "@/lib/store";
-import { UserRole } from "@/lib/types";
 import { Shield, UserCheck, Building2 } from "lucide-react";
+
+const emptySubscribe = () => () => {};
 
 export function RoleSwitcher() {
   const { currentRole, setCurrentRole } = useAppStore();
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("chainsleuth_role") as UserRole | null;
-      if (saved) setCurrentRole(saved);
-    }
-  }, [setCurrentRole]);
+  const isClient = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
+
+  if (!isClient) {
+    return (
+      <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded font-mono text-[11px] h-7 w-44 animate-pulse" />
+    );
+  }
 
   return (
-    <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded font-mono text-[11px]">
+    <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded font-mono text-[11px] select-none">
       <button
         type="button"
         onClick={() => setCurrentRole("investigating_officer")}
-        className={`flex items-center gap-1.5 px-2 py-1 rounded transition-colors ${
+        className={`flex items-center gap-1.5 px-2 py-1 rounded transition-colors cursor-pointer ${
           currentRole === "investigating_officer"
             ? "bg-slate-800 text-teal-400 font-bold border border-slate-700"
             : "text-slate-400 hover:text-slate-200"
@@ -34,7 +40,7 @@ export function RoleSwitcher() {
       <button
         type="button"
         onClick={() => setCurrentRole("supervisory_officer")}
-        className={`flex items-center gap-1.5 px-2 py-1 rounded transition-colors ${
+        className={`flex items-center gap-1.5 px-2 py-1 rounded transition-colors cursor-pointer ${
           currentRole === "supervisory_officer"
             ? "bg-slate-800 text-amber-400 font-bold border border-slate-700"
             : "text-slate-400 hover:text-slate-200"
@@ -48,7 +54,7 @@ export function RoleSwitcher() {
       <button
         type="button"
         onClick={() => setCurrentRole("vasp_nodal_officer")}
-        className={`flex items-center gap-1.5 px-2 py-1 rounded transition-colors ${
+        className={`flex items-center gap-1.5 px-2 py-1 rounded transition-colors cursor-pointer ${
           currentRole === "vasp_nodal_officer"
             ? "bg-slate-800 text-teal-300 font-bold border border-slate-700"
             : "text-slate-400 hover:text-slate-200"
