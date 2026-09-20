@@ -331,7 +331,13 @@ export async function getCase(caseId: string): Promise<TraceResult> {
     throw new Error(`Failed to fetch case ${caseId}: ${res.status}`);
   }
 
-  return res.json();
+  const data = await res.json();
+  return {
+    ...data,
+    nodes: data.nodes || [],
+    edges: data.edges || [],
+    attribution: data.attribution || null,
+  };
 }
 
 export async function getCases(): Promise<CaseSummary[]> {
@@ -345,7 +351,11 @@ export async function getCases(): Promise<CaseSummary[]> {
     throw new Error(`Failed to fetch cases: ${res.status}`);
   }
 
-  return res.json();
+  const rawList: any[] = await res.json();
+  return rawList.map((item) => ({
+    ...item,
+    attributed_vasp_name: item.attributed_vasp_name || item.attributed_vasp,
+  }));
 }
 
 export async function parseFir(complaintText: string): Promise<Partial<TraceRequest>> {
