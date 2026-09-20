@@ -1,68 +1,178 @@
 "use client";
 
-import React from "react";
-import { Download, ShieldCheck, FileCheck } from "lucide-react";
+import React, { useState } from "react";
+import { Download, ShieldCheck, FileCheck, Copy, Check, FileText } from "lucide-react";
 import { AddressBadge } from "@/components/ui/AddressBadge";
 
 interface NoticePreviewProps {
   caseId?: string;
+  pdfUrl?: string;
   vaspName?: string;
   depositAddress?: string;
+  hotWalletAddress?: string;
   evidenceHash?: string;
+  lossAmountInr?: number;
 }
 
 export function NoticePreview({
   caseId = "CS-2026-8891",
+  pdfUrl,
   vaspName = "CoinDCX (Neblio Technologies Pvt Ltd)",
   depositAddress = "TCOINDCXDEPOSIT9988776655443311",
+  hotWalletAddress = "TCOINDCXHOTSWEEP0000000000000000",
   evidenceHash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  lossAmountInr = 485000,
 }: NoticePreviewProps) {
+  const [copiedHash, setCopiedHash] = useState(false);
+
+  const handleCopyHash = () => {
+    navigator.clipboard.writeText(evidenceHash);
+    setCopiedHash(true);
+    setTimeout(() => setCopiedHash(false), 2000);
+  };
+
+  const handleDownload = () => {
+    if (pdfUrl && pdfUrl !== "#mock-pdf-url") {
+      window.open(pdfUrl, "_blank");
+    } else {
+      // Simulate PDF file download for demo mode
+      const element = document.createElement("a");
+      const file = new Blob(
+        [
+          `CHAINSLEUTH FORMAL LEGAL NOTICE - SECTION 94 BNSS\nCase ID: ${caseId}\nTarget VASP: ${vaspName}\nDeposit Address: ${depositAddress}\nEvidence SHA-256: ${evidenceHash}`,
+        ],
+        { type: "text/plain" }
+      );
+      element.href = URL.createObjectURL(file);
+      element.download = `SECTION_94_BNSS_NOTICE_${caseId}.txt`;
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+    }
+  };
+
   return (
-    <div className="w-full max-w-3xl bg-slate-950 border border-slate-800 rounded p-6 font-mono text-xs text-slate-300 space-y-6">
+    <div className="w-full max-w-4xl bg-slate-950 border border-slate-800 rounded p-6 font-mono text-xs text-slate-300 space-y-5 select-none relative overflow-hidden">
+      {/* DEMO / DRAFT Watermark Banner */}
+      <div className="w-full bg-amber-950/70 border border-amber-800/80 p-2 rounded text-center text-amber-400 font-sans font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+        <span>[ DEMO / DRAFT LEGAL DIRECTIVE — FOR INVESTIGATION TESTING ONLY ]</span>
+      </div>
+
+      {/* Header & Download Bar */}
       <div className="flex items-center justify-between border-b border-slate-800 pb-4">
         <div>
-          <div className="text-teal-400 font-bold text-sm tracking-wider uppercase">
-            FORMAL FREEZE ORDER — SECTION 94 BNSS, 2023
+          <div className="text-teal-400 font-bold text-sm tracking-wider uppercase font-sans flex items-center gap-2">
+            <FileText className="w-4 h-4 text-teal-400" />
+            FORMAL FREEZE DIRECTIVE — SECTION 94 BNSS, 2023
           </div>
-          <div className="text-slate-500 mt-0.5">Reference Case ID: {caseId}</div>
+          <div className="text-slate-500 text-[11px] mt-0.5">
+            Cyber Crime Police Station • Reference Case ID: {caseId}
+          </div>
         </div>
+
         <button
           type="button"
-          className="flex items-center gap-2 px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-slate-950 font-sans font-bold rounded transition-colors"
+          onClick={handleDownload}
+          className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-slate-950 font-sans font-bold text-xs rounded transition-colors shadow-lg cursor-pointer"
         >
           <Download className="w-4 h-4" />
-          Download PDF Notice
+          Download Official PDF Notice
         </button>
       </div>
 
-      <div className="bg-slate-900 border border-slate-800 p-4 rounded space-y-2 leading-relaxed">
-        <p className="font-bold text-slate-200">TO: Nodal Compliance Officer, {vaspName}</p>
-        <p>
-          WHEREAS information has been laid before the undersigned Cyber Crime Police Station regarding stolen victim funds routed through crypto networks...
-        </p>
-        <p className="text-teal-300 font-semibold">
-          YOU ARE HEREBY DIRECTED TO IMMEDIATELY FREEZE AND RESTRAIN MOVEMENT ON THE SPECIFIED DEPOSIT ACCOUNT:
-        </p>
-        <div className="py-2">
-          <span className="text-slate-500 block mb-1">KYC Deposit Address:</span>
-          <AddressBadge address={depositAddress} truncateLength={10} />
-        </div>
+      {/* Inline Document Container / iFrame Preview */}
+      <div className="bg-slate-900 border border-slate-800 rounded p-6 text-slate-200 space-y-4 shadow-2xl relative">
+        {pdfUrl && pdfUrl !== "#mock-pdf-url" ? (
+          <iframe
+            src={pdfUrl}
+            className="w-full h-96 border border-slate-800 rounded"
+            title="PDF Notice Preview"
+          />
+        ) : (
+          <div className="space-y-4 font-mono leading-relaxed text-xs">
+            {/* Legal Document Header */}
+            <div className="text-center border-b border-slate-800 pb-4 space-y-1">
+              <div className="font-bold text-slate-100 font-sans text-sm tracking-wider">
+                OFFICE OF THE SUPERINTENDENT OF POLICE
+              </div>
+              <div className="text-slate-400 text-[11px]">
+                CYBER CRIME INVESTIGATION CELL • POLICE HEADQUARTERS
+              </div>
+              <div className="text-teal-400 font-bold text-xs pt-1">
+                NOTICE UNDER SECTION 94 OF THE BHARATIYA NAGARIK SURAKSHA SANHITA (BNSS), 2023
+              </div>
+            </div>
+
+            {/* Target Address Details */}
+            <div className="space-y-2 pt-2">
+              <div>
+                <span className="text-slate-400 block font-semibold text-[11px]">TO:</span>
+                <span className="text-slate-100 font-bold font-sans text-xs">{vaspName}</span>
+                <span className="text-slate-500 block text-[10px]">
+                  Designated Compliance & Nodal Office (FIU-IND Registered)
+                </span>
+              </div>
+
+              <p className="text-slate-300 text-justify">
+                WHEREAS information has been received regarding cryptocurrency scam proceeds amounting to{" "}
+                <span className="text-teal-300 font-bold">₹{lossAmountInr.toLocaleString()}</span> originating from victim accounts under FIR Reference <span className="text-slate-100 font-bold">{caseId}</span>.
+              </p>
+
+              <div className="p-3 bg-slate-950 border border-teal-500/80 rounded space-y-2">
+                <div className="text-teal-400 font-bold font-sans text-[11px] uppercase tracking-wider">
+                  ACTIONABLE ACCOUNT FREEZE DIRECTIVE:
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-[11px]">
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">Target KYC Deposit Address:</span>
+                    <AddressBadge address={depositAddress} truncateLength={10} />
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">Exchange Sweep Hot Wallet:</span>
+                    <AddressBadge address={hotWalletAddress} truncateLength={10} />
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-slate-400 text-[11px]">
+                YOU ARE HEREBY DIRECTED TO IMMEDIATELY RESTRAIN, FREEZE, AND PREVENT ALL WITHDRAWALS OR OUTBOUND TRANSFERS FROM THE SPECIFIED KYCD DEPOSIT ACCOUNT.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Section 63 BSA Digital Evidence Certificate */}
-      <div className="p-4 bg-slate-900/80 border border-slate-800 rounded space-y-2">
-        <div className="flex items-center gap-2 text-teal-400 font-semibold border-b border-slate-800 pb-2">
-          <ShieldCheck className="w-4 h-4" />
-          <span>Section 63 BSA Evidence Certificate (Digital Evidence Hash Stamp)</span>
+      {/* Section 63 BSA Digital Evidence Certificate Stamp */}
+      <div className="p-4 bg-slate-900/90 border border-slate-800 rounded space-y-2">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+          <div className="flex items-center gap-2 text-teal-400 font-semibold text-xs font-sans">
+            <ShieldCheck className="w-4 h-4 text-teal-400" />
+            <span>Section 63 BSA Digital Evidence Certificate</span>
+          </div>
+          <span className="text-[10px] text-slate-400 font-mono">COURT-ADMISSIBLE HASH STAMP</span>
         </div>
-        <div className="text-slate-400 text-[11px] leading-normal">
-          This document carries a cryptographically verifiable SHA-256 hash stamp corresponding to the graph traversal chain recorded at the time of legal notice issuance.
-        </div>
-        <div className="flex items-center gap-2 pt-1 font-mono text-[11px] text-slate-300">
-          <FileCheck className="w-4 h-4 text-teal-400 shrink-0" />
-          <span className="truncate bg-slate-950 px-2 py-1 border border-slate-800 rounded w-full">
-            {evidenceHash}
-          </span>
+
+        <p className="text-slate-400 text-[11px] leading-normal font-sans">
+          This notice carries a cryptographically immutable SHA-256 evidence hash generated directly from the on-chain Cypher graph traversal snapshot at the time of legal issuance.
+        </p>
+
+        <div className="flex items-center justify-between gap-3 bg-slate-950 p-2 border border-slate-800 rounded font-mono text-[11px]">
+          <div className="flex items-center gap-2 overflow-hidden">
+            <FileCheck className="w-4 h-4 text-teal-400 shrink-0" />
+            <span className="truncate text-teal-300 font-bold">{evidenceHash}</span>
+          </div>
+          <button
+            type="button"
+            onClick={handleCopyHash}
+            className="flex items-center gap-1 text-slate-400 hover:text-slate-100 transition-colors text-[10px] shrink-0 border border-slate-800 px-2 py-0.5 rounded cursor-pointer"
+          >
+            {copiedHash ? (
+              <Check className="w-3 h-3 text-emerald-400" />
+            ) : (
+              <Copy className="w-3 h-3" />
+            )}
+            <span>{copiedHash ? "Copied" : "Copy Hash"}</span>
+          </button>
         </div>
       </div>
     </div>
