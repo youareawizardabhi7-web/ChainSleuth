@@ -27,23 +27,23 @@ export function AppShell({ children }: AppShellProps) {
     <div className="flex h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden font-sans selection:bg-teal-900 selection:text-teal-200">
       <Sidebar />
       <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
-        {/* Top Header Bar */}
-        <header className="h-12 px-4 border-b border-slate-800 bg-slate-950 flex items-center justify-between shrink-0 font-mono text-xs">
+        {/* Top Header Bar (Compact 44px) */}
+        <header className="h-11 px-4 border-b border-slate-800 bg-slate-950 flex items-center justify-between shrink-0 font-mono text-xs">
           <div className="flex items-center gap-2 text-slate-400 truncate">
             <ShieldCheck className="w-4 h-4 text-teal-400 shrink-0" />
-            <span className="font-semibold text-slate-200 truncate">
+            <span className="font-semibold text-slate-200 truncate text-[11px]">
               POLICE CYBER CRIME INVESTIGATION CONSOLE
             </span>
             <span className="text-slate-700 hidden md:inline">|</span>
-            <span className="text-slate-500 hidden md:inline truncate">
+            <span className="text-slate-500 hidden md:inline truncate text-[11px]">
               BNSS §94 & BSA §63 COMPLIANT
             </span>
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
-            <div className="hidden lg:flex items-center gap-1.5 text-[11px] text-slate-400 bg-slate-900 px-2 py-0.5 border border-slate-800 rounded">
+            <div className="hidden lg:flex items-center gap-1.5 text-[10px] text-slate-400 bg-slate-900/80 px-2 py-0.5 border border-slate-800 rounded">
               <Activity className="w-3 h-3 text-emerald-400" />
-              <span>TRON RPC: MOCK ENGINE</span>
+              <span>TRON RPC: ONLINE</span>
             </div>
             <RoleSwitcher />
           </div>

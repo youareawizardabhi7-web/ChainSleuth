@@ -46,7 +46,6 @@ export function Sidebar() {
     },
   ];
 
-  // Audit Log is gated for Supervisor only
   if (isSupervisor) {
     navItems.push({
       label: "Audit Log",
@@ -83,7 +82,7 @@ export function Sidebar() {
     <aside className="w-56 shrink-0 bg-slate-950 border-r border-slate-800 flex flex-col justify-between font-mono text-xs select-none">
       <div className="flex flex-col">
         {/* Header Logo */}
-        <div className="h-12 px-3 border-b border-slate-800 flex items-center gap-2">
+        <div className="h-11 px-3 border-b border-slate-800 flex items-center gap-2">
           <div className="w-6 h-6 rounded bg-slate-900 border border-slate-700 flex items-center justify-center text-teal-400 shrink-0">
             <ShieldAlert className="w-3.5 h-3.5" />
           </div>
@@ -98,8 +97,8 @@ export function Sidebar() {
         </div>
 
         {/* Role Indicator Banner */}
-        <div className="p-2.5 border-b border-slate-800 bg-slate-900/40">
-          <div className="text-[10px] text-slate-500 mb-1 uppercase font-semibold">Active Access Role</div>
+        <div className="p-2.5 border-b border-slate-800 bg-slate-900/30">
+          <div className="text-[9px] text-slate-500 mb-1 uppercase font-semibold">Active Access Role</div>
           <div
             className={`flex items-center gap-1.5 px-2 py-1 rounded border text-[11px] font-semibold ${currentRoleInfo.color}`}
           >
@@ -132,8 +131,8 @@ export function Sidebar() {
       </div>
 
       {/* Role Switcher in Sidebar Footer */}
-      <div className="p-2.5 border-t border-slate-800 space-y-2">
-        <div className="text-[10px] text-slate-500 uppercase font-semibold">Switch Operational Role</div>
+      <div className="p-2.5 border-t border-slate-800 space-y-1.5">
+        <div className="text-[9px] text-slate-500 uppercase font-semibold">Switch Operational Role</div>
         <RoleSwitcher />
       </div>
     </aside>
