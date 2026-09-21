@@ -404,7 +404,7 @@ export async function getCases(): Promise<CaseSummary[]> {
 export async function parseFir(complaintText: string): Promise<Partial<TraceRequest>> {
   if (USE_MOCK_DATA) {
     return Promise.resolve({
-      suspect_address: "TABC1234567890XYZ99887766554433",
+      suspect_address: "TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9",
       chain: "tron",
       max_hops: 5,
       value_threshold_pct: 2.0,
@@ -438,7 +438,7 @@ export async function parseFir(complaintText: string): Promise<Partial<TraceRequ
       throw err;
     }
     return {
-      suspect_address: "TABC1234567890XYZ99887766554433",
+      suspect_address: "TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9",
       chain: "tron",
       max_hops: 5,
       value_threshold_pct: 2.0,
