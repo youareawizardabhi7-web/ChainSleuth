@@ -11,6 +11,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
+import { GraphModeToggle, GraphMode } from "./GraphModeToggle";
 
 interface GraphControlsProps {
   onZoomIn?: () => void;
@@ -19,6 +20,8 @@ interface GraphControlsProps {
   onRelayout?: () => void;
   showLabels?: boolean;
   onToggleLabels?: () => void;
+  graphMode?: GraphMode;
+  onGraphModeChange?: (mode: GraphMode) => void;
 }
 
 export function GraphControls({
@@ -28,6 +31,8 @@ export function GraphControls({
   onRelayout,
   showLabels = true,
   onToggleLabels,
+  graphMode = "2D",
+  onGraphModeChange,
 }: GraphControlsProps) {
   const { hopFilter, setHopFilter } = useAppStore();
 
@@ -35,6 +40,12 @@ export function GraphControls({
     <div className="flex items-center justify-between px-3 py-1.5 bg-slate-900 border border-slate-800 rounded font-mono text-xs text-slate-300 select-none">
       {/* Zoom & View Controls */}
       <div className="flex items-center gap-1">
+        {onGraphModeChange && (
+          <div className="mr-1 pr-2 border-r border-slate-800">
+            <GraphModeToggle mode={graphMode} onChange={onGraphModeChange} />
+          </div>
+        )}
+
         <button
           type="button"
           onClick={onZoomIn}
@@ -66,10 +77,10 @@ export function GraphControls({
           type="button"
           onClick={onRelayout}
           className="p-1.5 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-100 transition-colors flex items-center gap-1"
-          title="Re-layout Graph"
+          title="Re-layout / Reset View"
         >
           <RefreshCw className="w-3.5 h-3.5" />
-          <span className="text-[10px] hidden sm:inline">Re-layout</span>
+          <span className="text-[10px] hidden sm:inline">Reset</span>
         </button>
 
         <button
@@ -104,3 +115,4 @@ export function GraphControls({
     </div>
   );
 }
+

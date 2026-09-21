@@ -2,8 +2,11 @@
 
 import React, { useEffect, useState, useRef, use } from "react";
 import { AppShell } from "@/components/layout/AppShell";
-import { GraphCanvas, GraphCanvasRef } from "@/components/graph/GraphCanvas";
+import { GraphCanvas } from "@/components/graph/GraphCanvas";
+import { Graph3DWrapper } from "@/components/graph/Graph3DWrapper";
+import { GraphViewRef } from "@/components/graph/GraphViewRef";
 import { GraphControls } from "@/components/graph/GraphControls";
+import { GraphMode } from "@/components/graph/GraphModeToggle";
 import { WalletDetailPanel } from "@/components/panels/WalletDetailPanel";
 import { RiskBadge } from "@/components/case/RiskBadge";
 import { AddressBadge } from "@/components/ui/AddressBadge";
@@ -19,12 +22,13 @@ export default function CaseWorkbenchPage({
   const resolvedParams = use(params);
   const caseId = resolvedParams.caseId;
 
-  const graphCanvasRef = useRef<GraphCanvasRef>(null);
+  const graphRef = useRef<GraphViewRef>(null);
 
   const [traceData, setTraceData] = useState<TraceResult | null>(null);
   const [selectedNode, setSelectedNode] = useState<WalletNode | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<TransferEdge | null>(null);
   const [showLabels, setShowLabels] = useState(true);
+  const [graphMode, setGraphMode] = useState<GraphMode>("2D");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -70,13 +74,15 @@ export default function CaseWorkbenchPage({
 
         {/* Three-Column Investigation Workspace */}
         <div className="flex-1 grid grid-cols-12 gap-3 min-h-0 overflow-hidden">
-          {/* CENTER: Cytoscape Graph Canvas Area (8 cols) */}
+          {/* CENTER: Graph Canvas Area (8 cols) */}
           <div className="col-span-8 flex flex-col space-y-2 h-full min-h-0 relative">
             <GraphControls
-              onZoomIn={() => graphCanvasRef.current?.zoomIn()}
-              onZoomOut={() => graphCanvasRef.current?.zoomOut()}
-              onFit={() => graphCanvasRef.current?.fit()}
-              onRelayout={() => graphCanvasRef.current?.relayout()}
+              graphMode={graphMode}
+              onGraphModeChange={setGraphMode}
+              onZoomIn={() => graphRef.current?.zoomIn()}
+              onZoomOut={() => graphRef.current?.zoomOut()}
+              onFit={() => graphRef.current?.fit()}
+              onRelayout={() => graphRef.current?.resetView()}
               showLabels={showLabels}
               onToggleLabels={() => setShowLabels(!showLabels)}
             />
@@ -94,9 +100,9 @@ export default function CaseWorkbenchPage({
                   <ShieldAlert className="w-6 h-6 text-slate-700" />
                   <div>No investigation transaction path found for this case.</div>
                 </div>
-              ) : (
+              ) : graphMode === "2D" ? (
                 <GraphCanvas
-                  ref={graphCanvasRef}
+                  ref={graphRef}
                   nodes={traceData.nodes}
                   edges={traceData.edges}
                   showLabels={showLabels}
@@ -107,6 +113,23 @@ export default function CaseWorkbenchPage({
                   onSelectEdge={(edge) => {
                     setSelectedEdge(edge);
                   }}
+                />
+              ) : (
+                <Graph3DWrapper
+                  ref={graphRef}
+                  nodes={traceData.nodes}
+                  edges={traceData.edges}
+                  selectedNode={selectedNode}
+                  selectedEdge={selectedEdge}
+                  showLabels={showLabels}
+                  onSelectNode={(node) => {
+                    setSelectedNode(node);
+                    setSelectedEdge(null);
+                  }}
+                  onSelectEdge={(edge) => {
+                    setSelectedEdge(edge);
+                  }}
+                  onFallbackTo2D={() => setGraphMode("2D")}
                 />
               )}
 

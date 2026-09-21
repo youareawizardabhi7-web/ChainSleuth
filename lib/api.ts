@@ -313,12 +313,15 @@ export async function createTrace(req: TraceRequest): Promise<TraceResult> {
 
     if (!res.ok) {
       const errorText = await res.text().catch(() => "");
-      throw new Error(`Failed to create trace: ${res.status} ${errorText}`);
+      throw new Error(`Backend API Error (${res.status}): ${errorText}`);
     }
 
     return await res.json();
   } catch (err) {
-    console.warn("[API] createTrace backend call failed, falling back to mock data:", err);
+    console.error("[API] createTrace backend call failed:", err);
+    if (!USE_MOCK_DATA) {
+      throw err;
+    }
     return {
       ...MOCK_TRACE_RESULT,
       suspect_address: req.suspect_address || MOCK_TRACE_RESULT.suspect_address,
@@ -336,10 +339,20 @@ export async function getCase(caseId: string): Promise<TraceResult> {
   }
 
   try {
-    const res = await fetch(`${API_BASE_URL}/cases/${caseId}`);
+    // Try primary route: /cases/{caseId}
+    let res = await fetch(`${API_BASE_URL}/cases/${caseId}`);
+
+    // If 404, try secondary route: /trace/{caseId}
+    if (!res.ok && res.status === 404) {
+      const secondaryRes = await fetch(`${API_BASE_URL}/trace/${caseId}`);
+      if (secondaryRes.ok) {
+        res = secondaryRes;
+      }
+    }
 
     if (!res.ok) {
-      throw new Error(`Failed to fetch case ${caseId}: ${res.status}`);
+      const errorText = await res.text().catch(() => "");
+      throw new Error(`Failed to fetch case ${caseId} (${res.status}): ${errorText}`);
     }
 
     const data = await res.json();
@@ -350,7 +363,10 @@ export async function getCase(caseId: string): Promise<TraceResult> {
       attribution: data.attribution || null,
     };
   } catch (err) {
-    console.warn(`[API] getCase backend call failed for ${caseId}, falling back to mock data:`, err);
+    console.error(`[API] getCase backend call failed for ${caseId}:`, err);
+    if (!USE_MOCK_DATA) {
+      throw err;
+    }
     return {
       ...MOCK_TRACE_RESULT,
       case_id: caseId,
@@ -367,7 +383,8 @@ export async function getCases(): Promise<CaseSummary[]> {
     const res = await fetch(`${API_BASE_URL}/cases/`);
 
     if (!res.ok) {
-      throw new Error(`Failed to fetch cases: ${res.status}`);
+      const errorText = await res.text().catch(() => "");
+      throw new Error(`Failed to fetch cases (${res.status}): ${errorText}`);
     }
 
     const rawList: any[] = await res.json();
@@ -376,7 +393,10 @@ export async function getCases(): Promise<CaseSummary[]> {
       attributed_vasp_name: item.attributed_vasp_name || item.attributed_vasp,
     }));
   } catch (err) {
-    console.warn("[API] getCases backend call failed, falling back to mock data:", err);
+    console.error("[API] getCases backend call failed:", err);
+    if (!USE_MOCK_DATA) {
+      throw err;
+    }
     return MOCK_CASES;
   }
 }
@@ -396,11 +416,12 @@ export async function parseFir(complaintText: string): Promise<Partial<TraceRequ
     const res = await fetch(`${API_BASE_URL}/fir/parse`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ complaintText }),
+      body: JSON.stringify({ complaintText, complaint_text: complaintText }),
     });
 
     if (!res.ok) {
-      throw new Error(`Failed to parse FIR complaint text: ${res.status}`);
+      const errorText = await res.text().catch(() => "");
+      throw new Error(`Failed to parse FIR complaint text (${res.status}): ${errorText}`);
     }
 
     const data = await res.json();
@@ -412,7 +433,10 @@ export async function parseFir(complaintText: string): Promise<Partial<TraceRequ
       complaint_id: data.complaint_id,
     };
   } catch (err) {
-    console.warn("[API] parseFir backend call failed, falling back to mock data:", err);
+    console.error("[API] parseFir backend call failed:", err);
+    if (!USE_MOCK_DATA) {
+      throw err;
+    }
     return {
       suspect_address: "TABC1234567890XYZ99887766554433",
       chain: "tron",
@@ -442,7 +466,7 @@ export async function generateNotice(
 
     if (!res.ok) {
       const errorText = await res.text().catch(() => "");
-      throw new Error(`Failed to generate legal freeze notice: ${res.status} ${errorText}`);
+      throw new Error(`Failed to generate legal freeze notice (${res.status}): ${errorText}`);
     }
 
     const data = await res.json();
@@ -456,7 +480,10 @@ export async function generateNotice(
       sha256_evidence_hash: data.sha256_evidence_hash,
     };
   } catch (err) {
-    console.warn("[API] generateNotice backend call failed, falling back to mock data:", err);
+    console.error("[API] generateNotice backend call failed:", err);
+    if (!USE_MOCK_DATA) {
+      throw err;
+    }
     return {
       pdfUrl: "#mock-pdf-url",
       sha256_evidence_hash: payload.sha256_evidence_hash || "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",

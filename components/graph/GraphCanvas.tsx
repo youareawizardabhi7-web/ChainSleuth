@@ -5,10 +5,9 @@ import cytoscape from "cytoscape";
 import { getCytoscapeStyles } from "./graphStyles";
 import { WalletNode, TransferEdge } from "@/lib/types";
 
-export interface GraphCanvasRef {
-  zoomIn: () => void;
-  zoomOut: () => void;
-  fit: () => void;
+import { GraphViewRef } from "./GraphViewRef";
+
+export interface GraphCanvasRef extends GraphViewRef {
   relayout: () => void;
 }
 
@@ -20,7 +19,7 @@ interface GraphCanvasProps {
   showLabels?: boolean;
 }
 
-export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(function GraphCanvas(
+export const GraphCanvas = forwardRef<GraphViewRef, GraphCanvasProps>(function GraphCanvas(
   { nodes = [], edges = [], onSelectNode, onSelectEdge, showLabels = true },
   ref
 ) {
@@ -40,6 +39,18 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(function
     },
     fit: () => {
       if (cyRef.current) {
+        cyRef.current.fit(undefined, 30);
+      }
+    },
+    resetView: () => {
+      if (cyRef.current) {
+        const layout = cyRef.current.layout({
+          name: "breadthfirst",
+          directed: true,
+          padding: 30,
+          spacingFactor: 1.25,
+        });
+        layout.run();
         cyRef.current.fit(undefined, 30);
       }
     },

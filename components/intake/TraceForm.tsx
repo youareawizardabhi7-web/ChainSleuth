@@ -38,6 +38,7 @@ export function TraceForm() {
   const router = useRouter();
   const [tab, setTab] = useState<"address" | "complaint">("address");
   const [isParsing, setIsParsing] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [parsedData, setParsedData] = useState<{
     address: string;
     chain: Chain;
@@ -70,9 +71,10 @@ export function TraceForm() {
     if (!rawText || !rawText.trim()) return;
 
     setIsParsing(true);
+    setSubmitError(null);
     try {
       const result = await parseFir(rawText);
-      const extractedAddr = result.suspect_address || "TABC1234567890XYZ99887766554433";
+      const extractedAddr = result.suspect_address || "TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9";
       const extractedChain = result.chain || "tron";
 
       setValue("suspect_address", extractedAddr);
@@ -84,8 +86,9 @@ export function TraceForm() {
         scamType: "Part-Time Task Scam (Telegram Cyber Fraud)",
         amountInr: 485000,
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setSubmitError(err?.message || "Failed to parse FIR complaint text.");
     } finally {
       setIsParsing(false);
     }
@@ -93,6 +96,7 @@ export function TraceForm() {
 
   const onSubmit = async (data: FormInputs) => {
     setLoading(true);
+    setSubmitError(null);
     setCurrentStepIndex(0);
 
     // Simulate 1.8s progressive loading sequence steps
@@ -108,7 +112,7 @@ export function TraceForm() {
 
     try {
       const requestPayload: TraceRequest = {
-        suspect_address: data.suspect_address,
+        suspect_address: data.suspect_address.trim(),
         chain: data.chain,
         max_hops: Number(data.max_hops),
         value_threshold_pct: Number(data.value_threshold_pct || 2.0),
@@ -120,14 +124,28 @@ export function TraceForm() {
 
       const result = await createTrace(requestPayload);
       router.push(`/case/${result.case_id}`);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setSubmitError(err?.message || "Failed to initiate trace with backend API.");
       setLoading(false);
     }
   };
 
   return (
     <div className="relative w-full max-w-2xl bg-slate-950 border border-slate-800 rounded p-6 font-mono text-xs select-none">
+      {/* Submit Error Banner */}
+      {submitError && (
+        <div className="mb-4 p-3 bg-red-950/80 border border-red-800 rounded text-red-300 font-sans text-xs flex items-center justify-between">
+          <span>{submitError}</span>
+          <button
+            type="button"
+            onClick={() => setSubmitError(null)}
+            className="text-red-400 hover:text-red-200 font-bold ml-2"
+          >
+            ✕
+          </button>
+        </div>
+      )}
       {/* Tab Navigation */}
       <div className="flex border-b border-slate-800 mb-6 font-sans">
         <button
@@ -165,10 +183,13 @@ export function TraceForm() {
             </label>
             <input
               type="text"
-              placeholder="e.g. TABC1234567890XYZ99887766554433"
+              placeholder="e.g. TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9"
               {...register("suspect_address", { required: "Wallet address is required" })}
               className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded text-slate-100 focus:outline-none focus:border-teal-500 font-mono text-xs"
             />
+            <div className="text-[10px] text-slate-500 mt-1">
+              Expected: TRON (T + 33 chars), EVM (0x + 40 hex), or Solana (Base58 32–44 chars).
+            </div>
             {errors.suspect_address && (
               <span className="text-red-400 text-[11px] mt-1 block">
                 {errors.suspect_address.message}

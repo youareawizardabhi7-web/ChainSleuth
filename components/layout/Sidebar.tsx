@@ -49,7 +49,7 @@ export function Sidebar() {
     },
     {
       label: "Legal Notices",
-      href: "/case/CS-2026-8891/notice",
+      href: "/case/test-verification-456/notice",
       icon: FileText,
     },
   ];
