@@ -10,6 +10,7 @@ import React, {
   useCallback,
 } from "react";
 import ForceGraph3D, { ForceGraphMethods } from "react-force-graph-3d";
+import * as THREE from "three";
 import { WalletNode, TransferEdge } from "@/lib/types";
 import { GraphViewRef } from "./GraphViewRef";
 import { AlertCircle, RotateCcw } from "lucide-react";
@@ -109,6 +110,38 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
     return () => observer.disconnect();
   }, []);
 
+  // Configure Scene Lighting & Camera Fit
+  useEffect(() => {
+    if (fgRef.current) {
+      try {
+        const scene = fgRef.current.scene();
+        if (scene && !scene.getObjectByName("ambientLight")) {
+          const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
+          ambientLight.name = "ambientLight";
+          scene.add(ambientLight);
+        }
+        if (scene && !scene.getObjectByName("dirLight")) {
+          const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
+          dirLight.position.set(200, 200, 200);
+          dirLight.name = "dirLight";
+          scene.add(dirLight);
+        }
+      } catch (err) {
+        console.warn("Could not attach lighting to Three.js scene:", err);
+      }
+    }
+  }, []);
+
+  // Auto-fit camera when nodes load
+  useEffect(() => {
+    if (fgRef.current && nodes.length > 0) {
+      const timer = setTimeout(() => {
+        fgRef.current?.zoomToFit(400, 40);
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [nodes]);
+
   // Camera Control Ref API implementation
   useImperativeHandle(ref, () => ({
     zoomIn: () => {
@@ -143,12 +176,12 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
     },
     fit: () => {
       if (fgRef.current) {
-        fgRef.current.zoomToFit(400, 30);
+        fgRef.current.zoomToFit(400, 40);
       }
     },
     resetView: () => {
       if (fgRef.current) {
-        fgRef.current.zoomToFit(400, 30);
+        fgRef.current.zoomToFit(400, 40);
       }
     },
   }));
@@ -178,7 +211,7 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
     return { connectedNodeAddresses: nodeAddrs, connectedEdgeIds: edgeIds };
   }, [selectedNode, selectedEdge, edges]);
 
-  // Map WalletNode[] & TransferEdge[] to 3D graph format
+  // Map WalletNode[] & TransferEdge[] to 3D graph format with high contrast
   const graphData = useMemo(() => {
     const maxVal = Math.max(...edges.map((e) => e.value), 1);
 
@@ -191,19 +224,19 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
         : "default";
 
       const truncated =
-        n.address.length > 8
-          ? `${n.address.slice(0, 4)}...${n.address.slice(-4)}`
+        n.address.length > 10
+          ? `${n.address.slice(0, 6)}...${n.address.slice(-5)}`
           : n.address;
 
-      // Functional sizes: VASP (10), Burner (6), Normal (4)
-      const val = n.isVasp ? 10 : isBurner ? 6 : 4;
+      // High-visibility Node Sizes: VASP (15), Burner (11), Normal (7)
+      const val = n.isVasp ? 15 : isBurner ? 11 : 7;
 
-      // Functional colors: VASP (Teal), Burner (Red), Normal (Gray)
+      // High-contrast Colors: VASP (#14b8a6 Teal), Burner (#ef4444 Red), Normal (#94a3b8 Bright Slate)
       const color = n.isVasp
-        ? "#0d9488"
+        ? "#14b8a6"
         : isBurner
         ? "#ef4444"
-        : "#64748b";
+        : "#94a3b8";
 
       return {
         id: n.address,
@@ -216,7 +249,7 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
     });
 
     const forceLinks: ForceLink[] = edges.map((e) => {
-      const thickness = Math.min(Math.max(1, (e.value / maxVal) * 4), 4);
+      const thickness = Math.min(Math.max(2.5, (e.value / maxVal) * 5), 5);
       const isSuspicious = e.value > 10000 || e.token === "USDT";
 
       return {
@@ -238,13 +271,11 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
     (node: object) => {
       const n = node as ForceNode;
       const isSelected = selectedNode?.address === n.id;
-      if (isSelected) return "#38bdf8"; // Highlight active selection
+      if (isSelected) return "#f8fafc"; // Pure white highlight for active selection
 
-      const isFocused =
-        selectedNode || selectedEdge;
-
+      const isFocused = selectedNode || selectedEdge;
       if (isFocused) {
-        return connectedNodeAddresses.has(n.id) ? n.color : "#1e293b"; // Dim unrelated nodes
+        return connectedNodeAddresses.has(n.id) ? n.color : "#334155"; // Muted slate for unrelated
       }
 
       return n.color;
@@ -256,13 +287,13 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
   const getNodeVal = useCallback(
     (node: object) => {
       const n = node as ForceNode;
-      if (selectedNode?.address === n.id) return n.val * 1.5;
+      if (selectedNode?.address === n.id) return n.val * 1.4;
       return n.val;
     },
     [selectedNode]
   );
 
-  // Link color handling
+  // Link color handling with high contrast
   const getLinkColor = useCallback(
     (link: object) => {
       const l = link as ForceLink;
@@ -275,10 +306,10 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
           ? l.suspicious
             ? "#f87171"
             : "#38bdf8"
-          : "rgba(30, 41, 59, 0.2)"; // Dim unrelated edges
+          : "rgba(51, 65, 85, 0.15)";
       }
 
-      return l.suspicious ? "#f87171" : "#334155";
+      return l.suspicious ? "#f87171" : "#64748b";
     },
     [selectedNode, selectedEdge, connectedEdgeIds]
   );
@@ -288,37 +319,65 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
     (link: object) => {
       const l = link as ForceLink;
       const isSelected = selectedEdge?.txHash === l.id;
-      if (isSelected) return 3;
-      if (selectedNode && connectedEdgeIds.has(l.id)) return 2;
+      if (isSelected) return 4.5;
+      if (selectedNode && connectedEdgeIds.has(l.id)) return 3.5;
       return l.width;
     },
     [selectedNode, selectedEdge, connectedEdgeIds]
   );
 
-  // Compact HTML Hover Tooltip
+  // Custom 3D Mesh Object with Emissive Lighting
+  const getNodeThreeObject = useCallback(
+    (node: object) => {
+      const n = node as ForceNode;
+      const isSelected = selectedNode?.address === n.id;
+      const color = getNodeColor(n);
+      const radius = getNodeVal(n);
+
+      const geometry = new THREE.SphereGeometry(radius, 16, 16);
+      const material = new THREE.MeshStandardMaterial({
+        color: color,
+        emissive: isSelected ? "#38bdf8" : color,
+        emissiveIntensity: isSelected ? 0.7 : 0.3,
+        roughness: 0.3,
+        metalness: 0.2,
+      });
+
+      return new THREE.Mesh(geometry, material);
+    },
+    [selectedNode, getNodeColor, getNodeVal]
+  );
+
+  // Compact HTML Hover Tooltip with High Contrast
   const getNodeLabel = useCallback((node: object) => {
     const n = node as ForceNode;
     const obj = n.nodeObj;
     const flags = obj.typologyFlags.join(", ") || "None";
+    const vaspLabel = obj.isVasp ? `<div style="font-weight: bold; color: #14b8a6; margin-top: 2px;">VASP / Exchange Target</div>` : "";
+
     return `
       <div style="
-        background: rgba(15, 23, 42, 0.95);
+        background: #0f172a;
         border: 1px solid #334155;
-        padding: 6px 10px;
-        border-radius: 4px;
+        padding: 8px 12px;
+        border-radius: 6px;
         font-family: monospace;
         font-size: 11px;
-        color: #e2e8f0;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        color: #f1f5f9;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.6);
       ">
-        <div style="font-weight: bold; color: #38bdf8;">${n.label}</div>
-        <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">
-          Chain: <span style="color: #cbd5e1;">${obj.chain.toUpperCase()}</span> | Risk: <span style="color: ${obj.riskScore > 70 ? '#ef4444' : '#0d9488'};">${obj.riskScore}/100</span>
+        <div style="font-weight: bold; color: #38bdf8; font-size: 12px;">${n.label}</div>
+        ${vaspLabel}
+        <div style="font-size: 10px; color: #94a3b8; margin-top: 4px;">
+          Address: <span style="color: #f1f5f9;">${obj.address}</span>
         </div>
-        <div style="font-size: 10px; color: #94a3b8;">
+        <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">
+          Chain: <span style="color: #cbd5e1; font-weight: bold;">${obj.chain.toUpperCase()}</span> | Risk: <span style="color: ${obj.riskScore > 70 ? '#ef4444' : '#14b8a6'}; font-weight: bold;">${obj.riskScore}/100</span>
+        </div>
+        <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">
           Balance: <span style="color: #cbd5e1;">${obj.balance.toLocaleString()}</span>
         </div>
-        <div style="font-size: 9px; color: #64748b; margin-top: 2px;">
+        <div style="font-size: 9px; color: #64748b; margin-top: 3px;">
           Flags: ${flags}
         </div>
       </div>
@@ -375,24 +434,26 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full min-h-[420px] bg-slate-950 border border-slate-800 rounded overflow-hidden select-none"
+      className="relative w-full h-full min-h-[420px] bg-[#0b1329] border border-slate-800 rounded overflow-hidden select-none"
     >
       <ForceGraph3D
         ref={fgRef as unknown as React.MutableRefObject<ForceGraphMethods>}
         width={dimensions.width}
         height={dimensions.height}
         graphData={graphData}
-        backgroundColor="#020617"
-        nodeColor={getNodeColor}
-        nodeVal={getNodeVal}
+        backgroundColor="#0b1329"
+        nodeThreeObject={getNodeThreeObject}
+        nodeThreeObjectExtend={false}
         nodeLabel={getNodeLabel}
-        nodeRelSize={1}
-        nodeResolution={16}
         linkColor={getLinkColor}
         linkWidth={getLinkWidth}
-        linkDirectionalArrowLength={3.5}
-        linkDirectionalArrowRelPos={1}
+        linkDirectionalArrowLength={5}
+        linkDirectionalArrowRelPos={0.95}
         linkDirectionalArrowColor={getLinkColor}
+        linkDirectionalParticles={1}
+        linkDirectionalParticleWidth={2}
+        linkDirectionalParticleSpeed={0.005}
+        linkDirectionalParticleColor={getLinkColor}
         linkCurvature={0.1}
         onNodeClick={handleNodeClick}
         onLinkClick={handleLinkClick}
@@ -402,10 +463,11 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
       />
 
       {nodes.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center text-slate-500 font-mono text-xs pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center text-slate-400 font-mono text-xs pointer-events-none">
           No Graph Topology Loaded
         </div>
       )}
     </div>
   );
 });
+
