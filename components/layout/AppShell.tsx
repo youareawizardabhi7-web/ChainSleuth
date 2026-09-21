@@ -45,7 +45,7 @@ export function AppShell({ children }: AppShellProps) {
               <Activity className="w-3 h-3 text-emerald-400" />
               <span>TRON RPC: ONLINE</span>
             </div>
-            <RoleSwitcher />
+            <RoleSwitcher orientation="horizontal" />
           </div>
         </header>
 

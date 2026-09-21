@@ -6,7 +6,11 @@ import { Shield, UserCheck, Building2 } from "lucide-react";
 
 const emptySubscribe = () => () => {};
 
-export function RoleSwitcher() {
+interface RoleSwitcherProps {
+  orientation?: "horizontal" | "vertical";
+}
+
+export function RoleSwitcher({ orientation = "vertical" }: RoleSwitcherProps) {
   const { currentRole, setCurrentRole } = useAppStore();
 
   const isClient = useSyncExternalStore(
@@ -15,55 +19,71 @@ export function RoleSwitcher() {
     () => false
   );
 
+  const isVertical = orientation === "vertical";
+
   if (!isClient) {
     return (
-      <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded font-mono text-[11px] h-7 w-44 animate-pulse" />
+      <div
+        className={`${
+          isVertical ? "flex flex-col h-24 w-full" : "flex items-center h-7 w-44"
+        } gap-1 bg-slate-900 border border-slate-800 p-1 rounded font-mono text-[11px] animate-pulse`}
+      />
     );
   }
 
+  const roles = [
+    {
+      id: "investigating_officer" as const,
+      label: "IO",
+      fullLabel: "Investigating Officer",
+      icon: UserCheck,
+      activeStyle: "bg-slate-800 text-teal-400 font-bold border border-teal-500/30",
+    },
+    {
+      id: "supervisory_officer" as const,
+      label: "Supervisor",
+      fullLabel: "Supervisory Officer",
+      icon: Shield,
+      activeStyle: "bg-slate-800 text-amber-400 font-bold border border-amber-500/30",
+    },
+    {
+      id: "vasp_nodal_officer" as const,
+      label: "VASP Nodal",
+      fullLabel: "VASP Nodal Officer",
+      icon: Building2,
+      activeStyle: "bg-slate-800 text-teal-300 font-bold border border-teal-500/30",
+    },
+  ];
+
   return (
-    <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded font-mono text-[11px] select-none">
-      <button
-        type="button"
-        onClick={() => setCurrentRole("investigating_officer")}
-        className={`flex items-center gap-1.5 px-2 py-1 rounded transition-colors cursor-pointer ${
-          currentRole === "investigating_officer"
-            ? "bg-slate-800 text-teal-400 font-bold border border-slate-700"
-            : "text-slate-400 hover:text-slate-200"
-        }`}
-        title="Investigating Officer (IO)"
-      >
-        <UserCheck className="w-3.5 h-3.5" />
-        <span>IO</span>
-      </button>
-
-      <button
-        type="button"
-        onClick={() => setCurrentRole("supervisory_officer")}
-        className={`flex items-center gap-1.5 px-2 py-1 rounded transition-colors cursor-pointer ${
-          currentRole === "supervisory_officer"
-            ? "bg-slate-800 text-amber-400 font-bold border border-slate-700"
-            : "text-slate-400 hover:text-slate-200"
-        }`}
-        title="Supervisory Officer"
-      >
-        <Shield className="w-3.5 h-3.5" />
-        <span>Supervisor</span>
-      </button>
-
-      <button
-        type="button"
-        onClick={() => setCurrentRole("vasp_nodal_officer")}
-        className={`flex items-center gap-1.5 px-2 py-1 rounded transition-colors cursor-pointer ${
-          currentRole === "vasp_nodal_officer"
-            ? "bg-slate-800 text-teal-300 font-bold border border-slate-700"
-            : "text-slate-400 hover:text-slate-200"
-        }`}
-        title="VASP Nodal Officer"
-      >
-        <Building2 className="w-3.5 h-3.5" />
-        <span>VASP Nodal</span>
-      </button>
+    <div
+      className={`flex ${
+        isVertical ? "flex-col w-full gap-1.5" : "flex-row items-center gap-1"
+      } bg-slate-900 border border-slate-800 p-1.5 rounded-lg font-mono text-[11px] select-none`}
+    >
+      {roles.map((r) => {
+        const Icon = r.icon;
+        const isActive = currentRole === r.id;
+        return (
+          <button
+            key={r.id}
+            type="button"
+            onClick={() => setCurrentRole(r.id)}
+            className={`flex items-center gap-2 px-2.5 py-1.5 rounded transition-all cursor-pointer ${
+              isVertical ? "w-full justify-start text-left" : ""
+            } ${
+              isActive
+                ? `${r.activeStyle} shadow-sm`
+                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent"
+            }`}
+            title={r.fullLabel}
+          >
+            <Icon className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">{r.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }
+

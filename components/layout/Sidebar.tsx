@@ -152,7 +152,7 @@ export function Sidebar() {
         <div className="text-[9px] text-slate-500 uppercase font-semibold">
           Switch Operational Role
         </div>
-        <RoleSwitcher />
+        <RoleSwitcher orientation="vertical" />
       </div>
     </aside>
   );
