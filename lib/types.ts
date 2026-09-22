@@ -104,3 +104,33 @@ export interface CaseSummary {
   created_at: string;
   attributed_vasp_name?: string;
 }
+
+export type ClusterType =
+  | "exchange_sweep"
+  | "syndicate_gas_funder"
+  | "laundering_typology"
+  | (string & {});
+
+export interface WalletCluster {
+  cluster_id?: string;
+  id?: string;
+  cluster_label?: string;
+  label?: string;
+  name?: string;
+  cluster_type: ClusterType;
+  confidence: number | string;
+  node_count?: number;
+  address_count?: number;
+  addresses: string[];
+  entity_name?: string;
+  entity?: string;
+  summary?: string;
+  description?: string;
+}
+
+export interface CaseClustersResponse {
+  case_id: string;
+  clusters: WalletCluster[];
+  total_clusters?: number;
+}
+

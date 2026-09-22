@@ -14,6 +14,7 @@ interface Graph3DWrapperProps {
   onSelectNode?: (node: WalletNode | null) => void;
   onSelectEdge?: (edge: TransferEdge | null) => void;
   showLabels?: boolean;
+  selectedClusterAddresses?: string[];
   onFallbackTo2D?: () => void;
 }
 

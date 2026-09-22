@@ -65,6 +65,14 @@ export function getCytoscapeStyles(showLabels: boolean = true): cytoscape.Styles
       },
     },
     {
+      selector: "node.cluster-highlighted",
+      css: {
+        "border-width": 4,
+        "border-color": "#c084fc",
+        "background-color": "#9333ea",
+      },
+    },
+    {
       selector: "edge",
       css: {
         width: "data(width)" as unknown as number,

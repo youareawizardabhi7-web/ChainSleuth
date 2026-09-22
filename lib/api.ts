@@ -7,6 +7,8 @@ import {
   VASPAttribution,
   WalletNode,
   TransferEdge,
+  CaseClustersResponse,
+  WalletCluster,
 } from "./types";
 
 export const API_BASE_URL = (
@@ -553,7 +555,48 @@ export async function downloadCourtEvidenceBundle(caseId: string): Promise<void>
   URL.revokeObjectURL(url);
 }
 
+export async function getCaseClusters(caseId: string): Promise<CaseClustersResponse> {
+  try {
+    const headers: Record<string, string> = {};
+    if (typeof window !== "undefined") {
+      const token =
+        localStorage.getItem("token") ||
+        localStorage.getItem("auth_token") ||
+        localStorage.getItem("access_token");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    const res = await fetch(`${API_BASE_URL}/cases/${encodeURIComponent(caseId)}/clusters`, {
+      method: "GET",
+      headers,
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch forensic clusters (${res.status})`);
+    }
+
+    const data = await res.json();
+    const clustersList: WalletCluster[] = Array.isArray(data.clusters)
+      ? data.clusters
+      : Array.isArray(data)
+      ? data
+      : [];
+
+    return {
+      case_id: data.case_id || caseId,
+      clusters: clustersList,
+      total_clusters: data.total_clusters ?? clustersList.length,
+    };
+  } catch (err) {
+    console.error("[API] getCaseClusters backend call failed:", err);
+    throw new Error("Unable to retrieve forensic clusters.");
+  }
+}
+
 export const runTrace = createTrace;
 export const fetchCase = getCase;
 export const fetchCases = getCases;
+
 

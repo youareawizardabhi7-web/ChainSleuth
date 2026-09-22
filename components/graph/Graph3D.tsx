@@ -31,6 +31,7 @@ interface Graph3DProps {
   onSelectNode?: (node: WalletNode | null) => void;
   onSelectEdge?: (edge: TransferEdge | null) => void;
   showLabels?: boolean;
+  selectedClusterAddresses?: string[];
   onFallbackTo2D?: () => void;
 }
 
@@ -83,6 +84,7 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
     onSelectNode,
     onSelectEdge,
     showLabels = true,
+    selectedClusterAddresses = [],
     onFallbackTo2D,
   },
   ref
@@ -425,18 +427,39 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
       // Standard / VASP / OFAC / Bridge / Layer Mesh
       const isOfac = n.nodeObj.typologyFlags?.includes("ofac_sanctioned");
       const isBridge = n.nodeObj.typologyFlags?.includes("bridge_hop");
+      const isClusterHighlighted = selectedClusterAddresses.some(
+        (addr) => addr.toLowerCase() === n.nodeObj.address.toLowerCase()
+      );
       const geometry = new THREE.SphereGeometry(radius, 16, 16);
       const material = new THREE.MeshStandardMaterial({
-        color: color,
-        emissive: isSelected ? "#38bdf8" : isOfac ? "#ef4444" : isBridge ? "#06b6d4" : color,
-        emissiveIntensity: isSelected ? 0.7 : n.nodeObj.isVasp ? 0.5 : isOfac ? 0.6 : isBridge ? 0.5 : 0.3,
+        color: isClusterHighlighted ? "#9333ea" : color,
+        emissive: isSelected
+          ? "#38bdf8"
+          : isClusterHighlighted
+          ? "#c084fc"
+          : isOfac
+          ? "#ef4444"
+          : isBridge
+          ? "#06b6d4"
+          : color,
+        emissiveIntensity: isSelected
+          ? 0.7
+          : isClusterHighlighted
+          ? 0.8
+          : n.nodeObj.isVasp
+          ? 0.5
+          : isOfac
+          ? 0.6
+          : isBridge
+          ? 0.5
+          : 0.3,
         roughness: 0.3,
         metalness: 0.2,
       });
 
       return new THREE.Mesh(geometry, material);
     },
-    [selectedNode, getNodeColor, getNodeVal]
+    [selectedNode, selectedClusterAddresses, getNodeColor, getNodeVal]
   );
 
   // Compact HTML Hover Tooltip with Origin Badge, OFAC Sanctions Badge, Bridge Hop Badge, & Layer Details

@@ -8,12 +8,13 @@ import { GraphViewRef } from "@/components/graph/GraphViewRef";
 import { GraphControls } from "@/components/graph/GraphControls";
 import { GraphMode } from "@/components/graph/GraphModeToggle";
 import { WalletDetailPanel } from "@/components/panels/WalletDetailPanel";
+import { ForensicClustersPanel } from "@/components/panels/ForensicClustersPanel";
 import { InvestigativeAdvisoryPanel } from "@/components/panels/InvestigativeAdvisoryPanel";
 import { RiskBadge } from "@/components/case/RiskBadge";
 import { AddressBadge } from "@/components/ui/AddressBadge";
 import { getCase } from "@/lib/api";
-import { TraceResult, WalletNode, TransferEdge } from "@/lib/types";
-import { ShieldAlert, ArrowRightLeft, X } from "lucide-react";
+import { TraceResult, WalletNode, TransferEdge, WalletCluster } from "@/lib/types";
+import { ShieldAlert, ArrowRightLeft, X, Boxes, XCircle } from "lucide-react";
 
 export default function CaseWorkbenchPage({
   params,
@@ -28,6 +29,8 @@ export default function CaseWorkbenchPage({
   const [traceData, setTraceData] = useState<TraceResult | null>(null);
   const [selectedNode, setSelectedNode] = useState<WalletNode | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<TransferEdge | null>(null);
+  const [selectedCluster, setSelectedCluster] = useState<WalletCluster | null>(null);
+  const [rightPanelTab, setRightPanelTab] = useState<"node_inspector" | "clusters">("node_inspector");
   const [showLabels, setShowLabels] = useState(true);
   const [graphMode, setGraphMode] = useState<GraphMode>("2D");
   const [loading, setLoading] = useState(true);
@@ -43,6 +46,8 @@ export default function CaseWorkbenchPage({
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
   }, [caseId]);
+
+  const selectedClusterAddresses = selectedCluster?.addresses || [];
 
   return (
     <AppShell>
@@ -88,6 +93,27 @@ export default function CaseWorkbenchPage({
               onToggleLabels={() => setShowLabels(!showLabels)}
             />
 
+            {/* Floating Active Cluster Banner */}
+            {selectedCluster && (
+              <div className="absolute top-14 left-4 z-20 bg-purple-950/90 border border-purple-600 backdrop-blur px-3 py-1.5 rounded text-[11px] font-mono flex items-center gap-3 text-purple-200 shadow-xl">
+                <span className="flex items-center gap-1.5 font-bold font-sans">
+                  <Boxes className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
+                  Cluster Active: {selectedCluster.cluster_label || selectedCluster.label || selectedCluster.name || "Cluster"}
+                </span>
+                <span className="text-[10px] bg-purple-900 text-purple-200 px-1.5 py-0.5 rounded font-mono border border-purple-700">
+                  {selectedCluster.addresses?.length || 0} Wallets
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedCluster(null)}
+                  className="flex items-center gap-1 px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-rose-300 hover:text-rose-100 rounded border border-slate-700 text-[10px] transition-colors cursor-pointer"
+                >
+                  <XCircle className="w-3 h-3 text-rose-400" />
+                  Clear Cluster Selection
+                </button>
+              </div>
+            )}
+
             <div className="flex-1 min-h-0 relative">
               {loading ? (
                 <div className="w-full h-full flex flex-col items-center justify-center bg-slate-950 border border-slate-800 rounded space-y-3">
@@ -107,6 +133,7 @@ export default function CaseWorkbenchPage({
                   nodes={traceData.nodes}
                   edges={traceData.edges}
                   showLabels={showLabels}
+                  selectedClusterAddresses={selectedClusterAddresses}
                   onSelectNode={(node) => {
                     setSelectedNode(node);
                     setSelectedEdge(null);
@@ -124,6 +151,7 @@ export default function CaseWorkbenchPage({
                   selectedNode={selectedNode}
                   selectedEdge={selectedEdge}
                   showLabels={showLabels}
+                  selectedClusterAddresses={selectedClusterAddresses}
                   onSelectNode={(node) => {
                     setSelectedNode(node);
                     setSelectedEdge(null);
@@ -199,8 +227,8 @@ export default function CaseWorkbenchPage({
             </div>
           </div>
 
-          {/* RIGHT: Investigative Advisory + WalletDetailPanel (4 cols) */}
-          <div className="col-span-4 h-full min-h-0 overflow-y-auto space-y-3 pr-0.5">
+          {/* RIGHT: Investigative Advisory + Tabbed Panel (4 cols) */}
+          <div className="col-span-4 h-full min-h-0 overflow-y-auto space-y-3 pr-0.5 flex flex-col">
             {traceData && (traceData.recommendations?.length || traceData.sla_cashout_alert) && (
               <InvestigativeAdvisoryPanel
                 recommendations={traceData.recommendations}
@@ -208,15 +236,61 @@ export default function CaseWorkbenchPage({
                 caseId={caseId}
               />
             )}
-            <WalletDetailPanel
-              node={selectedNode}
-              edges={traceData?.edges}
-              attribution={traceData?.attribution}
-              caseId={caseId}
-            />
+
+            {/* Tab Selector Header */}
+            <div className="flex items-center bg-slate-900 p-1 rounded border border-slate-800 shrink-0 gap-1 font-sans text-xs">
+              <button
+                type="button"
+                onClick={() => setRightPanelTab("node_inspector")}
+                className={`flex-1 py-1.5 px-2 rounded font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
+                  rightPanelTab === "node_inspector"
+                    ? "bg-slate-800 text-teal-400 border border-slate-700 shadow"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                <ShieldAlert className="w-3.5 h-3.5" />
+                Node Inspector
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setRightPanelTab("clusters")}
+                className={`flex-1 py-1.5 px-2 rounded font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
+                  rightPanelTab === "clusters"
+                    ? "bg-slate-800 text-purple-400 border border-slate-700 shadow"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                <Boxes className="w-3.5 h-3.5" />
+                Forensic Clusters
+                {selectedCluster && (
+                  <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+                )}
+              </button>
+            </div>
+
+            {/* Tab Panel Content */}
+            <div className="flex-1 min-h-0">
+              {rightPanelTab === "node_inspector" ? (
+                <WalletDetailPanel
+                  node={selectedNode}
+                  edges={traceData?.edges}
+                  attribution={traceData?.attribution}
+                  caseId={caseId}
+                />
+              ) : (
+                <ForensicClustersPanel
+                  caseId={caseId}
+                  selectedCluster={selectedCluster}
+                  onSelectCluster={setSelectedCluster}
+                  visibleGraphNodeAddresses={traceData?.nodes?.map((n) => n.address) || []}
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>
     </AppShell>
   );
 }
+

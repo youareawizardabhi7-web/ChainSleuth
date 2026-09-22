@@ -17,10 +17,11 @@ interface GraphCanvasProps {
   onSelectNode?: (node: WalletNode | null) => void;
   onSelectEdge?: (edge: TransferEdge | null) => void;
   showLabels?: boolean;
+  selectedClusterAddresses?: string[];
 }
 
 export const GraphCanvas = forwardRef<GraphViewRef, GraphCanvasProps>(function GraphCanvas(
-  { nodes = [], edges = [], onSelectNode, onSelectEdge, showLabels = true },
+  { nodes = [], edges = [], onSelectNode, onSelectEdge, showLabels = true, selectedClusterAddresses = [] },
   ref
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -144,6 +145,21 @@ export const GraphCanvas = forwardRef<GraphViewRef, GraphCanvasProps>(function G
       cyRef.current?.destroy();
     };
   }, [nodes, edges, showLabels, onSelectNode, onSelectEdge]);
+
+  // Effect to highlight cluster nodes
+  useEffect(() => {
+    if (!cyRef.current) return;
+    cyRef.current.nodes().removeClass("cluster-highlighted");
+    if (selectedClusterAddresses && selectedClusterAddresses.length > 0) {
+      const addrSet = new Set(selectedClusterAddresses.map((a) => a.toLowerCase()));
+      cyRef.current.nodes().forEach((node) => {
+        if (addrSet.has(node.id().toLowerCase())) {
+          node.addClass("cluster-highlighted");
+        }
+      });
+    }
+  }, [selectedClusterAddresses, nodes]);
+
 
   return (
     <div className="relative w-full h-full min-h-[420px] bg-slate-950 border border-slate-800 rounded select-none">
