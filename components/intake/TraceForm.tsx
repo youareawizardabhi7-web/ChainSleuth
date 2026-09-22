@@ -188,7 +188,7 @@ export function TraceForm() {
               className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded text-slate-100 focus:outline-none focus:border-teal-500 font-mono text-xs"
             />
             <div className="text-[10px] text-slate-500 mt-1">
-              Expected: TRON (T + 33 chars), EVM (0x + 40 hex), or Solana (Base58 32–44 chars).
+              Expected: TRON (T...), EVM (0x...), Solana (Base58), or Bitcoin (1..., 3..., bc1...).
             </div>
             {errors.suspect_address && (
               <span className="text-red-400 text-[11px] mt-1 block">
@@ -267,6 +267,7 @@ export function TraceForm() {
               <option value="tron">TRON (TRC-20 USDT)</option>
               <option value="solana">SOLANA (SPL Token)</option>
               <option value="ethereum">ETHEREUM (ERC-20)</option>
+              <option value="bitcoin">BITCOIN (BTC UTXO)</option>
             </select>
           </div>
 

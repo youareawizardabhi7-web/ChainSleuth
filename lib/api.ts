@@ -358,6 +358,7 @@ export async function getCase(caseId: string): Promise<TraceResult> {
     const data = await res.json();
     return {
       ...data,
+      chain: normalizeChain(data.chain || data.blockchain_type),
       nodes: data.nodes || [],
       edges: data.edges || [],
       attribution: data.attribution || null,
@@ -372,6 +373,16 @@ export async function getCase(caseId: string): Promise<TraceResult> {
       case_id: caseId,
     };
   }
+}
+
+export function normalizeChain(rawChain?: string): Chain {
+  if (!rawChain) return "tron";
+  const lower = rawChain.toLowerCase();
+  if (lower.includes("btc") || lower.includes("bitcoin")) return "bitcoin";
+  if (lower.includes("eth") || lower.includes("ethereum")) return "ethereum";
+  if (lower.includes("sol") || lower.includes("solana")) return "solana";
+  if (lower.includes("tron") || lower.includes("trx")) return "tron";
+  return (lower as Chain) || "tron";
 }
 
 export async function getCases(): Promise<CaseSummary[]> {
@@ -390,6 +401,7 @@ export async function getCases(): Promise<CaseSummary[]> {
     const rawList: any[] = await res.json();
     return rawList.map((item) => ({
       ...item,
+      chain: normalizeChain(item.chain || item.blockchain_type),
       attributed_vasp_name: item.attributed_vasp_name || item.attributed_vasp,
     }));
   } catch (err) {
@@ -427,7 +439,7 @@ export async function parseFir(complaintText: string): Promise<Partial<TraceRequ
     const data = await res.json();
     return {
       suspect_address: data.suspect_wallet_address || data.suspect_address || "",
-      chain: (data.blockchain_type || data.chain || "tron") as Chain,
+      chain: normalizeChain(data.blockchain_type || data.chain),
       max_hops: data.max_trace_hops || data.max_hops || 5,
       value_threshold_pct: 2.0,
       complaint_id: data.complaint_id,

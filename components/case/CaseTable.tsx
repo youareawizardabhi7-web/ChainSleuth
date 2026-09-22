@@ -62,10 +62,11 @@ export function CaseTable({ cases, loading = false }: CaseTableProps) {
     },
   };
 
-  const chainBadgeMap = {
+  const chainBadgeMap: Record<string, string> = {
     tron: "bg-red-950/60 text-red-400 border-red-800/60",
     solana: "bg-purple-950/60 text-purple-400 border-purple-800/60",
     ethereum: "bg-blue-950/60 text-blue-400 border-blue-800/60",
+    bitcoin: "bg-amber-950/60 text-amber-400 border-amber-800/60",
   };
 
   return (

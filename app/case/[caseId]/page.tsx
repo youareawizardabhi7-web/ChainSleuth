@@ -154,29 +154,45 @@ export default function CaseWorkbenchPage({
 
                   <div>
                     <span className="text-slate-500 text-[10px] block">Transaction Hash</span>
-                    <AddressBadge address={selectedEdge.txHash} truncateLength={8} />
+                    {selectedEdge.txHash ? (
+                      <AddressBadge address={selectedEdge.txHash} truncateLength={8} />
+                    ) : (
+                      <span className="text-slate-400">N/A</span>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
                     <div>
                       <span className="text-slate-500 block text-[10px]">From Address</span>
-                      <AddressBadge address={selectedEdge.from} truncateLength={4} />
+                      {selectedEdge.from ? (
+                        <AddressBadge address={selectedEdge.from} truncateLength={4} />
+                      ) : (
+                        <span className="text-slate-400">N/A</span>
+                      )}
                     </div>
                     <div>
                       <span className="text-slate-500 block text-[10px]">To Address</span>
-                      <AddressBadge address={selectedEdge.to} truncateLength={4} />
+                      {selectedEdge.to ? (
+                        <AddressBadge address={selectedEdge.to} truncateLength={4} />
+                      ) : (
+                        <span className="text-slate-400">N/A</span>
+                      )}
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between pt-1 border-t border-slate-800 text-[11px]">
                     <span className="text-slate-400">Transferred Value:</span>
                     <span className="font-bold text-teal-300">
-                      {selectedEdge.value.toLocaleString()} {selectedEdge.token}
+                      {selectedEdge.value !== undefined && selectedEdge.value !== null
+                        ? `${selectedEdge.value.toLocaleString()} ${
+                            selectedEdge.token || (traceData?.chain === "bitcoin" ? "BTC" : "N/A")
+                          }`
+                        : "N/A"}
                     </span>
                   </div>
 
                   <div className="text-[10px] text-slate-500 text-right">
-                    {new Date(selectedEdge.timestamp).toLocaleString()}
+                    {selectedEdge.timestamp ? new Date(selectedEdge.timestamp).toLocaleString() : "N/A"}
                   </div>
                 </div>
               )}

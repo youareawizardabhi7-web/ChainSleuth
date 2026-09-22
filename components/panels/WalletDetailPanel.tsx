@@ -68,28 +68,42 @@ export function WalletDetailPanel({
       <div className="grid grid-cols-2 gap-2 bg-slate-900/80 p-2.5 rounded border border-slate-800">
         <div>
           <div className="text-slate-500 text-[10px] uppercase">Chain</div>
-          <div className="uppercase font-bold text-slate-100">{node.chain}</div>
+          <div className="uppercase font-bold text-slate-100">{node.chain || "N/A"}</div>
         </div>
         <div>
           <div className="text-slate-500 text-[10px] uppercase">Current Balance</div>
           <div className="font-bold text-slate-100">
-            {node.balance.toLocaleString()} {node.chain === "tron" ? "TRX" : "SOL"}
+            {node.balance !== undefined && node.balance !== null
+              ? `${node.balance.toLocaleString()} ${
+                  node.chain === "tron"
+                    ? "TRX"
+                    : node.chain === "ethereum"
+                    ? "ETH"
+                    : node.chain === "bitcoin"
+                    ? "BTC"
+                    : node.chain === "solana"
+                    ? "SOL"
+                    : ""
+                }`
+              : "N/A"}
           </div>
         </div>
         <div>
           <div className="text-slate-500 text-[10px] uppercase">Risk Assessment</div>
-          <div className="font-bold text-slate-100">{node.riskScore}/100</div>
+          <div className="font-bold text-slate-100">
+            {node.riskScore !== undefined && node.riskScore !== null ? `${node.riskScore}/100` : "N/A"}
+          </div>
         </div>
         <div>
           <div className="text-slate-500 text-[10px] uppercase">First Seen</div>
           <div className="text-slate-300 text-[11px]">
-            {new Date(node.firstSeen).toLocaleDateString()}
+            {node.firstSeen ? new Date(node.firstSeen).toLocaleDateString() : "N/A"}
           </div>
         </div>
       </div>
 
       {/* Typology Flags with Plain-English Explanations */}
-      {node.typologyFlags.length > 0 && (
+      {node.typologyFlags && node.typologyFlags.length > 0 && (
         <div className="space-y-1.5">
           <div className="text-slate-500 text-[10px] uppercase font-semibold">
             Detected Laundering Typologies
@@ -114,9 +128,21 @@ export function WalletDetailPanel({
           <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1">
             {walletTxs.map((tx) => {
               const isOutbound = tx.from === node.address;
+              const tokenSymbol =
+                tx.token ||
+                (node.chain === "tron"
+                  ? "TRX"
+                  : node.chain === "ethereum"
+                  ? "ETH"
+                  : node.chain === "bitcoin"
+                  ? "BTC"
+                  : node.chain === "solana"
+                  ? "SOL"
+                  : "N/A");
+
               return (
                 <div
-                  key={tx.txHash}
+                  key={tx.txHash || `${tx.from}-${tx.to}-${tx.value}`}
                   className="p-2 bg-slate-900/60 border border-slate-800/80 rounded flex items-center justify-between text-[11px]"
                 >
                   <div className="flex items-center gap-2">
@@ -132,12 +158,14 @@ export function WalletDetailPanel({
                     <div>
                       <AddressBadge address={isOutbound ? tx.to : tx.from} truncateLength={4} />
                       <div className="text-[10px] text-slate-500 mt-0.5">
-                        {new Date(tx.timestamp).toLocaleTimeString()}
+                        {tx.timestamp ? new Date(tx.timestamp).toLocaleTimeString() : "N/A"}
                       </div>
                     </div>
                   </div>
                   <div className="text-right font-bold text-slate-200">
-                    {tx.value.toLocaleString()} {tx.token}
+                    {tx.value !== undefined && tx.value !== null
+                      ? `${tx.value.toLocaleString()} ${tokenSymbol}`
+                      : "N/A"}
                   </div>
                 </div>
               );

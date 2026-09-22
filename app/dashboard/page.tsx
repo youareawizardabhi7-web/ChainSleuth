@@ -174,7 +174,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 bg-slate-950 p-1 border border-slate-800 rounded">
               <Filter className="w-3.5 h-3.5 text-slate-500 ml-1" />
-              {(["all", "tron", "solana", "ethereum"] as const).map((chain) => (
+              {(["all", "tron", "solana", "ethereum", "bitcoin"] as const).map((chain) => (
                 <button
                   key={chain}
                   type="button"

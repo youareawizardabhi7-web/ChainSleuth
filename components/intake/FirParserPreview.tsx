@@ -64,6 +64,7 @@ export function FirParserPreview({
             <option value="tron">TRON (TRC-20 USDT)</option>
             <option value="solana">SOLANA (SPL Token)</option>
             <option value="ethereum">ETHEREUM (ERC-20)</option>
+            <option value="bitcoin">BITCOIN (BTC UTXO)</option>
           </select>
         </div>
 
