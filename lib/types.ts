@@ -8,6 +8,14 @@ export interface TraceRequest {
   complaint_id?: string;
 }
 
+export interface SanctionsInfo {
+  sanction_date?: string;
+  designation_reason?: string;
+  sanctioned_entity_name?: string;
+  jurisdiction?: string;
+  ofac_identifier?: string;
+}
+
 export interface WalletNode {
   address: string;
   chain: Chain;
@@ -16,6 +24,7 @@ export interface WalletNode {
   firstSeen: string;
   typologyFlags: TypologyFlag[];
   isVasp?: boolean;
+  sanctionsInfo?: SanctionsInfo;
 }
 
 export type TypologyFlag =
@@ -23,7 +32,8 @@ export type TypologyFlag =
   | "fan_out"
   | "zero_gas_burner"
   | "first_funder_match"
-  | "dex_swap";
+  | "dex_swap"
+  | "ofac_sanctioned";
 
 export interface TransferEdge {
   txHash: string;

@@ -6,7 +6,7 @@ import { AddressBadge } from "@/components/ui/AddressBadge";
 import { TypologyFlags } from "./TypologyFlags";
 import { RiskBadge } from "@/components/case/RiskBadge";
 import { VaspAttributionCard } from "./VaspAttributionCard";
-import { ArrowUpRight, ArrowDownLeft, ShieldAlert } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, ShieldAlert, AlertOctagon } from "lucide-react";
 
 interface WalletDetailPanelProps {
   node: WalletNode | null;
@@ -48,6 +48,8 @@ export function WalletDetailPanel({
     (e) => e.from === node.address || e.to === node.address
   );
 
+  const isOfacSanctioned = node.typologyFlags?.includes("ofac_sanctioned");
+
   return (
     <div className="h-full p-3.5 bg-slate-950 border border-slate-800 rounded font-mono text-xs text-slate-300 flex flex-col space-y-3.5 overflow-y-auto select-none">
       {/* Header */}
@@ -57,6 +59,61 @@ export function WalletDetailPanel({
         </span>
         <RiskBadge score={node.riskScore} size="sm" />
       </div>
+
+      {/* OFAC Sanctions Alert Banner (Shown ONLY when backend explicitly flag exists) */}
+      {isOfacSanctioned && (
+        <div className="p-3 bg-red-950/90 border-2 border-red-600 rounded text-red-200 font-mono text-xs space-y-2 shadow-lg shadow-red-950/50">
+          <div className="flex items-center gap-2 font-bold font-sans text-xs text-red-400 uppercase tracking-wider">
+            <AlertOctagon className="w-4 h-4 text-red-500 shrink-0 animate-pulse" />
+            <span>OFAC Sanctions Match</span>
+            <span className="ml-auto text-[9px] bg-red-600 text-white font-extrabold px-1.5 py-0.5 rounded">
+              CRITICAL
+            </span>
+          </div>
+          <p className="text-[11px] text-red-300 font-mono leading-relaxed">
+            This wallet address has been explicitly flagged by the backend as a match against official OFAC sanctions databases.
+          </p>
+
+          {/* Render supporting evidence ONLY if backend provided sanctionsInfo */}
+          {node.sanctionsInfo && (
+            <div className="pt-2 border-t border-red-800/80 space-y-1 text-[10px]">
+              <div className="font-bold text-red-400 uppercase tracking-wider">
+                Sanctions Evidence Details (Backend Provided)
+              </div>
+              {node.sanctionsInfo.sanctioned_entity_name && (
+                <div>
+                  <span className="text-red-400">Sanctioned Entity:</span>{" "}
+                  <span className="text-slate-100 font-bold">{node.sanctionsInfo.sanctioned_entity_name}</span>
+                </div>
+              )}
+              {node.sanctionsInfo.ofac_identifier && (
+                <div>
+                  <span className="text-red-400">OFAC ID:</span>{" "}
+                  <span className="text-slate-100 font-bold">{node.sanctionsInfo.ofac_identifier}</span>
+                </div>
+              )}
+              {node.sanctionsInfo.designation_reason && (
+                <div>
+                  <span className="text-red-400">Reason:</span>{" "}
+                  <span className="text-slate-300">{node.sanctionsInfo.designation_reason}</span>
+                </div>
+              )}
+              {node.sanctionsInfo.jurisdiction && (
+                <div>
+                  <span className="text-red-400">Jurisdiction:</span>{" "}
+                  <span className="text-slate-300">{node.sanctionsInfo.jurisdiction}</span>
+                </div>
+              )}
+              {node.sanctionsInfo.sanction_date && (
+                <div>
+                  <span className="text-red-400">Sanction Date:</span>{" "}
+                  <span className="text-slate-300">{node.sanctionsInfo.sanction_date}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Full Address + Copy Button */}
       <div>

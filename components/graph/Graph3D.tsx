@@ -249,6 +249,7 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
       const info = layerMap.get(n.address);
       const isOrigin = info?.isOrigin ?? false;
       const layer = info?.layer ?? null;
+      const isOfac = n.typologyFlags?.includes("ofac_sanctioned") ?? false;
 
       const isBurner = n.typologyFlags.length > 0;
       const role: "vasp" | "burner" | "default" = n.isVasp
@@ -264,11 +265,16 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
 
       const label = isOrigin ? `ORIGIN (${truncated})` : truncated;
 
-      // Priority color mapping: Origin > VASP > Layer Color
-      const color = getLayerColor(layer, isOrigin, n.isVasp);
+      // Priority color mapping: Origin > VASP > OFAC > Layer Color
+      const color = getLayerColor(layer, isOrigin, n.isVasp, isOfac);
 
-      // Radius hierarchy: Origin (16), VASP (14), High-Risk (10), Normal (7)
-      const val = getNodeSize({ isOrigin, isVasp: n.isVasp, riskScore: n.riskScore });
+      // Radius hierarchy: Origin (16), VASP (14), OFAC (13), High-Risk (10), Normal (7)
+      const val = getNodeSize({
+        isOrigin,
+        isVasp: n.isVasp,
+        isOfacSanctioned: isOfac,
+        riskScore: n.riskScore,
+      });
 
       return {
         id: n.address,
@@ -414,12 +420,13 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
         return group;
       }
 
-      // Standard / VASP / Layer Mesh
+      // Standard / VASP / OFAC / Layer Mesh
+      const isOfac = n.nodeObj.typologyFlags?.includes("ofac_sanctioned");
       const geometry = new THREE.SphereGeometry(radius, 16, 16);
       const material = new THREE.MeshStandardMaterial({
         color: color,
-        emissive: isSelected ? "#38bdf8" : color,
-        emissiveIntensity: isSelected ? 0.7 : n.nodeObj.isVasp ? 0.5 : 0.3,
+        emissive: isSelected ? "#38bdf8" : isOfac ? "#ef4444" : color,
+        emissiveIntensity: isSelected ? 0.7 : n.nodeObj.isVasp ? 0.5 : isOfac ? 0.6 : 0.3,
         roughness: 0.3,
         metalness: 0.2,
       });
@@ -429,14 +436,19 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
     [selectedNode, getNodeColor, getNodeVal]
   );
 
-  // Compact HTML Hover Tooltip with Origin Badge & Layer Details
+  // Compact HTML Hover Tooltip with Origin Badge, OFAC Sanctions Badge, & Layer Details
   const getNodeLabel = useCallback((node: object) => {
     const n = node as ForceNode;
     const obj = n.nodeObj;
     const flags = obj.typologyFlags?.join(", ") || "None";
+    const isOfac = obj.typologyFlags?.includes("ofac_sanctioned");
 
     const originHeader = n.isOrigin
       ? `<div style="display: inline-block; background: #f97316; color: #ffffff; font-weight: bold; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-bottom: 4px;">ORIGIN NODE</div>`
+      : "";
+
+    const ofacHeader = isOfac
+      ? `<div style="display: inline-block; background: #dc2626; color: #ffffff; font-weight: bold; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-bottom: 4px; margin-left: 4px;">OFAC SANCTIONS MATCH</div>`
       : "";
 
     const vaspLabel = obj.isVasp
@@ -452,7 +464,7 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
     return `
       <div style="
         background: #0f172a;
-        border: 1px solid ${n.isOrigin ? "#f97316" : obj.isVasp ? "#14b8a6" : "#334155"};
+        border: 1px solid ${n.isOrigin ? "#f97316" : isOfac ? "#ef4444" : obj.isVasp ? "#14b8a6" : "#334155"};
         padding: 8px 12px;
         border-radius: 6px;
         font-family: monospace;
@@ -461,8 +473,8 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
         box-shadow: 0 8px 24px rgba(0,0,0,0.6);
         min-width: 180px;
       ">
-        ${originHeader}
-        <div style="font-weight: bold; color: ${n.isOrigin ? "#f97316" : "#38bdf8"}; font-size: 12px;">${n.label}</div>
+        ${originHeader}${ofacHeader}
+        <div style="font-weight: bold; color: ${n.isOrigin ? "#f97316" : isOfac ? "#f87171" : "#38bdf8"}; font-size: 12px;">${n.label}</div>
         ${vaspLabel}
         <div style="font-size: 10px; color: #94a3b8; margin-top: 4px;">
           Address: <span style="color: #f1f5f9;">${obj.address}</span>
@@ -616,12 +628,21 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
             />
             <span>Unreachable</span>
           </div>
+          <div className="flex items-center gap-2 pt-1 border-t border-slate-800/80 justify-between">
+            <div className="flex items-center gap-2">
+              <span
+                className="w-2.5 h-2.5 rotate-45 shrink-0"
+                style={{ backgroundColor: LAYER_COLORS.vasp }}
+              />
+              <span className="text-teal-400 font-semibold">VASP Target</span>
+            </div>
+          </div>
           <div className="flex items-center gap-2 pt-1 border-t border-slate-800/80">
             <span
-              className="w-2.5 h-2.5 rotate-45 shrink-0"
-              style={{ backgroundColor: LAYER_COLORS.vasp }}
+              className="w-2.5 h-2.5 rounded-full shrink-0 ring-2 ring-[#ef4444]/40"
+              style={{ backgroundColor: LAYER_COLORS.ofac }}
             />
-            <span className="text-teal-400 font-semibold">VASP / Exchange</span>
+            <span className="text-red-400 font-bold">OFAC Sanctioned</span>
           </div>
         </div>
       </div>

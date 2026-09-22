@@ -2,7 +2,7 @@
 
 import React from "react";
 import { TypologyFlag } from "@/lib/types";
-import { Layers, Flame, Share2, Link2, Repeat, Info } from "lucide-react";
+import { Layers, Flame, Share2, Link2, Repeat, Info, AlertOctagon } from "lucide-react";
 
 interface TypologyFlagsProps {
   flags: TypologyFlag[];
@@ -51,6 +51,13 @@ const TYPOLOGY_CONFIG: Record<
     badgeStyle: "bg-cyan-950/90 border-cyan-800 text-cyan-400",
     explanation:
       "Automated liquidity pool swap transaction detected on a decentralized exchange protocol.",
+  },
+  ofac_sanctioned: {
+    title: "OFAC SANCTIONS MATCH - CRITICAL",
+    icon: AlertOctagon,
+    badgeStyle: "bg-red-950 border-2 border-red-600 text-red-200 shadow-lg shadow-red-950/60",
+    explanation:
+      "This wallet address has been flagged by the backend as an explicit match against official OFAC sanctions databases.",
   },
 };
 

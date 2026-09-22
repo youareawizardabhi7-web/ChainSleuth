@@ -28,6 +28,16 @@ export function getCytoscapeStyles(showLabels: boolean = true): cytoscape.Styles
       },
     },
     {
+      selector: 'node[role = "ofac"]',
+      css: {
+        "background-color": "#dc2626", // Red = OFAC sanctioned node
+        "border-color": "#991b1b",
+        "border-width": 3,
+        width: 36,
+        height: 36,
+      },
+    },
+    {
       selector: 'node[role = "vasp"]',
       css: {
         "background-color": "#0d9488", // Teal/Green = attributed VASP deposit target
