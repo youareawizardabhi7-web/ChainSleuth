@@ -4,7 +4,7 @@
 > *Automated multi-chain asset tracing, laundering typology detection, VASP deposit attribution, and Section 94 BNSS legal freeze notice generator for Indian Cyber Crime Law Enforcement.*
 
 ---
-
+https://chainsleuth.netlify.app/dashboard
 ## 📌 Executive Summary
 
 When crypto fraud occurs, criminals launder stolen funds across disposable burner wallets, peeling chains, fan-out smurfing splits, and DEX swaps before depositing into exchanges (VASPs like CoinDCX, WazirX, or Binance) to cash out into fiat currency. Criminals cash out within **~30 minutes**, whereas manual investigation currently takes hours or days.
