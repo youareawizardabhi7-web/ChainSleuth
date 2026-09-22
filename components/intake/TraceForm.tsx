@@ -86,9 +86,10 @@ export function TraceForm() {
         scamType: "Part-Time Task Scam (Telegram Cyber Fraud)",
         amountInr: 485000,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setSubmitError(err?.message || "Failed to parse FIR complaint text.");
+      const msg = err instanceof Error ? err.message : "Failed to parse FIR complaint text.";
+      setSubmitError(msg);
     } finally {
       setIsParsing(false);
     }
@@ -124,9 +125,10 @@ export function TraceForm() {
 
       const result = await createTrace(requestPayload);
       router.push(`/case/${result.case_id}`);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setSubmitError(err?.message || "Failed to initiate trace with backend API.");
+      const msg = err instanceof Error ? err.message : "Failed to initiate trace with backend API.";
+      setSubmitError(msg);
       setLoading(false);
     }
   };

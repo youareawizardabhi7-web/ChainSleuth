@@ -35,7 +35,7 @@ interface Graph3DProps {
   onFallbackTo2D?: () => void;
 }
 
-export interface Graph3DRef extends GraphViewRef {}
+export type Graph3DRef = GraphViewRef;
 
 interface ForceNode {
   id: string;
@@ -83,7 +83,6 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
     selectedEdge = null,
     onSelectNode,
     onSelectEdge,
-    showLabels = true,
     selectedClusterAddresses = [],
     onFallbackTo2D,
   },
@@ -99,39 +98,31 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
 
   // Measure container dimensions using ResizeObserver
   useEffect(() => {
-    if (!checkWebGLSupport()) {
-      setWebGlSupported(false);
-      return;
-    }
+    if (typeof window === "undefined") return;
+    setWebGlSupported(checkWebGLSupport());
 
-    const container = containerRef.current;
-    if (!container) return;
-
+    if (!containerRef.current) return;
     const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        if (width > 0 && height > 0) {
-          setDimensions({ width, height });
-        }
+      const entry = entries[0];
+      if (entry) {
+        setDimensions({
+          width: Math.max(300, entry.contentRect.width),
+          height: Math.max(300, entry.contentRect.height),
+        });
       }
     });
 
-    observer.observe(container);
-    setDimensions({
-      width: container.clientWidth || 600,
-      height: container.clientHeight || 450,
-    });
-
+    observer.observe(containerRef.current);
     return () => observer.disconnect();
   }, []);
 
-  // Configure Scene Lighting & Camera Fit
+  // Configure Three.js lighting
   useEffect(() => {
     if (fgRef.current) {
       try {
         const scene = fgRef.current.scene();
         if (scene && !scene.getObjectByName("ambientLight")) {
-          const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
+          const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
           ambientLight.name = "ambientLight";
           scene.add(ambientLight);
         }
@@ -143,6 +134,7 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
         }
       } catch (err) {
         console.warn("Could not attach lighting to Three.js scene:", err);
+        setHasError(true);
       }
     }
   }, []);
@@ -155,13 +147,19 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
       }, 350);
       return () => clearTimeout(timer);
     }
-  }, [nodes]);
+  }, [nodes.length]);
 
   // Camera Control Ref API implementation
   useImperativeHandle(ref, () => ({
     zoomIn: () => {
       if (fgRef.current) {
-        const fg = fgRef.current as any;
+        const fg = fgRef.current as unknown as {
+          cameraPosition: (
+            pos?: { x?: number; y?: number; z?: number },
+            target?: { x?: number; y?: number; z?: number },
+            ms?: number
+          ) => { x?: number; y?: number; z?: number };
+        };
         const currentCam = fg.cameraPosition() || { x: 0, y: 0, z: 200 };
         fg.cameraPosition(
           {
@@ -176,7 +174,13 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
     },
     zoomOut: () => {
       if (fgRef.current) {
-        const fg = fgRef.current as any;
+        const fg = fgRef.current as unknown as {
+          cameraPosition: (
+            pos?: { x?: number; y?: number; z?: number },
+            target?: { x?: number; y?: number; z?: number },
+            ms?: number
+          ) => { x?: number; y?: number; z?: number };
+        };
         const currentCam = fg.cameraPosition() || { x: 0, y: 0, z: 200 };
         fg.cameraPosition(
           {

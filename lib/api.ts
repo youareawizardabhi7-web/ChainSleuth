@@ -16,6 +16,7 @@ import {
   NCRPIngestRecordResult,
   SyndicateCorrelation,
   NcrpCorrelationsResponse,
+  AuditLogItem,
 } from "./types";
 
 export const API_BASE_URL = (
@@ -407,11 +408,11 @@ export async function getCases(): Promise<CaseSummary[]> {
       throw new Error(`Failed to fetch cases (${res.status}): ${errorText}`);
     }
 
-    const rawList: any[] = await res.json();
+    const rawList: Record<string, unknown>[] = await res.json();
     return rawList.map((item) => ({
-      ...item,
-      chain: normalizeChain(item.chain || item.blockchain_type),
-      attributed_vasp_name: item.attributed_vasp_name || item.attributed_vasp,
+      ...(item as unknown as CaseSummary),
+      chain: normalizeChain((item.chain || item.blockchain_type) as string | undefined),
+      attributed_vasp_name: (item.attributed_vasp_name || item.attributed_vasp) as string | undefined,
     }));
   } catch (err) {
     console.error("[API] getCases backend call failed:", err);
@@ -835,9 +836,50 @@ export async function getNcrpCorrelations(): Promise<NcrpCorrelationsResponse> {
   };
 }
 
+export async function getAuditLogs(): Promise<AuditLogItem[]> {
+  let res: Response;
+  try {
+    const headers: Record<string, string> = {};
+    if (typeof window !== "undefined") {
+      const token =
+        localStorage.getItem("token") ||
+        localStorage.getItem("auth_token") ||
+        localStorage.getItem("access_token");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    res = await fetch(`${API_BASE_URL}/audit/logs`, {
+      method: "GET",
+      headers,
+    });
+  } catch (err) {
+    console.error("[API] getAuditLogs network failure:", err);
+    throw new Error("Unable to retrieve supervisory audit logs.");
+  }
+
+  if (!res.ok) {
+    if (res.status === 404) {
+      return [];
+    }
+    throw new Error(`Failed to fetch supervisory audit logs (${res.status})`);
+  }
+
+  const data = await res.json();
+  const logsList: AuditLogItem[] = Array.isArray(data.logs)
+    ? data.logs
+    : Array.isArray(data)
+    ? data
+    : [];
+
+  return logsList;
+}
+
 export const runTrace = createTrace;
 export const fetchCase = getCase;
 export const fetchCases = getCases;
+
 
 
 

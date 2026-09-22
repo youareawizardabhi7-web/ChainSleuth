@@ -127,7 +127,7 @@ export default function NcrpIngestionPage() {
           setError(valErr);
           return;
         }
-      } catch (err: unknown) {
+      } catch {
         setError("Invalid JSON format. Please paste a valid NCRP complaint array JSON.");
         return;
       }

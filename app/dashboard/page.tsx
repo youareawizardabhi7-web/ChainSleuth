@@ -34,8 +34,6 @@ export default function DashboardPage() {
   const isSupervisor = currentRole === "supervisory_officer";
 
   useEffect(() => {
-    setLoading(true);
-    setError(null);
     getCases()
       .then((data) => {
         setCases(Array.isArray(data) ? data : []);

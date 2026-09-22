@@ -221,6 +221,14 @@ export interface NcrpCorrelationsResponse {
   message?: string;
 }
 
+export interface AuditLogItem {
+  id: string;
+  officer: string;
+  action: string;
+  query: string;
+  timestamp: string;
+}
+
 
 
 

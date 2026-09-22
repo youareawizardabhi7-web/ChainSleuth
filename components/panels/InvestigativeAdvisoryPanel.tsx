@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { AlertCircle, Clock, Zap, Check, Copy, ChevronDown, ChevronUp, ShieldCheck } from "lucide-react";
+import { Clock, Zap, Check, Copy, ChevronDown, ChevronUp, ShieldCheck } from "lucide-react";
 
 interface InvestigativeAdvisoryPanelProps {
   recommendations?: string[];
