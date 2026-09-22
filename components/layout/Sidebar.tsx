@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   UserCheck,
   Building2,
+  Database,
 } from "lucide-react";
 
 const emptySubscribe = () => () => {};
@@ -51,6 +52,11 @@ export function Sidebar() {
       label: "Legal Notices",
       href: "/case/test-verification-456/notice",
       icon: FileText,
+    },
+    {
+      label: "NCRP Ingestion",
+      href: "/ncrp",
+      icon: Database,
     },
   ];
 

@@ -162,4 +162,37 @@ export interface FIRResponse {
   sha256_hash?: string;
 }
 
+export interface NCRPComplaint {
+  complaint_id: string;
+  acknowledgement_no?: string;
+  category?: string;
+  sub_category?: string;
+  suspect_wallet_address: string;
+  blockchain: Chain | string;
+  transaction_hash?: string;
+  loss_amount_inr?: number;
+  complainant_state?: string;
+  district?: string;
+  incident_datetime?: string;
+}
+
+export interface NCRPIngestRecordResult {
+  complaint_id: string;
+  status: "success" | "failed" | string;
+  error?: string;
+  message?: string;
+  case_id?: string;
+}
+
+export interface NCRPIngestResponse {
+  submitted_count: number;
+  successful_count: number;
+  failed_count: number;
+  successful_records?: NCRPIngestRecordResult[];
+  failed_records?: NCRPIngestRecordResult[];
+  batch_trace_supported?: boolean;
+  message?: string;
+}
+
+
 

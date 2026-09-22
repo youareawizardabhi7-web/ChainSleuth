@@ -11,6 +11,9 @@ import {
   WalletCluster,
   FIRCreate,
   FIRResponse,
+  NCRPComplaint,
+  NCRPIngestResponse,
+  NCRPIngestRecordResult,
 } from "./types";
 
 export const API_BASE_URL = (
@@ -662,9 +665,128 @@ export async function downloadFir(firId: string, pdfUrl?: string): Promise<void>
   }
 }
 
+export async function ingestNcrpComplaints(
+  complaints: NCRPComplaint[]
+): Promise<NCRPIngestResponse> {
+  let res: Response;
+  try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (typeof window !== "undefined") {
+      const token =
+        localStorage.getItem("token") ||
+        localStorage.getItem("auth_token") ||
+        localStorage.getItem("access_token");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    res = await fetch(`${API_BASE_URL}/ncrp/ingest`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ complaints }),
+    });
+
+    if (res.status === 404 || res.status === 405) {
+      res = await fetch(`${API_BASE_URL}/ncrp/ingest`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(complaints),
+      });
+    }
+  } catch (err) {
+    console.error("[API] ingestNcrpComplaints network failure:", err);
+    throw new Error("Connection error: Unable to reach backend server.");
+  }
+
+  if (res.status === 401) {
+    throw new Error("Authentication error (401): Please log in to ingest NCRP/SAHYOG complaints.");
+  }
+  if (res.status === 403) {
+    throw new Error("Permission error (403): You do not have permission to ingest NCRP/SAHYOG complaints.");
+  }
+  if (res.status === 422) {
+    const errorBody = await res.json().catch(() => null);
+    const detailMsg = errorBody?.detail
+      ? Array.isArray(errorBody.detail)
+        ? errorBody.detail.map((d: { msg?: string }) => d.msg || "").join(", ")
+        : errorBody.detail
+      : "";
+    throw new Error(`Validation error (422): ${detailMsg || "Please check submitted complaint parameters."}`);
+  }
+  if (res.status >= 500) {
+    throw new Error("Backend processing failure (500): Server error during NCRP complaint ingestion.");
+  }
+  if (!res.ok) {
+    throw new Error(`NCRP Ingestion failed with status ${res.status}`);
+  }
+
+  const data = await res.json();
+
+  const submitted_count =
+    data.submitted_count ?? data.total_submitted ?? complaints.length;
+  const successful_records: NCRPIngestRecordResult[] =
+    data.successful_records ||
+    data.successful ||
+    (Array.isArray(data.results)
+      ? data.results.filter((r: { status?: string; error?: string }) => r.status === "success" || !r.error)
+      : []);
+  const failed_records: NCRPIngestRecordResult[] =
+    data.failed_records ||
+    data.failed ||
+    (Array.isArray(data.results)
+      ? data.results.filter((r: { status?: string; error?: string }) => r.status === "failed" || r.error)
+      : []);
+
+  const successful_count =
+    data.successful_count ?? data.success_count ?? successful_records.length;
+  const failed_count =
+    data.failed_count ?? data.error_count ?? failed_records.length;
+
+  return {
+    submitted_count,
+    successful_count,
+    failed_count,
+    successful_records,
+    failed_records,
+    batch_trace_supported: !!(data.batch_trace_supported || data.can_batch_trace || data.batch_trace_url),
+    message: data.message,
+  };
+}
+
+export async function runNcrpBatchTrace(complaintIds: string[]): Promise<{ status: string; message?: string }> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (typeof window !== "undefined") {
+    const token =
+      localStorage.getItem("token") ||
+      localStorage.getItem("auth_token") ||
+      localStorage.getItem("access_token");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+  }
+
+  const res = await fetch(`${API_BASE_URL}/ncrp/batch-trace`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ complaint_ids: complaintIds }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Batch trace failed with status ${res.status}`);
+  }
+
+  return await res.json();
+}
+
 export const runTrace = createTrace;
 export const fetchCase = getCase;
 export const fetchCases = getCases;
+
 
 
 
