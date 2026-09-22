@@ -28,10 +28,7 @@ export function CaseTable({ cases, loading = false }: CaseTableProps) {
     return (
       <div className="w-full border border-slate-800 rounded bg-slate-950 p-12 text-center font-mono text-xs text-slate-500 space-y-2">
         <AlertCircle className="w-6 h-6 text-slate-600 mx-auto mb-1" />
-        <div className="text-slate-300 font-semibold font-sans">No Investigation Cases Found</div>
-        <p className="text-[11px] text-slate-500">
-          No records match the active filter parameters or search queries.
-        </p>
+        <div className="text-slate-300 font-semibold font-sans">No investigations found.</div>
       </div>
     );
   }
