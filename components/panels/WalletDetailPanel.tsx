@@ -6,7 +6,7 @@ import { AddressBadge } from "@/components/ui/AddressBadge";
 import { TypologyFlags } from "./TypologyFlags";
 import { RiskBadge } from "@/components/case/RiskBadge";
 import { VaspAttributionCard } from "./VaspAttributionCard";
-import { ArrowUpRight, ArrowDownLeft, ShieldAlert, AlertOctagon } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, ShieldAlert, AlertOctagon, ArrowRightLeft } from "lucide-react";
 
 interface WalletDetailPanelProps {
   node: WalletNode | null;
@@ -49,6 +49,7 @@ export function WalletDetailPanel({
   );
 
   const isOfacSanctioned = node.typologyFlags?.includes("ofac_sanctioned");
+  const isBridgeHop = node.typologyFlags?.includes("bridge_hop");
 
   return (
     <div className="h-full p-3.5 bg-slate-950 border border-slate-800 rounded font-mono text-xs text-slate-300 flex flex-col space-y-3.5 overflow-y-auto select-none">
@@ -108,6 +109,67 @@ export function WalletDetailPanel({
                 <div>
                   <span className="text-red-400">Sanction Date:</span>{" "}
                   <span className="text-slate-300">{node.sanctionsInfo.sanction_date}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Cross-Chain Bridge Hop Card (Shown ONLY when backend explicitly flag exists) */}
+      {isBridgeHop && (
+        <div className="p-3 bg-cyan-950/80 border border-cyan-700 rounded text-cyan-200 font-mono text-xs space-y-2">
+          <div className="flex items-center gap-2 font-bold font-sans text-xs text-cyan-400 uppercase tracking-wider">
+            <ArrowRightLeft className="w-4 h-4 text-cyan-400 shrink-0" />
+            <span>Cross-Chain Bridge Hop</span>
+            {node.bridgeInfo?.bridge_name && (
+              <span className="ml-auto text-[10px] bg-cyan-900 text-cyan-200 font-bold px-2 py-0.5 rounded border border-cyan-700">
+                {node.bridgeInfo.bridge_name}
+              </span>
+            )}
+          </div>
+          <p className="text-[11px] text-cyan-300/90 leading-relaxed font-mono">
+            This node has been identified by backend ledger analysis as a cross-chain liquidity bridge endpoint.
+          </p>
+
+          {/* Render backend bridge details ONLY if available */}
+          {node.bridgeInfo && (
+            <div className="pt-2 border-t border-cyan-800/80 space-y-1 text-[10px]">
+              <div className="font-bold text-cyan-400 uppercase tracking-wider">
+                Bridge Metadata (Backend Provided)
+              </div>
+              {node.bridgeInfo.bridge_name && (
+                <div>
+                  <span className="text-cyan-400">Bridge Protocol:</span>{" "}
+                  <span className="text-slate-100 font-bold">{node.bridgeInfo.bridge_name}</span>
+                </div>
+              )}
+              {(node.bridgeInfo.source_chain || node.bridgeInfo.dest_chain || node.bridgeInfo.destination_chain) && (
+                <div>
+                  <span className="text-cyan-400">Chain Hop:</span>{" "}
+                  <span className="text-slate-100 font-bold uppercase">
+                    {node.bridgeInfo.source_chain || "N/A"} → {node.bridgeInfo.dest_chain || node.bridgeInfo.destination_chain || "N/A"}
+                  </span>
+                </div>
+              )}
+              {node.bridgeInfo.tx_hash && (
+                <div>
+                  <span className="text-cyan-400">Bridge Tx Hash:</span>{" "}
+                  <AddressBadge address={node.bridgeInfo.tx_hash} truncateLength={6} />
+                </div>
+              )}
+              {(node.bridgeInfo.confidence_score !== undefined || node.bridgeInfo.confidence !== undefined) && (
+                <div>
+                  <span className="text-cyan-400">Confidence:</span>{" "}
+                  <span className="text-slate-100 font-bold">
+                    {node.bridgeInfo.confidence_score ?? node.bridgeInfo.confidence}%
+                  </span>
+                </div>
+              )}
+              {node.bridgeInfo.timestamp && (
+                <div>
+                  <span className="text-cyan-400">Timestamp:</span>{" "}
+                  <span className="text-slate-300">{new Date(node.bridgeInfo.timestamp).toLocaleString()}</span>
                 </div>
               )}
             </div>

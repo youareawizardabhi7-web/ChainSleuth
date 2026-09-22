@@ -6,7 +6,7 @@ export interface NodeLayerInfo {
 }
 
 export const LAYER_COLORS: Record<
-  number | "5+" | "unreachable" | "origin" | "vasp" | "ofac",
+  number | "5+" | "unreachable" | "origin" | "vasp" | "ofac" | "bridge",
   string
 > = {
   0: "#f97316",           // Origin (Orange)
@@ -19,6 +19,7 @@ export const LAYER_COLORS: Record<
   origin: "#f97316",      // Origin Node Highlight Color
   vasp: "#14b8a6",        // Attributed VASP / Exchange Target (Teal)
   ofac: "#ef4444",        // OFAC Sanctioned Node (Red)
+  bridge: "#06b6d4",      // Cross-Chain Bridge Hop Node (Cyan)
 };
 
 /**
@@ -102,17 +103,20 @@ export function calculateGraphLayers(
  * 1. Origin (#f97316 Orange)
  * 2. VASP (#14b8a6 Teal)
  * 3. OFAC Sanctioned (#ef4444 Red)
- * 4. Layer color (Layers 1-5+ / Unreachable)
+ * 4. Bridge Hop (#06b6d4 Cyan)
+ * 5. Layer color (Layers 1-5+ / Unreachable)
  */
 export function getLayerColor(
   layer: number | null,
   isOrigin?: boolean,
   isVasp?: boolean,
-  isOfacSanctioned?: boolean
+  isOfacSanctioned?: boolean,
+  isBridge?: boolean
 ): string {
   if (isOrigin) return LAYER_COLORS.origin;
   if (isVasp) return LAYER_COLORS.vasp;
   if (isOfacSanctioned) return LAYER_COLORS.ofac;
+  if (isBridge) return LAYER_COLORS.bridge;
   if (layer === null || layer === undefined) return LAYER_COLORS.unreachable;
   if (layer >= 5) return LAYER_COLORS["5+"];
   return LAYER_COLORS[layer as 0 | 1 | 2 | 3 | 4] || LAYER_COLORS["5+"];
@@ -123,6 +127,7 @@ export function getLayerColor(
  * Origin: 16
  * VASP: 14
  * OFAC Sanctioned: 13
+ * Bridge Hop: 12
  * High-Risk (> 70): 10
  * Normal: 7
  */
@@ -130,11 +135,13 @@ export function getNodeSize(node: {
   isOrigin?: boolean;
   isVasp?: boolean;
   isOfacSanctioned?: boolean;
+  isBridge?: boolean;
   riskScore?: number;
 }): number {
   if (node.isOrigin) return 16;
   if (node.isVasp) return 14;
   if (node.isOfacSanctioned) return 13;
+  if (node.isBridge) return 12;
   if ((node.riskScore ?? 0) > 70) return 10;
   return 7;
 }

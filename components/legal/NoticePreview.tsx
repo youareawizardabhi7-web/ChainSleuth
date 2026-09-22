@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { Download, ShieldCheck, FileCheck, Copy, Check, FileText } from "lucide-react";
+import { Download, ShieldCheck, FileCheck, Copy, Check, FileText, Archive, Loader2, AlertCircle } from "lucide-react";
 import { AddressBadge } from "@/components/ui/AddressBadge";
+import { downloadCourtEvidenceBundle } from "@/lib/api";
 
 interface NoticePreviewProps {
   caseId?: string;
@@ -24,6 +25,22 @@ export function NoticePreview({
   lossAmountInr = 485000,
 }: NoticePreviewProps) {
   const [copiedHash, setCopiedHash] = useState(false);
+  const [isExportingBundle, setIsExportingBundle] = useState(false);
+  const [bundleExportError, setBundleExportError] = useState<string | null>(null);
+
+  const handleExportBundle = async () => {
+    if (isExportingBundle) return;
+    setIsExportingBundle(true);
+    setBundleExportError(null);
+    try {
+      await downloadCourtEvidenceBundle(caseId);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Connection error: Unable to reach backend server.";
+      setBundleExportError(message);
+    } finally {
+      setIsExportingBundle(false);
+    }
+  };
 
   const handleCopyHash = () => {
     navigator.clipboard.writeText(evidenceHash);
@@ -59,25 +76,64 @@ export function NoticePreview({
       </div>
 
       {/* Header & Download Bar */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-        <div>
-          <div className="text-teal-400 font-bold text-sm tracking-wider uppercase font-sans flex items-center gap-2">
-            <FileText className="w-4 h-4 text-teal-400" />
-            FORMAL FREEZE DIRECTIVE — SECTION 94 BNSS, 2023
+      <div className="flex flex-col space-y-3 border-b border-slate-800 pb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-teal-400 font-bold text-sm tracking-wider uppercase font-sans flex items-center gap-2">
+              <FileText className="w-4 h-4 text-teal-400" />
+              FORMAL FREEZE DIRECTIVE — SECTION 94 BNSS, 2023
+            </div>
+            <div className="text-slate-500 text-[11px] mt-0.5">
+              Cyber Crime Police Station • Reference Case ID: {caseId}
+            </div>
           </div>
-          <div className="text-slate-500 text-[11px] mt-0.5">
-            Cyber Crime Police Station • Reference Case ID: {caseId}
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleExportBundle}
+              disabled={isExportingBundle}
+              className="flex items-center gap-2 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-900 disabled:text-slate-500 text-slate-950 font-sans font-bold text-xs rounded transition-colors shadow-lg cursor-pointer disabled:cursor-not-allowed border border-emerald-500/50"
+            >
+              {isExportingBundle ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+                  <span className="text-slate-200">Packaging Authenticated Evidence...</span>
+                </>
+              ) : (
+                <>
+                  <Archive className="w-4 h-4 text-slate-950" />
+                  <span>Export Court Evidence Package (.ZIP)</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleDownload}
+              className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-slate-950 font-sans font-bold text-xs rounded transition-colors shadow-lg cursor-pointer"
+            >
+              <Download className="w-4 h-4" />
+              Download Official PDF Notice
+            </button>
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={handleDownload}
-          className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-slate-950 font-sans font-bold text-xs rounded transition-colors shadow-lg cursor-pointer"
-        >
-          <Download className="w-4 h-4" />
-          Download Official PDF Notice
-        </button>
+        {bundleExportError && (
+          <div className="p-2.5 bg-red-950/90 border border-red-700/80 rounded text-red-200 text-[11px] font-mono flex items-start justify-between gap-2 shadow">
+            <div className="flex items-start gap-1.5">
+              <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+              <span>{bundleExportError}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setBundleExportError(null)}
+              className="text-red-400 hover:text-red-200 font-bold ml-1"
+            >
+              ×
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Inline Document Container / iFrame Preview */}

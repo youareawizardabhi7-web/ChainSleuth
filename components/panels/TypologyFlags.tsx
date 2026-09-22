@@ -2,7 +2,7 @@
 
 import React from "react";
 import { TypologyFlag } from "@/lib/types";
-import { Layers, Flame, Share2, Link2, Repeat, Info, AlertOctagon } from "lucide-react";
+import { Layers, Flame, Share2, Link2, Repeat, Info, AlertOctagon, ArrowRightLeft } from "lucide-react";
 
 interface TypologyFlagsProps {
   flags: TypologyFlag[];
@@ -58,6 +58,13 @@ const TYPOLOGY_CONFIG: Record<
     badgeStyle: "bg-red-950 border-2 border-red-600 text-red-200 shadow-lg shadow-red-950/60",
     explanation:
       "This wallet address has been flagged by the backend as an explicit match against official OFAC sanctions databases.",
+  },
+  bridge_hop: {
+    title: "Cross-chain bridge hop",
+    icon: ArrowRightLeft,
+    badgeStyle: "bg-cyan-950 border border-cyan-700 text-cyan-300",
+    explanation:
+      "Cross-chain liquidity bridge transaction flagged by the backend system for asset protocol transfer.",
   },
 };
 

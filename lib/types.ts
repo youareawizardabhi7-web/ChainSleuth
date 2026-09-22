@@ -16,6 +16,17 @@ export interface SanctionsInfo {
   ofac_identifier?: string;
 }
 
+export interface BridgeInfo {
+  bridge_name?: string;
+  source_chain?: Chain | string;
+  destination_chain?: Chain | string;
+  dest_chain?: Chain | string;
+  tx_hash?: string;
+  confidence_score?: number;
+  confidence?: number;
+  timestamp?: string;
+}
+
 export interface WalletNode {
   address: string;
   chain: Chain;
@@ -25,6 +36,7 @@ export interface WalletNode {
   typologyFlags: TypologyFlag[];
   isVasp?: boolean;
   sanctionsInfo?: SanctionsInfo;
+  bridgeInfo?: BridgeInfo;
 }
 
 export type TypologyFlag =
@@ -33,7 +45,8 @@ export type TypologyFlag =
   | "zero_gas_burner"
   | "first_funder_match"
   | "dex_swap"
-  | "ofac_sanctioned";
+  | "ofac_sanctioned"
+  | "bridge_hop";
 
 export interface TransferEdge {
   txHash: string;

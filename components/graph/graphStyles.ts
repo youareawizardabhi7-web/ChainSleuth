@@ -38,6 +38,16 @@ export function getCytoscapeStyles(showLabels: boolean = true): cytoscape.Styles
       },
     },
     {
+      selector: 'node[role = "bridge"]',
+      css: {
+        "background-color": "#06b6d4", // Cyan = Cross-chain bridge node
+        "border-color": "#0891b2",
+        "border-width": 3,
+        width: 35,
+        height: 35,
+      },
+    },
+    {
       selector: 'node[role = "vasp"]',
       css: {
         "background-color": "#0d9488", // Teal/Green = attributed VASP deposit target

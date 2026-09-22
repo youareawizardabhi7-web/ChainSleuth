@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { VASPAttribution } from "@/lib/types";
+import { downloadCourtEvidenceBundle } from "@/lib/api";
 import { AddressBadge } from "@/components/ui/AddressBadge";
 import {
   CheckCircle2,
@@ -14,6 +15,9 @@ import {
   Target,
   Layers,
   ArrowRight,
+  Archive,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 
 interface VaspAttributionCardProps {
@@ -22,7 +26,24 @@ interface VaspAttributionCardProps {
 }
 
 export function VaspAttributionCard({ attribution, caseId }: VaspAttributionCardProps) {
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+
   if (!attribution) return null;
+
+  const handleExportBundle = async () => {
+    if (isExporting) return;
+    setIsExporting(true);
+    setExportError(null);
+    try {
+      await downloadCourtEvidenceBundle(caseId);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Connection error: Unable to reach backend server.";
+      setExportError(message);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <div className="p-4 bg-slate-950 border-2 border-teal-500 rounded font-mono text-xs text-slate-100 flex flex-col space-y-4 shadow-2xl select-none relative overflow-hidden">
@@ -129,15 +150,55 @@ export function VaspAttributionCard({ attribution, caseId }: VaspAttributionCard
         </div>
       </div>
 
-      {/* Payoff Action Button */}
-      <Link
-        href={`/case/${caseId}/notice`}
-        className="flex items-center justify-center gap-2 w-full py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-sans font-bold text-xs rounded transition-colors shadow-lg cursor-pointer"
-      >
-        <FileText className="w-4 h-4" />
-        Generate Legal Freeze Notice (Section 94 BNSS)
-        <ArrowRight className="w-4 h-4" />
-      </Link>
+      {/* Action Buttons */}
+      <div className="space-y-2 pt-1">
+        {/* Export Court Evidence Package (.ZIP) */}
+        <button
+          type="button"
+          onClick={handleExportBundle}
+          disabled={isExporting}
+          className="flex items-center justify-center gap-2 w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-900 disabled:text-slate-500 text-slate-950 font-sans font-bold text-xs rounded transition-colors shadow-lg cursor-pointer disabled:cursor-not-allowed border border-emerald-500/50"
+        >
+          {isExporting ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+              <span className="text-slate-200">Packaging Authenticated Evidence...</span>
+            </>
+          ) : (
+            <>
+              <Archive className="w-4 h-4 text-slate-950" />
+              <span>Export Court Evidence Package (.ZIP)</span>
+            </>
+          )}
+        </button>
+
+        {exportError && (
+          <div className="p-2.5 bg-red-950/90 border border-red-700/80 rounded text-red-200 text-[11px] font-mono flex items-start justify-between gap-2 shadow">
+            <div className="flex items-start gap-1.5">
+              <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+              <span>{exportError}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setExportError(null)}
+              className="text-red-400 hover:text-red-200 font-bold ml-1"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        {/* Generate Legal Freeze Notice (Section 94 BNSS) */}
+        <Link
+          href={`/case/${caseId}/notice`}
+          className="flex items-center justify-center gap-2 w-full py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-sans font-bold text-xs rounded transition-colors shadow-lg cursor-pointer"
+        >
+          <FileText className="w-4 h-4" />
+          Generate Legal Freeze Notice (Section 94 BNSS)
+          <ArrowRight className="w-4 h-4" />
+        </Link>
+      </div>
     </div>
   );
 }
+

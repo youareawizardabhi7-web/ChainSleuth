@@ -76,8 +76,9 @@ export const GraphCanvas = forwardRef<GraphViewRef, GraphCanvasProps>(function G
     const elements: cytoscape.ElementDefinition[] = [
       ...nodes.map((n) => {
         const isOfac = n.typologyFlags?.includes("ofac_sanctioned");
+        const isBridge = n.typologyFlags?.includes("bridge_hop");
         const isBurner = n.typologyFlags.length > 0;
-        const role = n.isVasp ? "vasp" : isOfac ? "ofac" : isBurner ? "burner" : "default";
+        const role = n.isVasp ? "vasp" : isOfac ? "ofac" : isBridge ? "bridge" : isBurner ? "burner" : "default";
         const truncated =
           n.address.length > 8
             ? `${n.address.slice(0, 4)}...${n.address.slice(-4)}`

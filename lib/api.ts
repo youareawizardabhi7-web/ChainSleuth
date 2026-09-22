@@ -503,6 +503,57 @@ export async function generateNotice(
   }
 }
 
+export async function downloadCourtEvidenceBundle(caseId: string): Promise<void> {
+  let res: Response;
+  try {
+    const headers: Record<string, string> = {};
+    if (typeof window !== "undefined") {
+      const token =
+        localStorage.getItem("token") ||
+        localStorage.getItem("auth_token") ||
+        localStorage.getItem("access_token");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    res = await fetch(`${API_BASE_URL}/cases/${encodeURIComponent(caseId)}/export-bundle`, {
+      method: "GET",
+      headers,
+    });
+  } catch (err) {
+    console.error("[API] downloadCourtEvidenceBundle network failure:", err);
+    throw new Error("Connection error: Unable to reach backend server.");
+  }
+
+  if (res.status === 401) {
+    throw new Error("Authentication error (401): Please log in again.");
+  }
+  if (res.status === 403) {
+    throw new Error("Permission error (403): You do not have authorization to export evidence bundles.");
+  }
+  if (res.status === 404) {
+    throw new Error("Case/evidence unavailable (404): Evidence bundle not found for this case.");
+  }
+  if (res.status >= 500) {
+    throw new Error("Backend generation failure (500): Server error while building evidence package.");
+  }
+  if (!res.ok) {
+    throw new Error(`Export failed with status ${res.status}`);
+  }
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `Case_${caseId}_Court_Evidence_Bundle.zip`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export const runTrace = createTrace;
 export const fetchCase = getCase;
 export const fetchCases = getCases;
+
