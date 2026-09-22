@@ -54,6 +54,8 @@ export interface TraceResult {
   chain?: Chain;
   created_at?: string;
   status?: "active" | "pending_approval" | "frozen" | "closed";
+  recommendations?: string[];
+  sla_cashout_alert?: string;
 }
 
 export interface LegalNoticePayload {

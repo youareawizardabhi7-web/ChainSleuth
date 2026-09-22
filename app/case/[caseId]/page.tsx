@@ -8,6 +8,7 @@ import { GraphViewRef } from "@/components/graph/GraphViewRef";
 import { GraphControls } from "@/components/graph/GraphControls";
 import { GraphMode } from "@/components/graph/GraphModeToggle";
 import { WalletDetailPanel } from "@/components/panels/WalletDetailPanel";
+import { InvestigativeAdvisoryPanel } from "@/components/panels/InvestigativeAdvisoryPanel";
 import { RiskBadge } from "@/components/case/RiskBadge";
 import { AddressBadge } from "@/components/ui/AddressBadge";
 import { getCase } from "@/lib/api";
@@ -181,8 +182,15 @@ export default function CaseWorkbenchPage({
             </div>
           </div>
 
-          {/* RIGHT: WalletDetailPanel / VaspAttributionCard (4 cols) */}
-          <div className="col-span-4 h-full min-h-0 overflow-y-auto">
+          {/* RIGHT: Investigative Advisory + WalletDetailPanel (4 cols) */}
+          <div className="col-span-4 h-full min-h-0 overflow-y-auto space-y-3 pr-0.5">
+            {traceData && (traceData.recommendations?.length || traceData.sla_cashout_alert) && (
+              <InvestigativeAdvisoryPanel
+                recommendations={traceData.recommendations}
+                slaAlert={traceData.sla_cashout_alert}
+                caseId={caseId}
+              />
+            )}
             <WalletDetailPanel
               node={selectedNode}
               edges={traceData?.edges}
