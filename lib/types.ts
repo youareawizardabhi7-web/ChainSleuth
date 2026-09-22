@@ -194,5 +194,33 @@ export interface NCRPIngestResponse {
   message?: string;
 }
 
+export interface SyndicateCorrelation {
+  syndicate_id?: string;
+  id?: string;
+  syndicate_label?: string;
+  label?: string;
+  name?: string;
+  common_attribute?: string;
+  attribute_type?: string;
+  complaint_ids: string[];
+  total_victims_linked?: number;
+  victims_linked?: number;
+  total_loss_inr?: number;
+  confidence?: number | string;
+  common_wallet?: string;
+  suspect_wallet?: string;
+  case_id?: string;
+}
+
+export interface NcrpCorrelationsResponse {
+  correlations: SyndicateCorrelation[];
+  total_correlations?: number;
+  total_victims?: number;
+  total_complaints?: number;
+  total_loss_inr?: number;
+  message?: string;
+}
+
+
 
 

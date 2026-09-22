@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { NCRPComplaint, NCRPIngestResponse } from "@/lib/types";
 import { ingestNcrpComplaints, runNcrpBatchTrace } from "@/lib/api";
+import { NcrpCorrelationDashboard } from "@/components/ncrp/NcrpCorrelationDashboard";
 import {
   Database,
   Plus,
@@ -16,9 +17,11 @@ import {
   Play,
   FileCode,
   ListPlus,
+  Network,
 } from "lucide-react";
 
 export default function NcrpIngestionPage() {
+  const [mainTab, setMainTab] = useState<"ingestion" | "correlations">("ingestion");
   const [mode, setMode] = useState<"form" | "raw">("form");
   const [complaints, setComplaints] = useState<NCRPComplaint[]>([
     {
@@ -170,42 +173,77 @@ export default function NcrpIngestionPage() {
             </div>
             <div>
               <h1 className="text-base font-bold font-sans text-slate-100 uppercase tracking-wider">
-                NCRP / SAHYOG Portal Intelligence Ingestion
+                NCRP / SAHYOG Portal Intelligence
               </h1>
               <p className="text-[11px] text-slate-500 font-mono">
-                Official Law Enforcement Complaint Bulk Import & Cross-State Correlation
+                Official Law Enforcement Complaint Bulk Import & Cross-State Syndicate Correlation Matrix
               </p>
             </div>
           </div>
-
-          {/* Mode Switcher */}
-          <div className="flex items-center bg-slate-900 p-1 rounded border border-slate-800 font-sans text-xs">
-            <button
-              type="button"
-              onClick={() => setMode("form")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded font-bold transition-colors cursor-pointer ${
-                mode === "form"
-                  ? "bg-slate-800 text-teal-400 border border-slate-700 shadow"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              <ListPlus className="w-3.5 h-3.5" />
-              Interactive Bulk Form
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode("raw")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded font-bold transition-colors cursor-pointer ${
-                mode === "raw"
-                  ? "bg-slate-800 text-teal-400 border border-slate-700 shadow"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              <FileCode className="w-3.5 h-3.5" />
-              JSON / Array Import
-            </button>
-          </div>
         </div>
+
+        {/* Top-Level Section Tab Switcher */}
+        <div className="flex items-center gap-2 border-b border-slate-800 pb-0.5">
+          <button
+            type="button"
+            onClick={() => setMainTab("ingestion")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-t font-sans font-bold text-xs transition-colors cursor-pointer border-t border-x ${
+              mainTab === "ingestion"
+                ? "bg-slate-900 text-teal-400 border-slate-700 shadow"
+                : "text-slate-400 hover:text-slate-200 border-transparent bg-transparent"
+            }`}
+          >
+            <Database className="w-4 h-4 text-teal-400" />
+            <span>Complaint Ingestion Portal</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setMainTab("correlations")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-t font-sans font-bold text-xs transition-colors cursor-pointer border-t border-x ${
+              mainTab === "correlations"
+                ? "bg-slate-900 text-purple-400 border-slate-700 shadow"
+                : "text-slate-400 hover:text-slate-200 border-transparent bg-transparent"
+            }`}
+          >
+            <Network className="w-4 h-4 text-purple-400" />
+            <span>Syndicate Correlation Dashboard</span>
+          </button>
+        </div>
+
+        {mainTab === "correlations" ? (
+          <NcrpCorrelationDashboard />
+        ) : (
+          <>
+            {/* Mode Switcher */}
+            <div className="flex items-center justify-end">
+              <div className="flex items-center bg-slate-900 p-1 rounded border border-slate-800 font-sans text-xs">
+                <button
+                  type="button"
+                  onClick={() => setMode("form")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded font-bold transition-colors cursor-pointer ${
+                    mode === "form"
+                      ? "bg-slate-800 text-teal-400 border border-slate-700 shadow"
+                      : "text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  <ListPlus className="w-3.5 h-3.5" />
+                  Interactive Bulk Form
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMode("raw")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded font-bold transition-colors cursor-pointer ${
+                    mode === "raw"
+                      ? "bg-slate-800 text-teal-400 border border-slate-700 shadow"
+                      : "text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  <FileCode className="w-3.5 h-3.5" />
+                  JSON / Array Import
+                </button>
+              </div>
+            </div>
 
         {/* Error Alert */}
         {error && (
@@ -581,6 +619,8 @@ export default function NcrpIngestionPage() {
               </div>
             )}
           </div>
+        )}
+          </>
         )}
       </div>
     </AppShell>

@@ -14,6 +14,8 @@ import {
   NCRPComplaint,
   NCRPIngestResponse,
   NCRPIngestRecordResult,
+  SyndicateCorrelation,
+  NcrpCorrelationsResponse,
 } from "./types";
 
 export const API_BASE_URL = (
@@ -783,9 +785,60 @@ export async function runNcrpBatchTrace(complaintIds: string[]): Promise<{ statu
   return await res.json();
 }
 
+export async function getNcrpCorrelations(): Promise<NcrpCorrelationsResponse> {
+  let res: Response;
+  try {
+    const headers: Record<string, string> = {};
+    if (typeof window !== "undefined") {
+      const token =
+        localStorage.getItem("token") ||
+        localStorage.getItem("auth_token") ||
+        localStorage.getItem("access_token");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    res = await fetch(`${API_BASE_URL}/ncrp/correlations`, {
+      method: "GET",
+      headers,
+    });
+  } catch (err) {
+    console.error("[API] getNcrpCorrelations network failure:", err);
+    throw new Error("Unable to retrieve NCRP correlation intelligence.");
+  }
+
+  if (res.status === 401) {
+    throw new Error("Unable to retrieve NCRP correlation intelligence: Authentication required.");
+  }
+  if (res.status === 403) {
+    throw new Error("Unable to retrieve NCRP correlation intelligence: Access denied.");
+  }
+  if (!res.ok) {
+    throw new Error("Unable to retrieve NCRP correlation intelligence.");
+  }
+
+  const data = await res.json();
+  const list: SyndicateCorrelation[] = Array.isArray(data.correlations)
+    ? data.correlations
+    : Array.isArray(data)
+    ? data
+    : [];
+
+  return {
+    correlations: list,
+    total_correlations: data.total_correlations ?? list.length,
+    total_victims: data.total_victims,
+    total_complaints: data.total_complaints,
+    total_loss_inr: data.total_loss_inr,
+    message: data.message,
+  };
+}
+
 export const runTrace = createTrace;
 export const fetchCase = getCase;
 export const fetchCases = getCases;
+
 
 
 
