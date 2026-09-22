@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef, use } from "react";
+import Link from "next/link";
 import { AppShell } from "@/components/layout/AppShell";
 import { GraphCanvas } from "@/components/graph/GraphCanvas";
 import { Graph3DWrapper } from "@/components/graph/Graph3DWrapper";
@@ -14,7 +15,7 @@ import { RiskBadge } from "@/components/case/RiskBadge";
 import { AddressBadge } from "@/components/ui/AddressBadge";
 import { getCase } from "@/lib/api";
 import { TraceResult, WalletNode, TransferEdge, WalletCluster } from "@/lib/types";
-import { ShieldAlert, ArrowRightLeft, X, Boxes, XCircle } from "lucide-react";
+import { ShieldAlert, ArrowRightLeft, X, Boxes, XCircle, FileCheck } from "lucide-react";
 
 export default function CaseWorkbenchPage({
   params,
@@ -75,7 +76,16 @@ export default function CaseWorkbenchPage({
             )}
           </div>
 
-          {traceData && <RiskBadge score={traceData.overall_risk_score} size="md" />}
+          <div className="flex items-center gap-3">
+            <Link
+              href={`/case/${caseId}/fir`}
+              className="flex items-center gap-1.5 px-3 py-1 bg-slate-900 hover:bg-slate-800 text-teal-300 font-sans font-bold text-[11px] rounded border border-slate-700 transition-colors shadow"
+            >
+              <FileCheck className="w-3.5 h-3.5 text-teal-400" />
+              <span>Generate FIR</span>
+            </Link>
+            {traceData && <RiskBadge score={traceData.overall_risk_score} size="md" />}
+          </div>
         </div>
 
         {/* Three-Column Investigation Workspace */}

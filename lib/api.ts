@@ -9,6 +9,8 @@ import {
   TransferEdge,
   CaseClustersResponse,
   WalletCluster,
+  FIRCreate,
+  FIRResponse,
 } from "./types";
 
 export const API_BASE_URL = (
@@ -595,8 +597,74 @@ export async function getCaseClusters(caseId: string): Promise<CaseClustersRespo
   }
 }
 
+export async function createFir(payload: FIRCreate): Promise<FIRResponse> {
+  let res: Response;
+  try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (typeof window !== "undefined") {
+      const token =
+        localStorage.getItem("token") ||
+        localStorage.getItem("auth_token") ||
+        localStorage.getItem("access_token");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    res = await fetch(`${API_BASE_URL}/fir/`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.error("[API] createFir network failure:", err);
+    throw new Error("Connection error: Unable to reach backend server.");
+  }
+
+  if (res.status === 401) {
+    throw new Error("Authentication error (401): Please log in to generate an FIR.");
+  }
+  if (res.status === 403) {
+    throw new Error("Permission error (403): You do not have authorization to generate an FIR.");
+  }
+  if (res.status === 422) {
+    const errorBody = await res.json().catch(() => null);
+    const detailMsg = errorBody?.detail
+      ? Array.isArray(errorBody.detail)
+        ? errorBody.detail.map((d: { msg?: string }) => d.msg || "").join(", ")
+        : errorBody.detail
+      : "";
+    throw new Error(`Validation error (422): ${detailMsg || "Please check your input fields."}`);
+  }
+  if (res.status >= 500) {
+    throw new Error("Backend generation failure (500): Failed to generate FIR document on server.");
+  }
+  if (!res.ok) {
+    throw new Error(`FIR generation failed with status ${res.status}`);
+  }
+
+  const data: FIRResponse = await res.json();
+  return data;
+}
+
+export async function downloadFir(firId: string, pdfUrl?: string): Promise<void> {
+  const origin = API_BASE_URL.replace(/\/api\/v1\/?$/, "");
+  const targetUrl = pdfUrl
+    ? pdfUrl.startsWith("http")
+      ? pdfUrl
+      : `${origin}${pdfUrl}`
+    : `${API_BASE_URL}/fir/${encodeURIComponent(firId)}/download`;
+
+  if (typeof window !== "undefined") {
+    window.open(targetUrl, "_blank");
+  }
+}
+
 export const runTrace = createTrace;
 export const fetchCase = getCase;
 export const fetchCases = getCases;
+
 
 

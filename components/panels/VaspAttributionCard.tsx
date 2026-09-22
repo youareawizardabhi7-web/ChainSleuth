@@ -18,6 +18,7 @@ import {
   Archive,
   Loader2,
   AlertCircle,
+  FileCheck,
 } from "lucide-react";
 
 interface VaspAttributionCardProps {
@@ -195,6 +196,16 @@ export function VaspAttributionCard({ attribution, caseId }: VaspAttributionCard
         >
           <FileText className="w-4 h-4" />
           Generate Legal Freeze Notice (Section 94 BNSS)
+          <ArrowRight className="w-4 h-4" />
+        </Link>
+
+        {/* Generate Cybercrime FIR */}
+        <Link
+          href={`/case/${caseId}/fir`}
+          className="flex items-center justify-center gap-2 w-full py-2 bg-slate-900 hover:bg-slate-800 text-teal-300 font-sans font-bold text-xs rounded transition-colors shadow cursor-pointer border border-teal-800/80"
+        >
+          <FileCheck className="w-4 h-4 text-teal-400" />
+          File Cybercrime FIR Docket
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>

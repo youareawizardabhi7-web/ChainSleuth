@@ -134,3 +134,32 @@ export interface CaseClustersResponse {
   total_clusters?: number;
 }
 
+export interface FIRCreate {
+  case_id: string;
+  complainant_name: string;
+  complainant_designation?: string;
+  incident_description: string;
+  suspect_addresses: string[];
+  estimated_loss_inr?: number;
+  date_of_incident: string;
+}
+
+export interface FIRResponse {
+  fir_id: string;
+  fir_number?: string;
+  complaint_id?: string;
+  case_id: string;
+  complainant_name: string;
+  complainant_designation?: string;
+  incident_description: string;
+  suspect_addresses: string[];
+  estimated_loss_inr?: number;
+  date_of_incident: string;
+  generated_at?: string;
+  created_at?: string;
+  pdf_url?: string;
+  download_url?: string;
+  sha256_hash?: string;
+}
+
+
