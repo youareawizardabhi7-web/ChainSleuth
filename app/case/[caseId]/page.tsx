@@ -119,6 +119,7 @@ export default function CaseWorkbenchPage({
                   ref={graphRef}
                   nodes={traceData.nodes}
                   edges={traceData.edges}
+                  suspectAddress={traceData.suspect_address}
                   selectedNode={selectedNode}
                   selectedEdge={selectedEdge}
                   showLabels={showLabels}

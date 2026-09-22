@@ -8,6 +8,7 @@ import { GraphViewRef } from "./GraphViewRef";
 interface Graph3DWrapperProps {
   nodes?: WalletNode[];
   edges?: TransferEdge[];
+  suspectAddress?: string;
   selectedNode?: WalletNode | null;
   selectedEdge?: TransferEdge | null;
   onSelectNode?: (node: WalletNode | null) => void;

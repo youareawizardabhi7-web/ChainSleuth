@@ -14,10 +14,18 @@ import * as THREE from "three";
 import { WalletNode, TransferEdge } from "@/lib/types";
 import { GraphViewRef } from "./GraphViewRef";
 import { AlertCircle, RotateCcw } from "lucide-react";
+import { useAppStore } from "@/lib/store";
+import {
+  calculateGraphLayers,
+  getLayerColor,
+  getNodeSize,
+  LAYER_COLORS,
+} from "@/lib/graphLayerUtils";
 
 interface Graph3DProps {
   nodes?: WalletNode[];
   edges?: TransferEdge[];
+  suspectAddress?: string;
   selectedNode?: WalletNode | null;
   selectedEdge?: TransferEdge | null;
   onSelectNode?: (node: WalletNode | null) => void;
@@ -35,6 +43,8 @@ interface ForceNode {
   nodeObj: WalletNode;
   val: number;
   color: string;
+  layer: number | null;
+  isOrigin: boolean;
   x?: number;
   y?: number;
   z?: number;
@@ -67,6 +77,7 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
   {
     nodes = [],
     edges = [],
+    suspectAddress,
     selectedNode = null,
     selectedEdge = null,
     onSelectNode,
@@ -81,6 +92,8 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
   const [dimensions, setDimensions] = useState({ width: 600, height: 450 });
   const [webGlSupported, setWebGlSupported] = useState<boolean>(true);
   const [hasError, setHasError] = useState<boolean>(false);
+
+  const { hopFilter, activeCase } = useAppStore();
 
   // Measure container dimensions using ResizeObserver
   useEffect(() => {
@@ -186,6 +199,12 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
     },
   }));
 
+  // Pre-calculate deterministic graph layers via BFS from origin
+  const layerMap = useMemo(() => {
+    const originAddress = suspectAddress || activeCase?.suspect_address;
+    return calculateGraphLayers(nodes, edges, originAddress);
+  }, [nodes, edges, suspectAddress, activeCase?.suspect_address]);
+
   // Build sets for investigation path highlighting
   const { connectedNodeAddresses, connectedEdgeIds } = useMemo(() => {
     const nodeAddrs = new Set<string>();
@@ -211,11 +230,26 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
     return { connectedNodeAddresses: nodeAddrs, connectedEdgeIds: edgeIds };
   }, [selectedNode, selectedEdge, edges]);
 
-  // Map WalletNode[] & TransferEdge[] to 3D graph format with high contrast
+  // Map WalletNode[] & TransferEdge[] to 3D graph format with BFS Layer & Origin Highlighting
   const graphData = useMemo(() => {
     const maxVal = Math.max(...edges.map((e) => e.value), 1);
 
-    const forceNodes: ForceNode[] = nodes.map((n) => {
+    // Filter nodes by hop filter (without changing precalculated layer numbers)
+    const filteredNodes = nodes.filter((n) => {
+      const info = layerMap.get(n.address);
+      if (!info) return true;
+      if (info.isOrigin) return true;
+      if (info.layer === null) return true;
+      return info.layer <= (hopFilter ?? 10);
+    });
+
+    const validNodeAddresses = new Set(filteredNodes.map((n) => n.address));
+
+    const forceNodes: ForceNode[] = filteredNodes.map((n) => {
+      const info = layerMap.get(n.address);
+      const isOrigin = info?.isOrigin ?? false;
+      const layer = info?.layer ?? null;
+
       const isBurner = n.typologyFlags.length > 0;
       const role: "vasp" | "burner" | "default" = n.isVasp
         ? "vasp"
@@ -225,30 +259,34 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
 
       const truncated =
         n.address.length > 10
-          ? `${n.address.slice(0, 6)}...${n.address.slice(-5)}`
+          ? `${n.address.slice(0, 5)}...${n.address.slice(-4)}`
           : n.address;
 
-      // High-visibility Node Sizes: VASP (15), Burner (11), Normal (7)
-      const val = n.isVasp ? 15 : isBurner ? 11 : 7;
+      const label = isOrigin ? `ORIGIN (${truncated})` : truncated;
 
-      // High-contrast Colors: VASP (#14b8a6 Teal), Burner (#ef4444 Red), Normal (#94a3b8 Bright Slate)
-      const color = n.isVasp
-        ? "#14b8a6"
-        : isBurner
-        ? "#ef4444"
-        : "#94a3b8";
+      // Priority color mapping: Origin > VASP > Layer Color
+      const color = getLayerColor(layer, isOrigin, n.isVasp);
+
+      // Radius hierarchy: Origin (16), VASP (14), High-Risk (10), Normal (7)
+      const val = getNodeSize({ isOrigin, isVasp: n.isVasp, riskScore: n.riskScore });
 
       return {
         id: n.address,
-        label: truncated,
+        label,
         role,
         nodeObj: n,
         val,
         color,
+        layer,
+        isOrigin,
       };
     });
 
-    const forceLinks: ForceLink[] = edges.map((e) => {
+    const filteredEdges = edges.filter(
+      (e) => validNodeAddresses.has(e.from) && validNodeAddresses.has(e.to)
+    );
+
+    const forceLinks: ForceLink[] = filteredEdges.map((e) => {
       const thickness = Math.min(Math.max(2.5, (e.value / maxVal) * 5), 5);
       const isSuspicious = e.value > 10000 || e.token === "USDT";
 
@@ -264,7 +302,7 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
     });
 
     return { nodes: forceNodes, links: forceLinks };
-  }, [nodes, edges]);
+  }, [nodes, edges, layerMap, hopFilter]);
 
   // Dynamic node color handling based on selection state
   const getNodeColor = useCallback(
@@ -287,7 +325,7 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
   const getNodeVal = useCallback(
     (node: object) => {
       const n = node as ForceNode;
-      if (selectedNode?.address === n.id) return n.val * 1.4;
+      if (selectedNode?.address === n.id) return n.val * 1.35;
       return n.val;
     },
     [selectedNode]
@@ -326,7 +364,7 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
     [selectedNode, selectedEdge, connectedEdgeIds]
   );
 
-  // Custom 3D Mesh Object with Emissive Lighting
+  // Custom 3D Mesh Object with Emissive Lighting & Origin Halo
   const getNodeThreeObject = useCallback(
     (node: object) => {
       const n = node as ForceNode;
@@ -334,11 +372,54 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
       const color = getNodeColor(n);
       const radius = getNodeVal(n);
 
+      if (n.isOrigin) {
+        const group = new THREE.Group();
+
+        // Core Origin Mesh (Emissive Orange Sphere)
+        const coreGeometry = new THREE.SphereGeometry(radius, 24, 24);
+        const coreMaterial = new THREE.MeshStandardMaterial({
+          color: "#f97316",
+          emissive: "#ea580c",
+          emissiveIntensity: isSelected ? 0.9 : 0.6,
+          roughness: 0.2,
+          metalness: 0.3,
+        });
+        const coreMesh = new THREE.Mesh(coreGeometry, coreMaterial);
+        group.add(coreMesh);
+
+        // Outer Emissive Halo Mesh (Transparent Glow Sphere)
+        const haloGeometry = new THREE.SphereGeometry(radius * 1.45, 24, 24);
+        const haloMaterial = new THREE.MeshBasicMaterial({
+          color: "#fb923c",
+          transparent: true,
+          opacity: 0.25,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+        });
+        const haloMesh = new THREE.Mesh(haloGeometry, haloMaterial);
+        group.add(haloMesh);
+
+        // Emissive Accent Ring around Origin
+        const ringGeometry = new THREE.RingGeometry(radius * 1.5, radius * 1.75, 32);
+        const ringMaterial = new THREE.MeshBasicMaterial({
+          color: "#fdba74",
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.5,
+        });
+        const ringMesh = new THREE.Mesh(ringGeometry, ringMaterial);
+        ringMesh.rotation.x = Math.PI / 4;
+        group.add(ringMesh);
+
+        return group;
+      }
+
+      // Standard / VASP / Layer Mesh
       const geometry = new THREE.SphereGeometry(radius, 16, 16);
       const material = new THREE.MeshStandardMaterial({
         color: color,
         emissive: isSelected ? "#38bdf8" : color,
-        emissiveIntensity: isSelected ? 0.7 : 0.3,
+        emissiveIntensity: isSelected ? 0.7 : n.nodeObj.isVasp ? 0.5 : 0.3,
         roughness: 0.3,
         metalness: 0.2,
       });
@@ -348,31 +429,49 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
     [selectedNode, getNodeColor, getNodeVal]
   );
 
-  // Compact HTML Hover Tooltip with High Contrast
+  // Compact HTML Hover Tooltip with Origin Badge & Layer Details
   const getNodeLabel = useCallback((node: object) => {
     const n = node as ForceNode;
     const obj = n.nodeObj;
-    const flags = obj.typologyFlags.join(", ") || "None";
-    const vaspLabel = obj.isVasp ? `<div style="font-weight: bold; color: #14b8a6; margin-top: 2px;">VASP / Exchange Target</div>` : "";
+    const flags = obj.typologyFlags?.join(", ") || "None";
+
+    const originHeader = n.isOrigin
+      ? `<div style="display: inline-block; background: #f97316; color: #ffffff; font-weight: bold; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-bottom: 4px;">ORIGIN NODE</div>`
+      : "";
+
+    const vaspLabel = obj.isVasp
+      ? `<div style="font-weight: bold; color: #14b8a6; margin-top: 2px;">VASP / Exchange Target</div>`
+      : "";
+
+    const layerBadge = n.isOrigin
+      ? `<span style="color: #f97316; font-weight: bold;">0 (Suspect Wallet)</span>`
+      : n.layer !== null && n.layer !== undefined
+      ? `<span style="color: ${n.color}; font-weight: bold;">Layer ${n.layer >= 5 ? "5+" : n.layer}</span>`
+      : `<span style="color: #64748b; font-weight: bold;">Unreachable</span>`;
 
     return `
       <div style="
         background: #0f172a;
-        border: 1px solid #334155;
+        border: 1px solid ${n.isOrigin ? "#f97316" : obj.isVasp ? "#14b8a6" : "#334155"};
         padding: 8px 12px;
         border-radius: 6px;
         font-family: monospace;
         font-size: 11px;
         color: #f1f5f9;
         box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+        min-width: 180px;
       ">
-        <div style="font-weight: bold; color: #38bdf8; font-size: 12px;">${n.label}</div>
+        ${originHeader}
+        <div style="font-weight: bold; color: ${n.isOrigin ? "#f97316" : "#38bdf8"}; font-size: 12px;">${n.label}</div>
         ${vaspLabel}
         <div style="font-size: 10px; color: #94a3b8; margin-top: 4px;">
           Address: <span style="color: #f1f5f9;">${obj.address}</span>
         </div>
         <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">
-          Chain: <span style="color: #cbd5e1; font-weight: bold;">${obj.chain.toUpperCase()}</span> | Risk: <span style="color: ${obj.riskScore > 70 ? '#ef4444' : '#14b8a6'}; font-weight: bold;">${obj.riskScore}/100</span>
+          Graph Layer: ${layerBadge}
+        </div>
+        <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">
+          Chain: <span style="color: #cbd5e1; font-weight: bold;">${(obj.chain || "tron").toUpperCase()}</span> | Risk: <span style="color: ${obj.riskScore > 70 ? "#ef4444" : "#14b8a6"}; font-weight: bold;">${obj.riskScore}/100</span>
         </div>
         <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">
           Balance: <span style="color: #cbd5e1;">${obj.balance.toLocaleString()}</span>
@@ -462,6 +561,71 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
         showNavInfo={false}
       />
 
+      {/* 3D Investigation Graph Legend Overlay */}
+      <div className="absolute bottom-3 left-3 z-20 bg-slate-900/90 backdrop-blur border border-slate-800 rounded p-2.5 shadow-xl font-mono text-[10px] text-slate-300 pointer-events-auto max-w-[200px] space-y-1.5">
+        <div className="font-bold text-slate-200 tracking-wider uppercase text-[9px] border-b border-slate-800 pb-1 flex items-center justify-between">
+          <span>Investigation Layers</span>
+        </div>
+        <div className="grid grid-cols-1 gap-1">
+          <div className="flex items-center gap-2">
+            <span
+              className="w-2.5 h-2.5 rounded-full shrink-0 ring-2 ring-[#f97316]/40"
+              style={{ backgroundColor: LAYER_COLORS[0] }}
+            />
+            <span className="font-bold text-[#f97316]">ORIGIN (Layer 0)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="w-2.5 h-2.5 rounded-full shrink-0"
+              style={{ backgroundColor: LAYER_COLORS[1] }}
+            />
+            <span>Layer 1</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="w-2.5 h-2.5 rounded-full shrink-0"
+              style={{ backgroundColor: LAYER_COLORS[2] }}
+            />
+            <span>Layer 2</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="w-2.5 h-2.5 rounded-full shrink-0"
+              style={{ backgroundColor: LAYER_COLORS[3] }}
+            />
+            <span>Layer 3</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="w-2.5 h-2.5 rounded-full shrink-0"
+              style={{ backgroundColor: LAYER_COLORS[4] }}
+            />
+            <span>Layer 4</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="w-2.5 h-2.5 rounded-full shrink-0"
+              style={{ backgroundColor: LAYER_COLORS["5+"] }}
+            />
+            <span>Layer 5+</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="w-2.5 h-2.5 rounded-full shrink-0"
+              style={{ backgroundColor: LAYER_COLORS.unreachable }}
+            />
+            <span>Unreachable</span>
+          </div>
+          <div className="flex items-center gap-2 pt-1 border-t border-slate-800/80">
+            <span
+              className="w-2.5 h-2.5 rotate-45 shrink-0"
+              style={{ backgroundColor: LAYER_COLORS.vasp }}
+            />
+            <span className="text-teal-400 font-semibold">VASP / Exchange</span>
+          </div>
+        </div>
+      </div>
+
       {nodes.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center text-slate-400 font-mono text-xs pointer-events-none">
           No Graph Topology Loaded
@@ -470,4 +634,5 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
     </div>
   );
 });
+
 
