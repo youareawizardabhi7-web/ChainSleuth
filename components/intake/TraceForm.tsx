@@ -74,8 +74,13 @@ export function TraceForm() {
     setSubmitError(null);
     try {
       const result = await parseFir(rawText);
-      const extractedAddr = result.suspect_address || "TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9";
+      const extractedAddr = result.suspect_address || "";
       const extractedChain = result.chain || "tron";
+
+      if (!extractedAddr) {
+        setSubmitError("Could not extract a valid suspect wallet address from the complaint text.");
+        return;
+      }
 
       setValue("suspect_address", extractedAddr);
       setValue("chain", extractedChain);
@@ -83,8 +88,8 @@ export function TraceForm() {
       setParsedData({
         address: extractedAddr,
         chain: extractedChain,
-        scamType: "Part-Time Task Scam (Telegram Cyber Fraud)",
-        amountInr: 485000,
+        scamType: "Extracted Complaint Narrative Target",
+        amountInr: 0,
       });
     } catch (err: unknown) {
       console.error(err);

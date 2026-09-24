@@ -11,11 +11,13 @@ import { GraphMode } from "@/components/graph/GraphModeToggle";
 import { WalletDetailPanel } from "@/components/panels/WalletDetailPanel";
 import { ForensicClustersPanel } from "@/components/panels/ForensicClustersPanel";
 import { InvestigativeAdvisoryPanel } from "@/components/panels/InvestigativeAdvisoryPanel";
+import { ForensicDeepDivePanel } from "@/components/case/ForensicDeepDivePanel";
 import { RiskBadge } from "@/components/case/RiskBadge";
 import { AddressBadge } from "@/components/ui/AddressBadge";
-import { getCase } from "@/lib/api";
+import { getCase, downloadCourtEvidenceBundle } from "@/lib/api";
 import { TraceResult, WalletNode, TransferEdge, WalletCluster } from "@/lib/types";
-import { ShieldAlert, ArrowRightLeft, X, Boxes, XCircle, FileCheck } from "lucide-react";
+import { EvidenceCertModal } from "@/components/case/EvidenceCertModal";
+import { ShieldAlert, ArrowRightLeft, X, Boxes, XCircle, FileCheck, Archive, ShieldCheck, Loader2, AlertCircle } from "lucide-react";
 
 export default function CaseWorkbenchPage({
   params,
@@ -36,6 +38,24 @@ export default function CaseWorkbenchPage({
   const [graphMode, setGraphMode] = useState<GraphMode>("2D");
   const [loading, setLoading] = useState(true);
 
+  const [isCertModalOpen, setIsCertModalOpen] = useState(false);
+  const [isDownloadingBundle, setIsDownloadingBundle] = useState(false);
+  const [bundleError, setBundleError] = useState<string | null>(null);
+
+  const handleDownloadBundle = async () => {
+    if (isDownloadingBundle) return;
+    setIsDownloadingBundle(true);
+    setBundleError(null);
+    try {
+      await downloadCourtEvidenceBundle(caseId);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Unable to download evidence bundle.";
+      setBundleError(msg);
+    } finally {
+      setIsDownloadingBundle(false);
+    }
+  };
+
   useEffect(() => {
     getCase(caseId)
       .then((data) => {
@@ -50,9 +70,21 @@ export default function CaseWorkbenchPage({
 
   const selectedClusterAddresses = selectedCluster?.addresses || [];
 
+  const handleSelectNodeFromDeepDive = (addr: string) => {
+    if (!traceData?.nodes) return;
+    const matchingNode = traceData.nodes.find(
+      (n) => n.address.toLowerCase() === addr.toLowerCase()
+    );
+    if (matchingNode) {
+      setSelectedNode(matchingNode);
+      setSelectedEdge(null);
+      setRightPanelTab("node_inspector");
+    }
+  };
+
   return (
     <AppShell>
-      <div className="flex flex-col h-full space-y-3 font-mono text-xs select-none">
+      <div className="flex flex-col space-y-4 font-mono text-xs select-none pr-1">
         {/* Top Graph Header Toolbar */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-2.5 shrink-0 bg-slate-950">
           <div className="flex items-center gap-3">
@@ -76,7 +108,32 @@ export default function CaseWorkbenchPage({
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleDownloadBundle}
+              disabled={isDownloadingBundle}
+              className="flex items-center gap-1.5 px-3 py-1 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-emerald-300 font-sans font-bold text-[11px] rounded border border-slate-700 transition-colors shadow cursor-pointer disabled:cursor-not-allowed"
+              title="Download Evidence Bundle (.ZIP)"
+            >
+              {isDownloadingBundle ? (
+                <Loader2 className="w-3.5 h-3.5 text-emerald-400 animate-spin" />
+              ) : (
+                <Archive className="w-3.5 h-3.5 text-emerald-400" />
+              )}
+              <span>Download Evidence Bundle</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsCertModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1 bg-slate-900 hover:bg-slate-800 text-teal-300 font-sans font-bold text-[11px] rounded border border-slate-700 transition-colors shadow cursor-pointer"
+              title="View Certificate Details (Section 63 BSA)"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
+              <span>View Certificate Details</span>
+            </button>
+
             <Link
               href={`/case/${caseId}/fir`}
               className="flex items-center gap-1.5 px-3 py-1 bg-slate-900 hover:bg-slate-800 text-teal-300 font-sans font-bold text-[11px] rounded border border-slate-700 transition-colors shadow"
@@ -88,10 +145,26 @@ export default function CaseWorkbenchPage({
           </div>
         </div>
 
+        {bundleError && (
+          <div className="p-2 bg-red-950/90 border border-red-700 rounded text-red-200 font-mono text-[11px] flex items-center justify-between shadow">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+              <span>{bundleError}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setBundleError(null)}
+              className="text-red-400 hover:text-red-200 font-bold px-2"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
         {/* Three-Column Investigation Workspace */}
-        <div className="flex-1 grid grid-cols-12 gap-3 min-h-0 overflow-hidden">
+        <div className="grid grid-cols-12 gap-3 h-[580px] min-h-[580px]">
           {/* CENTER: Graph Canvas Area (8 cols) */}
-          <div className="col-span-8 flex flex-col space-y-2 h-full min-h-0 relative">
+          <div className="col-span-12 lg:col-span-8 flex flex-col space-y-2 h-full min-h-0 relative">
             <GraphControls
               graphMode={graphMode}
               onGraphModeChange={setGraphMode}
@@ -124,16 +197,16 @@ export default function CaseWorkbenchPage({
               </div>
             )}
 
-            <div className="flex-1 min-h-0 relative">
+            <div className="flex-1 min-h-0 relative border border-slate-800 rounded">
               {loading ? (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-slate-950 border border-slate-800 rounded space-y-3">
+                <div className="w-full h-full flex flex-col items-center justify-center bg-slate-950 space-y-3">
                   <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
                   <div className="text-slate-400 font-mono text-xs">
                     Building Cypher path graph topology...
                   </div>
                 </div>
               ) : !traceData || traceData.nodes.length === 0 ? (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-slate-950 border border-slate-800 rounded space-y-2 text-slate-500 font-mono text-xs">
+                <div className="w-full h-full flex flex-col items-center justify-center bg-slate-950 space-y-2 text-slate-500 font-mono text-xs">
                   <ShieldAlert className="w-6 h-6 text-slate-700" />
                   <div>No investigation transaction path found for this case.</div>
                 </div>
@@ -238,7 +311,7 @@ export default function CaseWorkbenchPage({
           </div>
 
           {/* RIGHT: Investigative Advisory + Tabbed Panel (4 cols) */}
-          <div className="col-span-4 h-full min-h-0 overflow-y-auto space-y-3 pr-0.5 flex flex-col">
+          <div className="col-span-12 lg:col-span-4 h-full min-h-0 overflow-y-auto space-y-3 pr-0.5 flex flex-col">
             {traceData && (traceData.recommendations?.length || traceData.sla_cashout_alert) && (
               <InvestigativeAdvisoryPanel
                 recommendations={traceData.recommendations}
@@ -252,27 +325,27 @@ export default function CaseWorkbenchPage({
               <button
                 type="button"
                 onClick={() => setRightPanelTab("node_inspector")}
-                className={`flex-1 py-1.5 px-2 rounded font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
+                className={`flex-1 py-1.5 px-2 rounded font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer text-[11px] ${
                   rightPanelTab === "node_inspector"
                     ? "bg-slate-800 text-teal-400 border border-slate-700 shadow"
                     : "text-slate-400 hover:text-slate-200"
                 }`}
               >
-                <ShieldAlert className="w-3.5 h-3.5" />
-                Node Inspector
+                <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+                <span>Node Inspector</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setRightPanelTab("clusters")}
-                className={`flex-1 py-1.5 px-2 rounded font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
+                className={`flex-1 py-1.5 px-2 rounded font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer text-[11px] ${
                   rightPanelTab === "clusters"
                     ? "bg-slate-800 text-purple-400 border border-slate-700 shadow"
                     : "text-slate-400 hover:text-slate-200"
                 }`}
               >
-                <Boxes className="w-3.5 h-3.5" />
-                Forensic Clusters
+                <Boxes className="w-3.5 h-3.5 shrink-0" />
+                <span>Forensic Clusters</span>
                 {selectedCluster && (
                   <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
                 )}
@@ -299,8 +372,25 @@ export default function CaseWorkbenchPage({
             </div>
           </div>
         </div>
+
+        {/* Dedicated Full-Width Section for Forensic Deep Dive Analysis below Workbench Grid */}
+        <div className="pt-2">
+          <ForensicDeepDivePanel
+            caseId={caseId}
+            graphNodes={traceData?.nodes}
+            onSelectNode={handleSelectNodeFromDeepDive}
+          />
+        </div>
       </div>
+
+      <EvidenceCertModal
+        isOpen={isCertModalOpen}
+        onClose={() => setIsCertModalOpen(false)}
+        caseId={caseId}
+      />
     </AppShell>
   );
 }
+
+
 

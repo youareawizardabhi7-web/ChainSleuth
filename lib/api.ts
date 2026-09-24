@@ -1,3 +1,4 @@
+import { useAppStore } from "./store";
 import {
   CaseSummary,
   Chain,
@@ -17,6 +18,19 @@ import {
   SyndicateCorrelation,
   NcrpCorrelationsResponse,
   AuditLogItem,
+  AuthUser,
+  AuthRoles,
+  VASPRegistryItem,
+  CustomWalletTagPayload,
+  CustomWalletLabelItem,
+  BridgeHopItem,
+  CaseBridgesResponse,
+  PrivacySwapperItem,
+  CasePrivacyResponse,
+  IntermediaryMule,
+  LayeringAnalysisPath,
+  LayeringAnalysisResponse,
+  EvidenceCertResponse,
 } from "./types";
 
 export const API_BASE_URL = (
@@ -305,6 +319,92 @@ export const MOCK_CASES: CaseSummary[] = [
   },
 ];
 
+export function getAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  const storeToken = useAppStore.getState().token;
+  if (storeToken) return storeToken;
+  return localStorage.getItem("token") || localStorage.getItem("auth_token") || null;
+}
+
+export function getAuthHeaders(customToken?: string, contentType = "application/json"): Record<string, string> {
+  const headers: Record<string, string> = {};
+  if (contentType) {
+    headers["Content-Type"] = contentType;
+  }
+  const token = customToken || getAuthToken();
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
+export async function fetchAuthMe(token?: string): Promise<AuthUser> {
+  if (!token) {
+    return {
+      email: "officer@chainsleuth.gov.in",
+      name: "Investigating Officer",
+      role: "investigating_officer",
+    };
+  }
+  try {
+    const headers = getAuthHeaders(token, "");
+    const res = await fetch(`${API_BASE_URL}/auth/me`, {
+      method: "GET",
+      headers,
+    });
+    if (!res.ok) {
+      return {
+        email: "officer@chainsleuth.gov.in",
+        name: "Investigating Officer",
+        role: "investigating_officer",
+      };
+    }
+    return await res.json();
+  } catch {
+    return {
+      email: "officer@chainsleuth.gov.in",
+      name: "Investigating Officer",
+      role: "investigating_officer",
+    };
+  }
+}
+
+export async function fetchAuthRoles(token?: string): Promise<AuthRoles> {
+  if (!token) {
+    return {
+      roles: ["investigating_officer", "supervisory_officer", "vasp_nodal_officer"],
+      permissions: [],
+      active_role: "investigating_officer",
+    };
+  }
+  try {
+    const headers = getAuthHeaders(token, "");
+    const res = await fetch(`${API_BASE_URL}/auth/roles`, {
+      method: "GET",
+      headers,
+    });
+    if (!res.ok) {
+      return {
+        roles: ["investigating_officer", "supervisory_officer", "vasp_nodal_officer"],
+        permissions: [],
+        active_role: "investigating_officer",
+      };
+    }
+    const data = await res.json();
+    return {
+      roles: Array.isArray(data.roles) ? data.roles : ["investigating_officer", "supervisory_officer", "vasp_nodal_officer"],
+      permissions: Array.isArray(data.permissions) ? data.permissions : [],
+      active_role: data.active_role || "investigating_officer",
+    };
+  } catch {
+    return {
+      roles: ["investigating_officer", "supervisory_officer", "vasp_nodal_officer"],
+      permissions: [],
+      active_role: "investigating_officer",
+    };
+  }
+}
+
 export async function createTrace(req: TraceRequest): Promise<TraceResult> {
   if (USE_MOCK_DATA) {
     return Promise.resolve({
@@ -314,30 +414,18 @@ export async function createTrace(req: TraceRequest): Promise<TraceResult> {
     });
   }
 
-  try {
-    const res = await fetch(`${API_BASE_URL}/trace/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(req),
-    });
+  const res = await fetch(`${API_BASE_URL}/trace/`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(req),
+  });
 
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new Error(`Backend API Error (${res.status}): ${errorText}`);
-    }
-
-    return await res.json();
-  } catch (err) {
-    console.error("[API] createTrace backend call failed:", err);
-    if (!USE_MOCK_DATA) {
-      throw err;
-    }
-    return {
-      ...MOCK_TRACE_RESULT,
-      suspect_address: req.suspect_address || MOCK_TRACE_RESULT.suspect_address,
-      chain: req.chain || MOCK_TRACE_RESULT.chain,
-    };
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => "");
+    throw new Error(`Backend API Error (${res.status}): ${errorText}`);
   }
+
+  return await res.json();
 }
 
 export async function getCase(caseId: string): Promise<TraceResult> {
@@ -348,41 +436,34 @@ export async function getCase(caseId: string): Promise<TraceResult> {
     });
   }
 
-  try {
-    // Try primary route: /cases/{caseId}
-    let res = await fetch(`${API_BASE_URL}/cases/${caseId}`);
+  // Try primary route: /cases/{caseId}
+  let res = await fetch(`${API_BASE_URL}/cases/${caseId}`, {
+    headers: getAuthHeaders("", ""),
+  });
 
-    // If 404, try secondary route: /trace/{caseId}
-    if (!res.ok && res.status === 404) {
-      const secondaryRes = await fetch(`${API_BASE_URL}/trace/${caseId}`);
-      if (secondaryRes.ok) {
-        res = secondaryRes;
-      }
+  // If 404, try secondary route: /trace/{caseId}
+  if (!res.ok && res.status === 404) {
+    const secondaryRes = await fetch(`${API_BASE_URL}/trace/${caseId}`, {
+      headers: getAuthHeaders("", ""),
+    });
+    if (secondaryRes.ok) {
+      res = secondaryRes;
     }
-
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new Error(`Failed to fetch case ${caseId} (${res.status}): ${errorText}`);
-    }
-
-    const data = await res.json();
-    return {
-      ...data,
-      chain: normalizeChain(data.chain || data.blockchain_type),
-      nodes: data.nodes || [],
-      edges: data.edges || [],
-      attribution: data.attribution || null,
-    };
-  } catch (err) {
-    console.error(`[API] getCase backend call failed for ${caseId}:`, err);
-    if (!USE_MOCK_DATA) {
-      throw err;
-    }
-    return {
-      ...MOCK_TRACE_RESULT,
-      case_id: caseId,
-    };
   }
+
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => "");
+    throw new Error(`Failed to fetch case ${caseId} (${res.status}): ${errorText}`);
+  }
+
+  const data = await res.json();
+  return {
+    ...data,
+    chain: normalizeChain(data.chain || data.blockchain_type),
+    nodes: data.nodes || [],
+    edges: data.edges || [],
+    attribution: data.attribution || null,
+  };
 }
 
 export function normalizeChain(rawChain?: string): Chain {
@@ -400,27 +481,21 @@ export async function getCases(): Promise<CaseSummary[]> {
     return Promise.resolve(MOCK_CASES);
   }
 
-  try {
-    const res = await fetch(`${API_BASE_URL}/cases/`);
+  const res = await fetch(`${API_BASE_URL}/cases/`, {
+    headers: getAuthHeaders("", ""),
+  });
 
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new Error(`Failed to fetch cases (${res.status}): ${errorText}`);
-    }
-
-    const rawList: Record<string, unknown>[] = await res.json();
-    return rawList.map((item) => ({
-      ...(item as unknown as CaseSummary),
-      chain: normalizeChain((item.chain || item.blockchain_type) as string | undefined),
-      attributed_vasp_name: (item.attributed_vasp_name || item.attributed_vasp) as string | undefined,
-    }));
-  } catch (err) {
-    console.error("[API] getCases backend call failed:", err);
-    if (!USE_MOCK_DATA) {
-      throw err;
-    }
-    return MOCK_CASES;
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => "");
+    throw new Error(`Failed to fetch cases (${res.status}): ${errorText}`);
   }
+
+  const rawList: Record<string, unknown>[] = await res.json();
+  return rawList.map((item) => ({
+    ...(item as unknown as CaseSummary),
+    chain: normalizeChain((item.chain || item.blockchain_type) as string | undefined),
+    attributed_vasp_name: (item.attributed_vasp_name || item.attributed_vasp) as string | undefined,
+  }));
 }
 
 export async function parseFir(complaintText: string): Promise<Partial<TraceRequest>> {
@@ -434,39 +509,25 @@ export async function parseFir(complaintText: string): Promise<Partial<TraceRequ
     });
   }
 
-  try {
-    const res = await fetch(`${API_BASE_URL}/fir/parse`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ complaintText, complaint_text: complaintText }),
-    });
+  const res = await fetch(`${API_BASE_URL}/fir/parse`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ complaintText, complaint_text: complaintText }),
+  });
 
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new Error(`Failed to parse FIR complaint text (${res.status}): ${errorText}`);
-    }
-
-    const data = await res.json();
-    return {
-      suspect_address: data.suspect_wallet_address || data.suspect_address || "",
-      chain: normalizeChain(data.blockchain_type || data.chain),
-      max_hops: data.max_trace_hops || data.max_hops || 5,
-      value_threshold_pct: 2.0,
-      complaint_id: data.complaint_id,
-    };
-  } catch (err) {
-    console.error("[API] parseFir backend call failed:", err);
-    if (!USE_MOCK_DATA) {
-      throw err;
-    }
-    return {
-      suspect_address: "TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9",
-      chain: "tron",
-      max_hops: 5,
-      value_threshold_pct: 2.0,
-      complaint_id: "FIR-2026-DELHI-402",
-    };
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => "");
+    throw new Error(`Failed to parse FIR complaint text (${res.status}): ${errorText}`);
   }
+
+  const data = await res.json();
+  return {
+    suspect_address: data.suspect_wallet_address || data.suspect_address || "",
+    chain: normalizeChain(data.blockchain_type || data.chain),
+    max_hops: data.max_trace_hops || data.max_hops || 5,
+    value_threshold_pct: 2.0,
+    complaint_id: data.complaint_id,
+  };
 }
 
 export async function generateNotice(
@@ -479,38 +540,27 @@ export async function generateNotice(
     });
   }
 
-  try {
-    const res = await fetch(`${API_BASE_URL}/notices/generate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+  const res = await fetch(`${API_BASE_URL}/notices/generate`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
 
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new Error(`Failed to generate legal freeze notice (${res.status}): ${errorText}`);
-    }
-
-    const data = await res.json();
-    const origin = API_BASE_URL.replace(/\/api\/v1\/?$/, "");
-    const pdfUrl = data.pdf_url?.startsWith("http")
-      ? data.pdf_url
-      : `${origin}${data.pdf_url}`;
-
-    return {
-      pdfUrl,
-      sha256_evidence_hash: data.sha256_evidence_hash,
-    };
-  } catch (err) {
-    console.error("[API] generateNotice backend call failed:", err);
-    if (!USE_MOCK_DATA) {
-      throw err;
-    }
-    return {
-      pdfUrl: "#mock-pdf-url",
-      sha256_evidence_hash: payload.sha256_evidence_hash || "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    };
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => "");
+    throw new Error(`Failed to generate legal freeze notice (${res.status}): ${errorText}`);
   }
+
+  const data = await res.json();
+  const origin = API_BASE_URL.replace(/\/api\/v1\/?$/, "");
+  const pdfUrl = data.pdf_url?.startsWith("http")
+    ? data.pdf_url
+    : `${origin}${data.pdf_url}`;
+
+  return {
+    pdfUrl,
+    sha256_evidence_hash: data.sha256_evidence_hash || "",
+  };
 }
 
 export async function downloadCourtEvidenceBundle(caseId: string): Promise<void> {
@@ -876,9 +926,363 @@ export async function getAuditLogs(): Promise<AuditLogItem[]> {
   return logsList;
 }
 
+export async function getVaspRegistry(): Promise<VASPRegistryItem[]> {
+  let res: Response;
+  try {
+    const headers = getAuthHeaders(undefined, "");
+    res = await fetch(`${API_BASE_URL}/vasp/registry`, {
+      method: "GET",
+      headers,
+    });
+  } catch (err) {
+    console.error("[API] getVaspRegistry network failure:", err);
+    throw new Error("Unable to load VASP registry.");
+  }
+
+  if (!res.ok) {
+    if (res.status === 404) {
+      try {
+        const fallbackRes = await fetch(`${API_BASE_URL}/vasp/labels`, { headers: getAuthHeaders(undefined, "") });
+        if (fallbackRes.ok) {
+          const data = await fallbackRes.json();
+          const items = Array.isArray(data.labels) ? data.labels : Array.isArray(data) ? data : [];
+          return items.map((item: Record<string, unknown>) => ({
+            vasp_name: (item.entity_name as string) || (item.vasp_name as string) || "VASP Entity",
+            fiu_registered: (item.is_fiu_registered as boolean) ?? (item.fiu_registered as boolean) ?? false,
+            nodal_officer_email: (item.nodal_officer_email as string) || (item.email as string) || "",
+            jurisdiction: (item.jurisdiction as string) || "India / Global",
+            supported_chains: (item.supported_chains as string[]) || (item.chain ? [item.chain as string] : ["tron", "ethereum"]),
+            notice_turnaround_hours: item.notice_turnaround_hours as number | undefined,
+            notice_turnaround: item.notice_turnaround as string | undefined,
+          }));
+        }
+      } catch {
+        // Continue to throw main error below
+      }
+    }
+    throw new Error("Unable to load VASP registry.");
+  }
+
+  const data = await res.json();
+  const list = Array.isArray(data.registry)
+    ? data.registry
+    : Array.isArray(data.vasps)
+    ? data.vasps
+    : Array.isArray(data)
+    ? data
+    : [];
+  return list;
+}
+
+export async function getCustomLabels(query?: string): Promise<CustomWalletLabelItem[]> {
+  let res: Response;
+  try {
+    const headers = getAuthHeaders(undefined, "");
+    const url = query
+      ? `${API_BASE_URL}/vasp/labels?query=${encodeURIComponent(query)}`
+      : `${API_BASE_URL}/vasp/labels`;
+
+    res = await fetch(url, {
+      method: "GET",
+      headers,
+    });
+  } catch (err) {
+    console.error("[API] getCustomLabels network failure:", err);
+    throw new Error("Unable to load custom wallet labels.");
+  }
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch custom wallet labels (${res.status})`);
+  }
+
+  const data = await res.json();
+  const labelsList: CustomWalletLabelItem[] = Array.isArray(data.labels)
+    ? data.labels
+    : Array.isArray(data)
+    ? data
+    : [];
+
+  return labelsList;
+}
+
+export async function tagCustomWallet(payload: CustomWalletTagPayload): Promise<{ success: boolean; message?: string }> {
+  let res: Response;
+  try {
+    const headers = getAuthHeaders(undefined, "application/json");
+    res = await fetch(`${API_BASE_URL}/vasp/labels`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.error("[API] tagCustomWallet network failure:", err);
+    throw new Error("Unable to save wallet tag.");
+  }
+
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => "");
+    throw new Error(`Unable to save wallet tag (${res.status}): ${errorText}`);
+  }
+
+  return await res.json().catch(() => ({ success: true }));
+}
+
+export async function getWalletTags(address: string): Promise<CustomWalletLabelItem[]> {
+  if (!address) return [];
+  try {
+    const headers = getAuthHeaders(undefined, "");
+    const res = await fetch(`${API_BASE_URL}/vasp/tags/${encodeURIComponent(address)}`, {
+      method: "GET",
+      headers,
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.tags)) return data.tags;
+      if (Array.isArray(data.labels)) return data.labels;
+      if (typeof data === "object" && data !== null && (data.address || data.vasp_name || data.entity_name)) {
+        return [data];
+      }
+    }
+  } catch {
+    // Ignore and search labels endpoint
+  }
+
+  try {
+    return await getCustomLabels(address);
+  } catch {
+    return [];
+  }
+}
+
 export const runTrace = createTrace;
 export const fetchCase = getCase;
 export const fetchCases = getCases;
+
+export async function getCaseBridges(caseId: string): Promise<CaseBridgesResponse> {
+  let res: Response;
+  const encodedId = encodeURIComponent(caseId);
+  try {
+    const headers = getAuthHeaders(undefined, "");
+    res = await fetch(`${API_BASE_URL}/cases/${encodedId}/bridges`, {
+      method: "GET",
+      headers,
+    });
+    if (!res.ok && res.status === 404) {
+      const fallbackRes = await fetch(`${API_BASE_URL}/cases/${encodedId}/bridge-hops`, {
+        method: "GET",
+        headers,
+      });
+      if (fallbackRes.ok) {
+        res = fallbackRes;
+      }
+    }
+  } catch (err) {
+    console.error("[API] getCaseBridges network failure:", err);
+    throw new Error("Unable to reach server to load bridge analysis.");
+  }
+
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => "");
+    throw new Error(`Failed to load bridge analysis (${res.status}): ${errorText || res.statusText}`);
+  }
+
+  const data = await res.json();
+  const rawHops: Record<string, unknown>[] = Array.isArray(data.bridge_hops)
+    ? data.bridge_hops
+    : Array.isArray(data.hops)
+    ? data.hops
+    : Array.isArray(data)
+    ? data
+    : [];
+
+  const bridge_hops: BridgeHopItem[] = rawHops.map((item) => ({
+    bridge_protocol: (item.bridge_protocol as string) || (item.bridge_name as string) || (item.protocol as string) || "Unknown Protocol",
+    source_chain: (item.source_chain as string) || (item.src_chain as string) || "tron",
+    destination_chain: (item.destination_chain as string) || (item.dest_chain as string) || "ethereum",
+    source_tx_hash: (item.source_tx_hash as string) || (item.tx_hash as string) || "",
+    amount_usd: typeof item.amount_usd === "number" ? item.amount_usd : typeof item.value === "number" ? item.value : undefined,
+    token: item.token as string | undefined,
+    destination_wallet: (item.destination_wallet as string) || (item.dest_wallet as string) || (item.recipient_address as string) || undefined,
+  }));
+
+  return {
+    case_id: (data.case_id as string) || caseId,
+    total_bridges_detected: typeof data.total_bridges_detected === "number"
+      ? data.total_bridges_detected
+      : typeof data.bridge_hop_count === "number"
+      ? data.bridge_hop_count
+      : bridge_hops.length,
+    bridge_hops,
+  };
+}
+
+export async function getCasePrivacy(caseId: string): Promise<CasePrivacyResponse> {
+  let res: Response;
+  const encodedId = encodeURIComponent(caseId);
+  try {
+    const headers = getAuthHeaders(undefined, "");
+    res = await fetch(`${API_BASE_URL}/cases/${encodedId}/privacy`, {
+      method: "GET",
+      headers,
+    });
+    if (!res.ok && res.status === 404) {
+      const fallbackRes = await fetch(`${API_BASE_URL}/cases/${encodedId}/privacy-dossier`, {
+        method: "GET",
+        headers,
+      });
+      if (fallbackRes.ok) {
+        res = fallbackRes;
+      }
+    }
+  } catch (err) {
+    console.error("[API] getCasePrivacy network failure:", err);
+    throw new Error("Unable to reach server to load privacy analysis.");
+  }
+
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => "");
+    throw new Error(`Failed to load privacy analysis (${res.status}): ${errorText || res.statusText}`);
+  }
+
+  const data = await res.json();
+  const rawSwappers: Record<string, unknown>[] = Array.isArray(data.privacy_swappers_detected)
+    ? data.privacy_swappers_detected
+    : Array.isArray(data.detected_swapper_hops)
+    ? data.detected_swapper_hops
+    : Array.isArray(data.swappers)
+    ? data.swappers
+    : Array.isArray(data)
+    ? data
+    : [];
+
+  const privacy_swappers_detected: PrivacySwapperItem[] = rawSwappers.map((item) => ({
+    service_name: (item.service_name as string) || (item.swapper_name as string) || (item.service as string) || "Instant Swapper",
+    swapper_type: item.swapper_type as string | undefined,
+    input_currency: (item.input_currency as string) || (item.input_asset as string) || "N/A",
+    output_currency: (item.output_currency as string) || (item.output_asset as string) || "N/A",
+    intercept_address: (item.intercept_address as string) || (item.deposit_address as string) || (item.address as string) || "",
+    subpoena_questionnaire_ready: typeof item.subpoena_questionnaire_ready === "boolean"
+      ? item.subpoena_questionnaire_ready
+      : Array.isArray(data.investigative_playbook) && data.investigative_playbook.length > 0
+      ? true
+      : undefined,
+  }));
+
+  return {
+    case_id: (data.case_id as string) || caseId,
+    privacy_swappers_detected,
+  };
+}
+
+export async function getCaseLayering(caseId: string): Promise<LayeringAnalysisResponse> {
+  let res: Response;
+  const encodedId = encodeURIComponent(caseId);
+  try {
+    const headers = getAuthHeaders(undefined, "");
+    res = await fetch(`${API_BASE_URL}/cases/${encodedId}/layering-analysis`, {
+      method: "GET",
+      headers,
+    });
+  } catch (err) {
+    console.error("[API] getCaseLayering network failure:", err);
+    throw new Error("Unable to reach server to load layering analysis.");
+  }
+
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => "");
+    throw new Error(`Failed to load layering analysis (${res.status}): ${errorText || res.statusText}`);
+  }
+
+  const data = await res.json();
+  const rawMules: Record<string, unknown>[] = Array.isArray(data.classified_intermediaries)
+    ? data.classified_intermediaries
+    : Array.isArray(data.intermediary_mules)
+    ? data.intermediary_mules
+    : Array.isArray(data.intermediaries)
+    ? data.intermediaries
+    : Array.isArray(data.mules)
+    ? data.mules
+    : [];
+
+  const classified_intermediaries: IntermediaryMule[] = rawMules.map((item) => ({
+    address: (item.address as string) || (item.wallet as string) || (item.node as string) || "",
+    role: (item.role as string) || (item.classification as string) || "Intermediary Hop",
+    holding_time_minutes: typeof item.holding_time_minutes === "number"
+      ? item.holding_time_minutes
+      : typeof item.holding_time === "number"
+      ? item.holding_time
+      : undefined,
+  }));
+
+  const paths: LayeringAnalysisPath[] = Array.isArray(data.paths) ? data.paths : [];
+
+  return {
+    case_id: (data.case_id as string) || caseId,
+    suspect_address: data.suspect_address as string | undefined,
+    total_paths_discovered: typeof data.total_paths_discovered === "number" ? data.total_paths_discovered : undefined,
+    min_hop_count: typeof data.min_hop_count === "number" ? data.min_hop_count : undefined,
+    max_hop_count: typeof data.max_hop_count === "number" ? data.max_hop_count : undefined,
+    paths,
+    classified_intermediaries,
+    summary: data.summary as string | undefined,
+    generated_at: data.generated_at as string | undefined,
+    peeling_chain_count: typeof data.peeling_chain_count === "number" ? data.peeling_chain_count : null,
+    fan_out_count: typeof data.fan_out_count === "number" ? data.fan_out_count : null,
+    rapid_movement_detected: typeof data.rapid_movement_detected === "boolean" ? data.rapid_movement_detected : null,
+    max_layering_depth: typeof data.max_hop_count === "number"
+      ? data.max_hop_count
+      : typeof data.max_layering_depth === "number"
+      ? data.max_layering_depth
+      : undefined,
+    intermediary_mules: classified_intermediaries,
+  };
+}
+
+export async function getCaseEvidenceCert(caseId: string): Promise<EvidenceCertResponse> {
+  let res: Response;
+  const encodedId = encodeURIComponent(caseId);
+  try {
+    const headers = getAuthHeaders(undefined, "");
+    res = await fetch(`${API_BASE_URL}/cases/${encodedId}/evidence-cert`, {
+      method: "GET",
+      headers,
+    });
+  } catch (err) {
+    console.error("[API] getCaseEvidenceCert network failure:", err);
+    throw new Error("Connection error: Unable to reach backend server.");
+  }
+
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => "");
+    throw new Error(`Failed to load evidence certificate (${res.status}): ${errorText || res.statusText}`);
+  }
+
+  const data = await res.json();
+  return {
+    certificate_type: (data.certificate_type || data.cert_type) as string | undefined,
+    former_equivalent: data.former_equivalent as string | undefined,
+    case_id: (data.case_id || data.caseId) as string | undefined,
+    evidence_sha256_hash: (data.evidence_sha256_hash || data.sha256_hash || data.hash) as string | undefined,
+    total_nodes_analyzed:
+      typeof data.total_nodes_analyzed === "number"
+        ? data.total_nodes_analyzed
+        : typeof data.nodes_count === "number"
+        ? data.nodes_count
+        : undefined,
+    total_transactions_traced:
+      typeof data.total_transactions_traced === "number"
+        ? data.total_transactions_traced
+        : typeof data.transactions_count === "number"
+        ? data.transactions_count
+        : undefined,
+    attributed_vasp:
+      data.attributed_vasp !== undefined && data.attributed_vasp !== null && String(data.attributed_vasp).trim() !== ""
+        ? String(data.attributed_vasp)
+        : null,
+  };
+}
+
+
 
 
 

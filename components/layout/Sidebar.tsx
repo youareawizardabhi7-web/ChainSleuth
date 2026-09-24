@@ -16,13 +16,14 @@ import {
   UserCheck,
   Building2,
   Database,
+  User,
 } from "lucide-react";
 
 const emptySubscribe = () => () => {};
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { currentRole } = useAppStore();
+  const { currentRole, user } = useAppStore();
 
   const isClient = useSyncExternalStore(
     emptySubscribe,
@@ -110,6 +111,31 @@ export function Sidebar() {
             </div>
           </div>
         </div>
+
+        {/* Authenticated Officer Profile */}
+        {user && (
+          <div className="p-2.5 border-b border-slate-800 bg-slate-900/50 flex items-center gap-2">
+            {user.picture ? (
+              <img
+                src={user.picture}
+                alt={user.name || "Officer"}
+                className="w-6 h-6 rounded-full object-cover border border-slate-700 shrink-0"
+              />
+            ) : (
+              <div className="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-teal-400 shrink-0">
+                <User className="w-3.5 h-3.5" />
+              </div>
+            )}
+            <div className="overflow-hidden">
+              <div className="font-bold text-slate-100 text-[11px] truncate font-sans">
+                {user.name || user.email || "Authenticated Officer"}
+              </div>
+              <div className="text-[9px] text-slate-400 truncate">
+                {user.department || user.email || "Authorized Law Enforcement"}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Role Indicator Banner */}
         <div className="p-2.5 border-b border-slate-800 bg-slate-900/30">

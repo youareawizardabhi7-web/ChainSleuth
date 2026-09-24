@@ -5,6 +5,7 @@ import Link from "next/link";
 import { VASPAttribution } from "@/lib/types";
 import { downloadCourtEvidenceBundle } from "@/lib/api";
 import { AddressBadge } from "@/components/ui/AddressBadge";
+import { EvidenceCertModal } from "@/components/case/EvidenceCertModal";
 import {
   CheckCircle2,
   AlertTriangle,
@@ -19,6 +20,7 @@ import {
   Loader2,
   AlertCircle,
   FileCheck,
+  ShieldCheck,
 } from "lucide-react";
 
 interface VaspAttributionCardProps {
@@ -29,6 +31,7 @@ interface VaspAttributionCardProps {
 export function VaspAttributionCard({ attribution, caseId }: VaspAttributionCardProps) {
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [isCertModalOpen, setIsCertModalOpen] = useState(false);
 
   if (!attribution) return null;
 
@@ -153,25 +156,36 @@ export function VaspAttributionCard({ attribution, caseId }: VaspAttributionCard
 
       {/* Action Buttons */}
       <div className="space-y-2 pt-1">
-        {/* Export Court Evidence Package (.ZIP) */}
-        <button
-          type="button"
-          onClick={handleExportBundle}
-          disabled={isExporting}
-          className="flex items-center justify-center gap-2 w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-900 disabled:text-slate-500 text-slate-950 font-sans font-bold text-xs rounded transition-colors shadow-lg cursor-pointer disabled:cursor-not-allowed border border-emerald-500/50"
-        >
-          {isExporting ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
-              <span className="text-slate-200">Packaging Authenticated Evidence...</span>
-            </>
-          ) : (
-            <>
-              <Archive className="w-4 h-4 text-slate-950" />
-              <span>Export Court Evidence Package (.ZIP)</span>
-            </>
-          )}
-        </button>
+        {/* Evidence Actions Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={handleExportBundle}
+            disabled={isExporting}
+            className="flex items-center justify-center gap-1.5 w-full py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-900 disabled:text-slate-500 text-slate-950 font-sans font-bold text-[11px] rounded transition-colors shadow cursor-pointer disabled:cursor-not-allowed border border-emerald-500/50"
+          >
+            {isExporting ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
+                <span className="text-slate-200">Exporting...</span>
+              </>
+            ) : (
+              <>
+                <Archive className="w-3.5 h-3.5 text-slate-950" />
+                <span>Download Evidence Bundle</span>
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsCertModalOpen(true)}
+            className="flex items-center justify-center gap-1.5 w-full py-2 bg-slate-900 hover:bg-slate-800 text-teal-300 font-sans font-bold text-[11px] rounded border border-teal-800/80 transition-colors shadow cursor-pointer"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
+            <span>View Certificate Details</span>
+          </button>
+        </div>
 
         {exportError && (
           <div className="p-2.5 bg-red-950/90 border border-red-700/80 rounded text-red-200 text-[11px] font-mono flex items-start justify-between gap-2 shadow">
@@ -209,7 +223,14 @@ export function VaspAttributionCard({ attribution, caseId }: VaspAttributionCard
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
+
+      <EvidenceCertModal
+        isOpen={isCertModalOpen}
+        onClose={() => setIsCertModalOpen(false)}
+        caseId={caseId}
+      />
     </div>
   );
 }
+
 

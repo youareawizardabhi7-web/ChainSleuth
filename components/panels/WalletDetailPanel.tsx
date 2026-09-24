@@ -1,12 +1,14 @@
 "use client";
 
-import React from "react";
-import { WalletNode, TransferEdge, VASPAttribution } from "@/lib/types";
+import React, { useState, useEffect, useCallback } from "react";
+import { WalletNode, TransferEdge, VASPAttribution, CustomWalletLabelItem } from "@/lib/types";
+import { getWalletTags } from "@/lib/api";
 import { AddressBadge } from "@/components/ui/AddressBadge";
 import { TypologyFlags } from "./TypologyFlags";
 import { RiskBadge } from "@/components/case/RiskBadge";
 import { VaspAttributionCard } from "./VaspAttributionCard";
-import { ArrowUpRight, ArrowDownLeft, ShieldAlert, AlertOctagon, ArrowRightLeft } from "lucide-react";
+import { WalletTagModal } from "./WalletTagModal";
+import { ArrowUpRight, ArrowDownLeft, ShieldAlert, AlertOctagon, ArrowRightLeft, Tag, Shield, RefreshCw } from "lucide-react";
 
 interface WalletDetailPanelProps {
   node: WalletNode | null;
@@ -21,6 +23,54 @@ export function WalletDetailPanel({
   attribution = null,
   caseId = "",
 }: WalletDetailPanelProps) {
+  const [isTagModalOpen, setIsTagModalOpen] = useState(false);
+  const [customTags, setCustomTags] = useState<CustomWalletLabelItem[]>([]);
+  const [isLoadingTags, setIsLoadingTags] = useState(false);
+
+  const address = node?.address;
+
+  const fetchCustomAnnotations = useCallback(async () => {
+    if (!address) {
+      setCustomTags([]);
+      return;
+    }
+    setIsLoadingTags(true);
+    try {
+      const data = await getWalletTags(address);
+      setCustomTags(data || []);
+    } catch {
+      setCustomTags([]);
+    } finally {
+      setIsLoadingTags(false);
+    }
+  }, [address]);
+
+  useEffect(() => {
+    let isCancelled = false;
+    Promise.resolve().then(() => {
+      if (isCancelled) return;
+      if (!address) {
+        setCustomTags([]);
+        return;
+      }
+      setIsLoadingTags(true);
+      getWalletTags(address)
+        .then((data) => {
+          if (!isCancelled) setCustomTags(data || []);
+        })
+        .catch(() => {
+          if (!isCancelled) setCustomTags([]);
+        })
+        .finally(() => {
+          if (!isCancelled) setIsLoadingTags(false);
+        });
+    });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [address]);
+
   if (!node) {
     return (
       <div className="h-full p-4 bg-slate-950 border border-slate-800 rounded font-mono text-xs text-slate-500 flex flex-col items-center justify-center text-center space-y-2 select-none">
@@ -53,15 +103,26 @@ export function WalletDetailPanel({
 
   return (
     <div className="h-full p-3.5 bg-slate-950 border border-slate-800 rounded font-mono text-xs text-slate-300 flex flex-col space-y-3.5 overflow-y-auto select-none">
-      {/* Header */}
+      {/* Header with Tag Button */}
       <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
         <span className="text-slate-400 font-semibold font-sans uppercase tracking-wider text-[11px]">
           Wallet Node Inspector
         </span>
-        <RiskBadge score={node.riskScore} size="sm" />
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsTagModalOpen(true)}
+            className="flex items-center gap-1 px-2 py-1 bg-teal-950 hover:bg-teal-900 text-teal-300 border border-teal-800 rounded font-sans text-[11px] font-bold transition-colors cursor-pointer"
+            title="Annotate or Tag Wallet"
+          >
+            <Tag className="w-3 h-3 text-teal-400" />
+            <span>Tag Wallet</span>
+          </button>
+          <RiskBadge score={node.riskScore} size="sm" />
+        </div>
       </div>
 
-      {/* OFAC Sanctions Alert Banner (Shown ONLY when backend explicitly flag exists) */}
+      {/* OFAC Sanctions Alert Banner */}
       {isOfacSanctioned && (
         <div className="p-3 bg-red-950/90 border-2 border-red-600 rounded text-red-200 font-mono text-xs space-y-2 shadow-lg shadow-red-950/50">
           <div className="flex items-center gap-2 font-bold font-sans text-xs text-red-400 uppercase tracking-wider">
@@ -75,7 +136,6 @@ export function WalletDetailPanel({
             This wallet address has been explicitly flagged by the backend as a match against official OFAC sanctions databases.
           </p>
 
-          {/* Render supporting evidence ONLY if backend provided sanctionsInfo */}
           {node.sanctionsInfo && (
             <div className="pt-2 border-t border-red-800/80 space-y-1 text-[10px]">
               <div className="font-bold text-red-400 uppercase tracking-wider">
@@ -99,24 +159,12 @@ export function WalletDetailPanel({
                   <span className="text-slate-300">{node.sanctionsInfo.designation_reason}</span>
                 </div>
               )}
-              {node.sanctionsInfo.jurisdiction && (
-                <div>
-                  <span className="text-red-400">Jurisdiction:</span>{" "}
-                  <span className="text-slate-300">{node.sanctionsInfo.jurisdiction}</span>
-                </div>
-              )}
-              {node.sanctionsInfo.sanction_date && (
-                <div>
-                  <span className="text-red-400">Sanction Date:</span>{" "}
-                  <span className="text-slate-300">{node.sanctionsInfo.sanction_date}</span>
-                </div>
-              )}
             </div>
           )}
         </div>
       )}
 
-      {/* Cross-Chain Bridge Hop Card (Shown ONLY when backend explicitly flag exists) */}
+      {/* Cross-Chain Bridge Hop Card */}
       {isBridgeHop && (
         <div className="p-3 bg-cyan-950/80 border border-cyan-700 rounded text-cyan-200 font-mono text-xs space-y-2">
           <div className="flex items-center gap-2 font-bold font-sans text-xs text-cyan-400 uppercase tracking-wider">
@@ -131,53 +179,10 @@ export function WalletDetailPanel({
           <p className="text-[11px] text-cyan-300/90 leading-relaxed font-mono">
             This node has been identified by backend ledger analysis as a cross-chain liquidity bridge endpoint.
           </p>
-
-          {/* Render backend bridge details ONLY if available */}
-          {node.bridgeInfo && (
-            <div className="pt-2 border-t border-cyan-800/80 space-y-1 text-[10px]">
-              <div className="font-bold text-cyan-400 uppercase tracking-wider">
-                Bridge Metadata (Backend Provided)
-              </div>
-              {node.bridgeInfo.bridge_name && (
-                <div>
-                  <span className="text-cyan-400">Bridge Protocol:</span>{" "}
-                  <span className="text-slate-100 font-bold">{node.bridgeInfo.bridge_name}</span>
-                </div>
-              )}
-              {(node.bridgeInfo.source_chain || node.bridgeInfo.dest_chain || node.bridgeInfo.destination_chain) && (
-                <div>
-                  <span className="text-cyan-400">Chain Hop:</span>{" "}
-                  <span className="text-slate-100 font-bold uppercase">
-                    {node.bridgeInfo.source_chain || "N/A"} → {node.bridgeInfo.dest_chain || node.bridgeInfo.destination_chain || "N/A"}
-                  </span>
-                </div>
-              )}
-              {node.bridgeInfo.tx_hash && (
-                <div>
-                  <span className="text-cyan-400">Bridge Tx Hash:</span>{" "}
-                  <AddressBadge address={node.bridgeInfo.tx_hash} truncateLength={6} />
-                </div>
-              )}
-              {(node.bridgeInfo.confidence_score !== undefined || node.bridgeInfo.confidence !== undefined) && (
-                <div>
-                  <span className="text-cyan-400">Confidence:</span>{" "}
-                  <span className="text-slate-100 font-bold">
-                    {node.bridgeInfo.confidence_score ?? node.bridgeInfo.confidence}%
-                  </span>
-                </div>
-              )}
-              {node.bridgeInfo.timestamp && (
-                <div>
-                  <span className="text-cyan-400">Timestamp:</span>{" "}
-                  <span className="text-slate-300">{new Date(node.bridgeInfo.timestamp).toLocaleString()}</span>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       )}
 
-      {/* Full Address + Copy Button */}
+      {/* Full Address */}
       <div>
         <div className="text-slate-500 text-[10px] uppercase mb-1">Full Wallet Address</div>
         <AddressBadge address={node.address} truncateLength={8} />
@@ -221,9 +226,66 @@ export function WalletDetailPanel({
         </div>
       </div>
 
-      {/* Typology Flags with Plain-English Explanations */}
+      {/* Investigator Annotations Section */}
+      <div className="space-y-2 pt-2 border-t border-slate-800">
+        <div className="flex items-center justify-between">
+          <span className="text-slate-400 font-semibold font-sans uppercase text-[11px] flex items-center gap-1.5">
+            <Shield className="w-3.5 h-3.5 text-teal-400" />
+            <span>Investigator Annotations</span>
+          </span>
+          {isLoadingTags && <RefreshCw className="w-3 h-3 text-slate-500 animate-spin" />}
+        </div>
+
+        {customTags.length === 0 ? (
+          <div className="text-slate-600 text-[11px] italic p-2 bg-slate-900/40 rounded border border-slate-900 text-center font-mono">
+            No investigator annotations
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {customTags.map((tagItem, idx) => (
+              <div
+                key={tagItem.id || `${tagItem.address}-${idx}`}
+                className="p-2.5 bg-slate-900/90 border border-slate-800 rounded font-mono text-[11px] space-y-1.5"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-100 font-sans">{tagItem.entity_name}</span>
+                  <span className="text-[9px] px-1.5 py-0.2 rounded font-mono font-extrabold uppercase bg-teal-950 text-teal-400 border border-teal-800">
+                    [{tagItem.entity_type}]
+                  </span>
+                </div>
+                {tagItem.case_reference && (
+                  <div className="text-slate-400">
+                    <span className="text-slate-500">Case Ref:</span> {tagItem.case_reference}
+                  </div>
+                )}
+                {tagItem.source && (
+                  <div className="text-slate-400">
+                    <span className="text-slate-500">Source:</span> {tagItem.source}
+                  </div>
+                )}
+                {tagItem.notes && (
+                  <p className="text-slate-300 text-[10px] bg-slate-950 p-1.5 rounded border border-slate-800/80 leading-normal">
+                    {tagItem.notes}
+                  </p>
+                )}
+                {tagItem.tags && tagItem.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 pt-1">
+                    {tagItem.tags.map((t, tIdx) => (
+                      <span key={tIdx} className="text-[9px] bg-slate-800 text-slate-300 px-1 py-0.2 rounded border border-slate-700">
+                        #{t}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Typology Flags */}
       {node.typologyFlags && node.typologyFlags.length > 0 && (
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 pt-1 border-t border-slate-800">
           <div className="text-slate-500 text-[10px] uppercase font-semibold">
             Detected Laundering Typologies
           </div>
@@ -292,6 +354,15 @@ export function WalletDetailPanel({
           </div>
         )}
       </div>
+
+      {/* Wallet Tagging Modal */}
+      <WalletTagModal
+        isOpen={isTagModalOpen}
+        onClose={() => setIsTagModalOpen(false)}
+        address={node.address}
+        chain={node.chain}
+        onTagSuccess={fetchCustomAnnotations}
+      />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Download, ShieldCheck, FileCheck, Copy, Check, FileText, Archive, Loader2, AlertCircle } from "lucide-react";
 import { AddressBadge } from "@/components/ui/AddressBadge";
 import { downloadCourtEvidenceBundle } from "@/lib/api";
+import { EvidenceCertModal } from "@/components/case/EvidenceCertModal";
 
 interface NoticePreviewProps {
   caseId?: string;
@@ -16,17 +17,18 @@ interface NoticePreviewProps {
 }
 
 export function NoticePreview({
-  caseId = "CS-2026-8891",
+  caseId = "",
   pdfUrl,
-  vaspName = "CoinDCX (Neblio Technologies Pvt Ltd)",
-  depositAddress = "TCOINDCXDEPOSIT9988776655443311",
-  hotWalletAddress = "TCOINDCXHOTSWEEP0000000000000000",
-  evidenceHash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  lossAmountInr = 485000,
+  vaspName = "",
+  depositAddress = "",
+  hotWalletAddress = "",
+  evidenceHash = "",
+  lossAmountInr,
 }: NoticePreviewProps) {
   const [copiedHash, setCopiedHash] = useState(false);
   const [isExportingBundle, setIsExportingBundle] = useState(false);
   const [bundleExportError, setBundleExportError] = useState<string | null>(null);
+  const [isCertModalOpen, setIsCertModalOpen] = useState(false);
 
   const handleExportBundle = async () => {
     if (isExportingBundle) return;
@@ -43,6 +45,7 @@ export function NoticePreview({
   };
 
   const handleCopyHash = () => {
+    if (!evidenceHash) return;
     navigator.clipboard.writeText(evidenceHash);
     setCopiedHash(true);
     setTimeout(() => setCopiedHash(false), 2000);
@@ -52,7 +55,6 @@ export function NoticePreview({
     if (pdfUrl && pdfUrl !== "#mock-pdf-url") {
       window.open(pdfUrl, "_blank");
     } else {
-      // Simulate PDF file download for demo mode
       const element = document.createElement("a");
       const file = new Blob(
         [
@@ -61,7 +63,7 @@ export function NoticePreview({
         { type: "text/plain" }
       );
       element.href = URL.createObjectURL(file);
-      element.download = `SECTION_94_BNSS_NOTICE_${caseId}.txt`;
+      element.download = `SECTION_94_BNSS_NOTICE_${caseId || "RECORD"}.txt`;
       document.body.appendChild(element);
       element.click();
       document.body.removeChild(element);
@@ -93,19 +95,28 @@ export function NoticePreview({
               type="button"
               onClick={handleExportBundle}
               disabled={isExportingBundle}
-              className="flex items-center gap-2 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-900 disabled:text-slate-500 text-slate-950 font-sans font-bold text-xs rounded transition-colors shadow-lg cursor-pointer disabled:cursor-not-allowed border border-emerald-500/50"
+              className="flex items-center gap-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-900 disabled:text-slate-500 text-slate-950 font-sans font-bold text-xs rounded transition-colors shadow-lg cursor-pointer disabled:cursor-not-allowed border border-emerald-500/50"
             >
               {isExportingBundle ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
-                  <span className="text-slate-200">Packaging Authenticated Evidence...</span>
+                  <span className="text-slate-200">Exporting...</span>
                 </>
               ) : (
                 <>
                   <Archive className="w-4 h-4 text-slate-950" />
-                  <span>Export Court Evidence Package (.ZIP)</span>
+                  <span>Download Evidence Bundle</span>
                 </>
               )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsCertModalOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 bg-slate-900 hover:bg-slate-800 text-teal-300 font-sans font-bold text-xs rounded border border-teal-800/80 transition-colors shadow cursor-pointer"
+            >
+              <ShieldCheck className="w-4 h-4 text-teal-400" />
+              <span>View Certificate Details</span>
             </button>
 
             <button
@@ -171,7 +182,7 @@ export function NoticePreview({
 
               <p className="text-slate-300 text-justify">
                 WHEREAS information has been received regarding cryptocurrency scam proceeds amounting to{" "}
-                <span className="text-teal-300 font-bold">₹{lossAmountInr.toLocaleString()}</span> originating from victim accounts under FIR Reference <span className="text-slate-100 font-bold">{caseId}</span>.
+                <span className="text-teal-300 font-bold">₹{(lossAmountInr ?? 0).toLocaleString()}</span> originating from victim accounts under FIR Reference <span className="text-slate-100 font-bold">{caseId || "N/A"}</span>.
               </p>
 
               <div className="p-3 bg-slate-950 border border-teal-500/80 rounded space-y-2">
@@ -231,6 +242,12 @@ export function NoticePreview({
           </button>
         </div>
       </div>
+
+      <EvidenceCertModal
+        isOpen={isCertModalOpen}
+        onClose={() => setIsCertModalOpen(false)}
+        caseId={caseId}
+      />
     </div>
   );
 }

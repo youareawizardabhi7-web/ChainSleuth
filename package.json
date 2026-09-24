@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.1",
     "@types/three": "^0.186.0",
     "cytoscape": "^3.34.3",
     "lucide-react": "^1.47.0",

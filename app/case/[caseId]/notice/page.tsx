@@ -70,13 +70,12 @@ export default function LegalNoticePage({
         case_number: caseId,
         suspect_address: traceData.suspect_address,
         attributed_vasp: traceData.attribution,
-        loss_amount_inr: 485000,
-        flow_summary: `TRC-20 USDT transfer traced through peeling hops into ${traceData.attribution.vasp_name} deposit address ${traceData.attribution.deposit_address}`,
-        sha256_evidence_hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        loss_amount_inr: 0,
+        flow_summary: traceData.attribution?.deposit_address
+          ? `${(traceData.chain || "crypto").toUpperCase()} transfer traced into ${traceData.attribution.vasp_name} deposit address ${traceData.attribution.deposit_address}`
+          : `Crypto asset transfer traced for suspect address ${traceData.suspect_address}`,
+        sha256_evidence_hash: "",
       };
-
-      // Wait total 2.0s delay to demonstrate legal notice generation loading sequence
-      await new Promise((res) => setTimeout(res, 2000));
 
       const res = await generateNotice(payload);
       setNoticeResult({

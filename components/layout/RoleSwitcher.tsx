@@ -2,6 +2,7 @@
 
 import React, { useSyncExternalStore } from "react";
 import { useAppStore } from "@/lib/store";
+import { UserRole } from "@/lib/types";
 import { Shield, UserCheck, Building2 } from "lucide-react";
 
 const emptySubscribe = () => () => {};
@@ -31,23 +32,29 @@ export function RoleSwitcher({ orientation = "vertical" }: RoleSwitcherProps) {
     );
   }
 
-  const roles = [
+  const rolesConfig: {
+    id: UserRole;
+    label: string;
+    fullLabel: string;
+    icon: React.ElementType;
+    activeStyle: string;
+  }[] = [
     {
-      id: "investigating_officer" as const,
+      id: "investigating_officer",
       label: "IO",
       fullLabel: "Investigating Officer",
       icon: UserCheck,
       activeStyle: "bg-slate-800 text-teal-400 font-bold border border-teal-500/30",
     },
     {
-      id: "supervisory_officer" as const,
+      id: "supervisory_officer",
       label: "Supervisor",
       fullLabel: "Supervisory Officer",
       icon: Shield,
       activeStyle: "bg-slate-800 text-amber-400 font-bold border border-amber-500/30",
     },
     {
-      id: "vasp_nodal_officer" as const,
+      id: "vasp_nodal_officer",
       label: "VASP Nodal",
       fullLabel: "VASP Nodal Officer",
       icon: Building2,
@@ -61,9 +68,10 @@ export function RoleSwitcher({ orientation = "vertical" }: RoleSwitcherProps) {
         isVertical ? "flex-col w-full gap-1.5" : "flex-row items-center gap-1"
       } bg-slate-900 border border-slate-800 p-1.5 rounded-lg font-mono text-[11px] select-none`}
     >
-      {roles.map((r) => {
+      {rolesConfig.map((r) => {
         const Icon = r.icon;
         const isActive = currentRole === r.id;
+
         return (
           <button
             key={r.id}
@@ -86,4 +94,3 @@ export function RoleSwitcher({ orientation = "vertical" }: RoleSwitcherProps) {
     </div>
   );
 }
-
