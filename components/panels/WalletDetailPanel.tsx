@@ -394,17 +394,22 @@ export function WalletDetailPanel({
           </div>
         ) : (
           <div className="space-y-2">
-            {customTags.map((tagItem, idx) => (
-              <div
-                key={tagItem.id || `${tagItem.address}-${idx}`}
-                className="p-2.5 bg-slate-900/90 border border-slate-800 rounded font-mono text-[11px] space-y-1.5"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-100 font-sans">{tagItem.entity_name}</span>
-                  <span className="text-[9px] px-1.5 py-0.2 rounded font-mono font-extrabold uppercase bg-teal-950 text-teal-400 border border-teal-800">
-                    [{tagItem.entity_type}]
-                  </span>
-                </div>
+            {customTags.map((tagItem, idx) => {
+              if (!tagItem || typeof tagItem !== "object") return null;
+              const entityName = tagItem.entity_name || (typeof tagItem === "string" ? tagItem : "Investigator Tag");
+              return (
+                <div
+                  key={tagItem.id || `${tagItem.address || "tag"}-${idx}`}
+                  className="p-2.5 bg-slate-900/90 border border-slate-800 rounded font-mono text-[11px] space-y-1.5"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-100 font-sans">{entityName}</span>
+                    {tagItem.entity_type && (
+                      <span className="text-[9px] px-1.5 py-0.2 rounded font-mono font-extrabold uppercase bg-teal-950 text-teal-400 border border-teal-800">
+                        [{tagItem.entity_type}]
+                      </span>
+                    )}
+                  </div>
                 {tagItem.case_reference && (
                   <div className="text-slate-400">
                     <span className="text-slate-500">Case Ref:</span> {tagItem.case_reference}
@@ -429,8 +434,9 @@ export function WalletDetailPanel({
                     ))}
                   </div>
                 )}
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

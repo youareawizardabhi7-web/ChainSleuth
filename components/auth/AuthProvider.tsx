@@ -57,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (!isSupabaseConfigured()) return;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: unknown, session: any) => {
       if (session?.user) {
         const email = session.user.email || "";
         const name = session.user.user_metadata?.full_name || session.user.user_metadata?.name || email.split("@")[0] || "Officer";

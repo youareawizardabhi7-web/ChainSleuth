@@ -981,6 +981,18 @@ export async function tagCustomWallet(payload: CustomWalletTagPayload): Promise<
 
 export async function getWalletTags(address: string): Promise<CustomWalletLabelItem[]> {
   if (!address) return [];
+
+  // 1. Primary: Look up investigator annotations created via the internal database
+  try {
+    const customList = await getCustomLabels(address);
+    if (Array.isArray(customList) && customList.length > 0) {
+      return customList;
+    }
+  } catch (err) {
+    console.warn("[API] getCustomLabels lookup failed:", err);
+  }
+
+  // 2. Secondary: Check VASP / Threat Intel tags endpoint for agency DB attributions
   try {
     const headers = getAuthHeaders(undefined, "");
     const res = await fetch(`${API_BASE_URL}/vasp/tags/${encodeURIComponent(address)}`, {
@@ -989,21 +1001,35 @@ export async function getWalletTags(address: string): Promise<CustomWalletLabelI
     });
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data.tags)) return data.tags;
-      if (Array.isArray(data.labels)) return data.labels;
-      if (typeof data === "object" && data !== null && (data.address || data.vasp_name || data.entity_name)) {
-        return [data];
+      // If agency DB or threat intel identified a real entity (not a generic unattributed wallet)
+      if (
+        data &&
+        typeof data === "object" &&
+        data.source !== "unattributed" &&
+        data.category !== "unattributed" &&
+        (data.entity_name || data.vasp_name)
+      ) {
+        return [
+          {
+            id: data.id || data.address || address,
+            address: data.address || address,
+            entity_name: data.entity_name || data.vasp_name,
+            entity_type: data.entity_type || data.category || "vasp",
+            chain: data.chain,
+            confidence: data.confidence,
+            source: data.source,
+            case_reference: data.case_reference,
+            notes: data.notes,
+            tags: Array.isArray(data.tags) ? data.tags : [],
+          },
+        ];
       }
     }
   } catch {
-    // Fallback to labels search
+    // Fallback: no annotations found
   }
 
-  try {
-    return await getCustomLabels(address);
-  } catch {
-    return [];
-  }
+  return [];
 }
 
 export const runTrace = createTrace;
