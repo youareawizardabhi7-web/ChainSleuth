@@ -39,13 +39,15 @@ function truncateHash(hash: string, length = 8): string {
   return `${hash.slice(0, length)}...${hash.slice(-length)}`;
 }
 
-function getExplorerUrl(txHash: string, chain?: string): string | null {
-  if (!txHash) return null;
-  const c = chain?.toLowerCase() || "";
-  if (c.includes("tron") || c.includes("trx")) return `https://tronscan.org/#/transaction/${txHash}`;
-  if (c.includes("eth") || c.includes("ethereum")) return `https://etherscan.io/tx/${txHash}`;
-  if (c.includes("sol") || c.includes("solana")) return `https://solscan.io/tx/${txHash}`;
-  if (c.includes("btc") || c.includes("bitcoin")) return `https://mempool.space/tx/${txHash}`;
+function getExplorerUrl(txHash?: string | null, chain?: string | null): string | null {
+  if (!txHash || typeof txHash !== "string" || !txHash.trim()) return null;
+  if (!chain || typeof chain !== "string" || !chain.trim()) return null;
+  const c = chain.toLowerCase().trim();
+  const hash = txHash.trim();
+  if (c.includes("tron") || c.includes("trx")) return `https://tronscan.org/#/transaction/${hash}`;
+  if (c.includes("eth") || c.includes("ethereum")) return `https://etherscan.io/tx/${hash}`;
+  if (c.includes("sol") || c.includes("solana")) return `https://solscan.io/tx/${hash}`;
+  if (c.includes("btc") || c.includes("bitcoin")) return `https://mempool.space/tx/${hash}`;
   return null;
 }
 
@@ -264,7 +266,10 @@ export function ForensicDeepDivePanel({
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {bridgesData.bridge_hops.map((hop, idx) => {
-                    const explorerUrl = getExplorerUrl(hop.source_tx_hash, hop.source_chain);
+                    const sourceExplorerUrl = getExplorerUrl(hop.source_tx_hash, hop.source_chain);
+                    const destTxHash = hop.destination_tx_hash || hop.dest_tx_hash;
+                    const destExplorerUrl = getExplorerUrl(destTxHash, hop.destination_chain);
+
                     return (
                       <div
                         key={idx}
@@ -310,19 +315,21 @@ export function ForensicDeepDivePanel({
                               {renderAddressWithAction(hop.destination_wallet, "destination wallet")}
                             </div>
                           )}
-                          {hop.source_tx_hash && (
-                            <div className="flex justify-between items-center pt-1">
+
+                          {/* Source Tx Hash */}
+                          {hop.source_tx_hash ? (
+                            <div className="flex justify-between items-center pt-1 border-t border-slate-800/60">
                               <span className="text-slate-500">Source Tx Hash:</span>
                               <div className="flex items-center gap-1.5">
-                                <span className="font-mono text-slate-300">
+                                <span className="font-mono text-slate-300" title={hop.source_tx_hash}>
                                   {truncateHash(hop.source_tx_hash, 6)}
                                 </span>
                                 <button
                                   type="button"
                                   onClick={() => handleCopy(hop.source_tx_hash)}
-                                  aria-label="Copy transaction hash"
-                                  className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-200 transition-colors"
-                                  title="Copy transaction hash"
+                                  aria-label="Copy source transaction hash"
+                                  className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                                  title="Copy source transaction hash"
                                 >
                                   {copiedText === hop.source_tx_hash ? (
                                     <Check className="w-3 h-3 text-teal-400" />
@@ -330,20 +337,66 @@ export function ForensicDeepDivePanel({
                                     <Copy className="w-3 h-3" />
                                   )}
                                 </button>
-                                {explorerUrl && (
+                                {sourceExplorerUrl ? (
                                   <a
-                                    href={explorerUrl}
+                                    href={sourceExplorerUrl}
                                     target="_blank"
-                                    rel="noreferrer"
-                                    className="p-1 hover:bg-slate-800 rounded text-cyan-400 hover:text-cyan-300 transition-colors"
-                                    title="View on block explorer"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1 px-1.5 py-0.5 bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-800 rounded text-[10px] font-sans font-bold transition-colors cursor-pointer"
+                                    title={`View on ${hop.source_chain || "block"} explorer`}
                                   >
-                                    <ExternalLink className="w-3 h-3" />
+                                    <span>Explorer</span>
+                                    <ExternalLink className="w-3 h-3 text-cyan-400" />
                                   </a>
+                                ) : (
+                                  <span className="text-[10px] text-slate-500 italic bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">
+                                    Explorer unavailable
+                                  </span>
                                 )}
                               </div>
                             </div>
-                          )}
+                          ) : null}
+
+                          {/* Destination Tx Hash (if provided by backend) */}
+                          {destTxHash ? (
+                            <div className="flex justify-between items-center pt-1 border-t border-slate-800/40">
+                              <span className="text-slate-500">Dest Tx Hash:</span>
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-mono text-slate-300" title={destTxHash}>
+                                  {truncateHash(destTxHash, 6)}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopy(destTxHash)}
+                                  aria-label="Copy destination transaction hash"
+                                  className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                                  title="Copy destination transaction hash"
+                                >
+                                  {copiedText === destTxHash ? (
+                                    <Check className="w-3 h-3 text-teal-400" />
+                                  ) : (
+                                    <Copy className="w-3 h-3" />
+                                  )}
+                                </button>
+                                {destExplorerUrl ? (
+                                  <a
+                                    href={destExplorerUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1 px-1.5 py-0.5 bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-800 rounded text-[10px] font-sans font-bold transition-colors cursor-pointer"
+                                    title={`View on ${hop.destination_chain || "block"} explorer`}
+                                  >
+                                    <span>Explorer</span>
+                                    <ExternalLink className="w-3 h-3 text-cyan-400" />
+                                  </a>
+                                ) : (
+                                  <span className="text-[10px] text-slate-500 italic bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">
+                                    Explorer unavailable
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ) : null}
                         </div>
                       </div>
                     );

@@ -56,20 +56,33 @@ export function ForensicClustersPanel({
 
   const getClusterTypeBadge = (type: string) => {
     switch (type?.toLowerCase()) {
+      case "vasp_sweep":
       case "exchange_sweep":
         return {
-          label: "EXCHANGE SWEEP",
+          label: "VASP SWEEP",
           colorClass: "bg-teal-950/80 text-teal-300 border-teal-700",
         };
+      case "syndicate_gas":
       case "syndicate_gas_funder":
         return {
-          label: "SYNDICATE GAS FUNDER",
+          label: "SYNDICATE GAS",
           colorClass: "bg-purple-950/80 text-purple-300 border-purple-700",
         };
+      case "layering_cell":
       case "laundering_typology":
         return {
-          label: "LAUNDERING TYPOLOGY",
+          label: "LAYERING CELL",
           colorClass: "bg-rose-950/80 text-rose-300 border-rose-700",
+        };
+      case "smurfing_cell":
+        return {
+          label: "SMURFING CELL",
+          colorClass: "bg-amber-950/80 text-amber-300 border-amber-700",
+        };
+      case "dex_liquidity":
+        return {
+          label: "DEX LIQUIDITY",
+          colorClass: "bg-cyan-950/80 text-cyan-300 border-cyan-700",
         };
       default:
         return {
@@ -113,13 +126,13 @@ export function ForensicClustersPanel({
               ACTIVE GRAPH HIGHLIGHT
             </span>
             <span className="text-[9px] bg-purple-900 text-purple-200 px-1.5 py-0.5 rounded border border-purple-700">
-              {selectedCluster.addresses?.length || 0} WALLETS
+              {(selectedCluster.member_addresses || []).length} WALLETS
             </span>
           </div>
           <p className="text-[11px] text-purple-200 font-mono">
             Highlighting cluster:{" "}
             <span className="font-bold text-slate-100">
-              {selectedCluster.cluster_label || selectedCluster.label || selectedCluster.name || "Cluster"}
+              {selectedCluster.label || "Cluster"}
             </span>
           </p>
         </div>
@@ -159,17 +172,14 @@ export function ForensicClustersPanel({
       {!loading && !error && clusters.length > 0 && (
         <div className="space-y-3">
           {clusters.map((cluster, idx) => {
-            const clusterId = cluster.cluster_id || cluster.id || `cluster-${idx}`;
-            const isSelected =
-              selectedCluster &&
-              (selectedCluster.cluster_id === clusterId || selectedCluster.id === clusterId);
-            const label =
-              cluster.cluster_label || cluster.label || cluster.name || `Cluster #${idx + 1}`;
+            const clusterId = cluster.cluster_id || `cluster-${idx}`;
+            const isSelected = selectedCluster && selectedCluster.cluster_id === clusterId;
+            const label = cluster.label || `Cluster #${idx + 1}`;
             const badge = getClusterTypeBadge(cluster.cluster_type);
-            const addresses = cluster.addresses || [];
-            const nodeCount = cluster.node_count ?? cluster.address_count ?? addresses.length;
-            const entityName = cluster.entity_name || cluster.entity;
-            const summary = cluster.summary || cluster.description;
+            const addresses = cluster.member_addresses || [];
+            const nodeCount = addresses.length;
+            const entityName = cluster.entity_name;
+            const description = cluster.description;
 
             // Count how many cluster addresses are visible in current graph topology
             const visibleInGraphCount =
@@ -198,15 +208,23 @@ export function ForensicClustersPanel({
                     <div className="font-bold text-slate-100 font-sans text-xs">{label}</div>
                   </div>
 
-                  {/* Confidence Score */}
+                  {/* Risk Score / Volume */}
                   <div className="text-right shrink-0">
-                    <span className="text-[9px] text-slate-500 uppercase block font-sans">
-                      Confidence
-                    </span>
-                    <span className="text-purple-400 font-bold text-xs font-mono">
-                      {cluster.confidence}
-                      {typeof cluster.confidence === "number" && cluster.confidence <= 1 ? "%" : ""}
-                    </span>
+                    {cluster.dominant_risk_score !== undefined && (
+                      <div>
+                        <span className="text-[9px] text-slate-500 uppercase block font-sans">
+                          Dominant Risk
+                        </span>
+                        <span className="text-rose-400 font-bold text-xs font-mono">
+                          {cluster.dominant_risk_score}/100
+                        </span>
+                      </div>
+                    )}
+                    {cluster.total_volume_usdt !== undefined && cluster.total_volume_usdt > 0 && (
+                      <span className="text-[10px] text-teal-400 font-mono block">
+                        ${cluster.total_volume_usdt.toLocaleString()} USDT
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -220,10 +238,10 @@ export function ForensicClustersPanel({
                   </div>
                 )}
 
-                {/* Backend Summary if available */}
-                {summary && (
+                {/* Backend Description if available */}
+                {description && (
                   <p className="text-[11px] text-slate-300 font-sans leading-relaxed bg-slate-950/60 p-2 rounded border border-slate-800/80">
-                    {summary}
+                    {description}
                   </p>
                 )}
 
@@ -232,7 +250,7 @@ export function ForensicClustersPanel({
                   <div className="flex items-center gap-1">
                     <Layers className="w-3 h-3 text-slate-500" />
                     <span>
-                      Addresses: <strong className="text-slate-200">{nodeCount}</strong>
+                      Members: <strong className="text-slate-200">{nodeCount}</strong>
                     </span>
                   </div>
                   {visibleGraphNodeAddresses.length > 0 && (

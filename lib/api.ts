@@ -12,15 +12,14 @@ import {
   WalletCluster,
   FIRCreate,
   FIRResponse,
-  NCRPComplaint,
-  NCRPIngestResponse,
-  NCRPIngestRecordResult,
-  SyndicateCorrelation,
+  NCRPComplaintRecord,
+  NCRPBatchIngestRequest,
+  NCRPBatchIngestResponse,
+  SyndicateCorrelationItem,
   NcrpCorrelationsResponse,
   AuditLogItem,
   AuthUser,
   AuthRoles,
-  VASPRegistryItem,
   CustomWalletTagPayload,
   CustomWalletLabelItem,
   BridgeHopItem,
@@ -31,6 +30,7 @@ import {
   LayeringAnalysisPath,
   LayeringAnalysisResponse,
   EvidenceCertResponse,
+  AIReportResponse,
 } from "./types";
 
 export const API_BASE_URL = (
@@ -414,18 +414,27 @@ export async function createTrace(req: TraceRequest): Promise<TraceResult> {
     });
   }
 
-  const res = await fetch(`${API_BASE_URL}/trace/`, {
-    method: "POST",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(req),
-  });
+  try {
+    const res = await fetch(`${API_BASE_URL}/trace/`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(req),
+    });
 
-  if (!res.ok) {
-    const errorText = await res.text().catch(() => "");
-    throw new Error(`Backend API Error (${res.status}): ${errorText}`);
+    if (!res.ok) {
+      const errorText = await res.text().catch(() => "");
+      throw new Error(`Backend API Error (${res.status}): ${errorText || res.statusText}`);
+    }
+
+    return await res.json();
+  } catch (err: unknown) {
+    if (err instanceof Error && (err.name === "TypeError" || err.message === "Failed to fetch")) {
+      throw new Error(
+        `Unable to reach forensic trace backend service (${API_BASE_URL}). The Render backend may be starting up or experiencing network connectivity issues. Please try again.`
+      );
+    }
+    throw err;
   }
-
-  return await res.json();
 }
 
 export async function getCase(caseId: string): Promise<TraceResult> {
@@ -644,8 +653,8 @@ export async function getCaseClusters(caseId: string): Promise<CaseClustersRespo
 
     return {
       case_id: data.case_id || caseId,
+      cluster_count: data.cluster_count ?? clustersList.length,
       clusters: clustersList,
-      total_clusters: data.total_clusters ?? clustersList.length,
     };
   } catch (err) {
     console.error("[API] getCaseClusters backend call failed:", err);
@@ -719,9 +728,11 @@ export async function downloadFir(firId: string, pdfUrl?: string): Promise<void>
 }
 
 export async function ingestNcrpComplaints(
-  complaints: NCRPComplaint[]
-): Promise<NCRPIngestResponse> {
+  payload: NCRPBatchIngestRequest | NCRPComplaintRecord[]
+): Promise<NCRPBatchIngestResponse> {
   let res: Response;
+  const bodyPayload = Array.isArray(payload) ? { complaints: payload } : payload;
+
   try {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -739,16 +750,8 @@ export async function ingestNcrpComplaints(
     res = await fetch(`${API_BASE_URL}/ncrp/ingest`, {
       method: "POST",
       headers,
-      body: JSON.stringify({ complaints }),
+      body: JSON.stringify(bodyPayload),
     });
-
-    if (res.status === 404 || res.status === 405) {
-      res = await fetch(`${API_BASE_URL}/ncrp/ingest`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(complaints),
-      });
-    }
   } catch (err) {
     console.error("[API] ingestNcrpComplaints network failure:", err);
     throw new Error("Connection error: Unable to reach backend server.");
@@ -776,40 +779,11 @@ export async function ingestNcrpComplaints(
     throw new Error(`NCRP Ingestion failed with status ${res.status}`);
   }
 
-  const data = await res.json();
-
-  const submitted_count =
-    data.submitted_count ?? data.total_submitted ?? complaints.length;
-  const successful_records: NCRPIngestRecordResult[] =
-    data.successful_records ||
-    data.successful ||
-    (Array.isArray(data.results)
-      ? data.results.filter((r: { status?: string; error?: string }) => r.status === "success" || !r.error)
-      : []);
-  const failed_records: NCRPIngestRecordResult[] =
-    data.failed_records ||
-    data.failed ||
-    (Array.isArray(data.results)
-      ? data.results.filter((r: { status?: string; error?: string }) => r.status === "failed" || r.error)
-      : []);
-
-  const successful_count =
-    data.successful_count ?? data.success_count ?? successful_records.length;
-  const failed_count =
-    data.failed_count ?? data.error_count ?? failed_records.length;
-
-  return {
-    submitted_count,
-    successful_count,
-    failed_count,
-    successful_records,
-    failed_records,
-    batch_trace_supported: !!(data.batch_trace_supported || data.can_batch_trace || data.batch_trace_url),
-    message: data.message,
-  };
+  const data: NCRPBatchIngestResponse = await res.json();
+  return data;
 }
 
-export async function runNcrpBatchTrace(complaintIds: string[]): Promise<{ status: string; message?: string }> {
+export async function runNcrpBatchTrace(complaintIds: string[]): Promise<TraceResult[]> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
@@ -826,14 +800,16 @@ export async function runNcrpBatchTrace(complaintIds: string[]): Promise<{ statu
   const res = await fetch(`${API_BASE_URL}/ncrp/batch-trace`, {
     method: "POST",
     headers,
-    body: JSON.stringify({ complaint_ids: complaintIds }),
+    body: JSON.stringify(complaintIds),
   });
 
   if (!res.ok) {
-    throw new Error(`Batch trace failed with status ${res.status}`);
+    const errorText = await res.text().catch(() => "");
+    throw new Error(`Batch trace failed with status ${res.status}: ${errorText || res.statusText}`);
   }
 
-  return await res.json();
+  const data: TraceResult[] = await res.json();
+  return data;
 }
 
 export async function getNcrpCorrelations(): Promise<NcrpCorrelationsResponse> {
@@ -870,19 +846,15 @@ export async function getNcrpCorrelations(): Promise<NcrpCorrelationsResponse> {
   }
 
   const data = await res.json();
-  const list: SyndicateCorrelation[] = Array.isArray(data.correlations)
+  const list: SyndicateCorrelationItem[] = Array.isArray(data.correlations)
     ? data.correlations
     : Array.isArray(data)
     ? data
     : [];
 
   return {
-    correlations: list,
     total_correlations: data.total_correlations ?? list.length,
-    total_victims: data.total_victims,
-    total_complaints: data.total_complaints,
-    total_loss_inr: data.total_loss_inr,
-    message: data.message,
+    correlations: list,
   };
 }
 
@@ -926,48 +898,28 @@ export async function getAuditLogs(): Promise<AuditLogItem[]> {
   return logsList;
 }
 
-export async function getVaspRegistry(): Promise<VASPRegistryItem[]> {
+export async function getVaspRegistry(): Promise<CustomWalletLabelItem[]> {
   let res: Response;
   try {
     const headers = getAuthHeaders(undefined, "");
-    res = await fetch(`${API_BASE_URL}/vasp/registry`, {
+    res = await fetch(`${API_BASE_URL}/vasp/labels`, {
       method: "GET",
       headers,
     });
   } catch (err) {
     console.error("[API] getVaspRegistry network failure:", err);
-    throw new Error("Unable to load VASP registry.");
+    throw new Error("Unable to load VASP labels database.");
   }
 
   if (!res.ok) {
-    if (res.status === 404) {
-      try {
-        const fallbackRes = await fetch(`${API_BASE_URL}/vasp/labels`, { headers: getAuthHeaders(undefined, "") });
-        if (fallbackRes.ok) {
-          const data = await fallbackRes.json();
-          const items = Array.isArray(data.labels) ? data.labels : Array.isArray(data) ? data : [];
-          return items.map((item: Record<string, unknown>) => ({
-            vasp_name: (item.entity_name as string) || (item.vasp_name as string) || "VASP Entity",
-            fiu_registered: (item.is_fiu_registered as boolean) ?? (item.fiu_registered as boolean) ?? false,
-            nodal_officer_email: (item.nodal_officer_email as string) || (item.email as string) || "",
-            jurisdiction: (item.jurisdiction as string) || "India / Global",
-            supported_chains: (item.supported_chains as string[]) || (item.chain ? [item.chain as string] : ["tron", "ethereum"]),
-            notice_turnaround_hours: item.notice_turnaround_hours as number | undefined,
-            notice_turnaround: item.notice_turnaround as string | undefined,
-          }));
-        }
-      } catch {
-        // Continue to throw main error below
-      }
-    }
-    throw new Error("Unable to load VASP registry.");
+    throw new Error(`Unable to load VASP labels database (${res.status}).`);
   }
 
   const data = await res.json();
-  const list = Array.isArray(data.registry)
+  const list = Array.isArray(data.labels)
+    ? data.labels
+    : Array.isArray(data.registry)
     ? data.registry
-    : Array.isArray(data.vasps)
-    ? data.vasps
     : Array.isArray(data)
     ? data
     : [];
@@ -1044,7 +996,7 @@ export async function getWalletTags(address: string): Promise<CustomWalletLabelI
       }
     }
   } catch {
-    // Ignore and search labels endpoint
+    // Fallback to labels search
   }
 
   try {
@@ -1063,19 +1015,10 @@ export async function getCaseBridges(caseId: string): Promise<CaseBridgesRespons
   const encodedId = encodeURIComponent(caseId);
   try {
     const headers = getAuthHeaders(undefined, "");
-    res = await fetch(`${API_BASE_URL}/cases/${encodedId}/bridges`, {
+    res = await fetch(`${API_BASE_URL}/cases/${encodedId}/bridge-hops`, {
       method: "GET",
       headers,
     });
-    if (!res.ok && res.status === 404) {
-      const fallbackRes = await fetch(`${API_BASE_URL}/cases/${encodedId}/bridge-hops`, {
-        method: "GET",
-        headers,
-      });
-      if (fallbackRes.ok) {
-        res = fallbackRes;
-      }
-    }
   } catch (err) {
     console.error("[API] getCaseBridges network failure:", err);
     throw new Error("Unable to reach server to load bridge analysis.");
@@ -1103,6 +1046,7 @@ export async function getCaseBridges(caseId: string): Promise<CaseBridgesRespons
     amount_usd: typeof item.amount_usd === "number" ? item.amount_usd : typeof item.value === "number" ? item.value : undefined,
     token: item.token as string | undefined,
     destination_wallet: (item.destination_wallet as string) || (item.dest_wallet as string) || (item.recipient_address as string) || undefined,
+    destination_tx_hash: (item.destination_tx_hash as string) || (item.dest_tx_hash as string) || undefined,
   }));
 
   return {
@@ -1121,19 +1065,10 @@ export async function getCasePrivacy(caseId: string): Promise<CasePrivacyRespons
   const encodedId = encodeURIComponent(caseId);
   try {
     const headers = getAuthHeaders(undefined, "");
-    res = await fetch(`${API_BASE_URL}/cases/${encodedId}/privacy`, {
+    res = await fetch(`${API_BASE_URL}/cases/${encodedId}/privacy-dossier`, {
       method: "GET",
       headers,
     });
-    if (!res.ok && res.status === 404) {
-      const fallbackRes = await fetch(`${API_BASE_URL}/cases/${encodedId}/privacy-dossier`, {
-        method: "GET",
-        headers,
-      });
-      if (fallbackRes.ok) {
-        res = fallbackRes;
-      }
-    }
   } catch (err) {
     console.error("[API] getCasePrivacy network failure:", err);
     throw new Error("Unable to reach server to load privacy analysis.");
@@ -1279,6 +1214,43 @@ export async function getCaseEvidenceCert(caseId: string): Promise<EvidenceCertR
       data.attributed_vasp !== undefined && data.attributed_vasp !== null && String(data.attributed_vasp).trim() !== ""
         ? String(data.attributed_vasp)
         : null,
+  };
+}
+
+export async function generateForensicReport(caseInput: string | TraceResult): Promise<AIReportResponse> {
+  let traceData: TraceResult;
+
+  if (typeof caseInput === "string") {
+    traceData = await getCase(caseInput);
+  } else {
+    traceData = caseInput;
+  }
+
+  let res: Response;
+  try {
+    const headers = getAuthHeaders(undefined, "application/json");
+    res = await fetch(`${API_BASE_URL}/report/generate`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(traceData),
+    });
+  } catch (err) {
+    console.error("[API] generateForensicReport network failure:", err);
+    throw new Error("Connection error: Unable to reach backend server.");
+  }
+
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => "");
+    throw new Error(`Failed to generate investigation docket (${res.status}): ${errorText || res.statusText}`);
+  }
+
+  const data = await res.json();
+  return {
+    case_id: (data.case_id || data.caseId) as string | undefined,
+    suspect_address: (data.suspect_address || data.suspectAddress) as string | undefined,
+    chain: data.chain as string | undefined,
+    overall_risk_score: typeof data.overall_risk_score === "number" ? data.overall_risk_score : undefined,
+    report: data.report as string | undefined,
   };
 }
 

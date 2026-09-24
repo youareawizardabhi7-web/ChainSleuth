@@ -2,14 +2,14 @@
 
 import React from "react";
 import { TypologyFlag } from "@/lib/types";
-import { Layers, Flame, Share2, Link2, Repeat, Info, AlertOctagon, ArrowRightLeft } from "lucide-react";
+import { Layers, Flame, Share2, Link2, Repeat, Info, AlertOctagon, ArrowRightLeft, Shuffle } from "lucide-react";
 
 interface TypologyFlagsProps {
   flags: TypologyFlag[];
 }
 
 const TYPOLOGY_CONFIG: Record<
-  TypologyFlag,
+  string,
   {
     title: string;
     icon: React.ElementType;
@@ -66,6 +66,18 @@ const TYPOLOGY_CONFIG: Record<
     explanation:
       "Cross-chain liquidity bridge transaction flagged by the backend system for asset protocol transfer.",
   },
+  coinjoin_mixer: {
+    title: "CoinJoin mixer detected",
+    icon: Shuffle,
+    badgeStyle: "bg-purple-950/90 border-purple-800 text-purple-300",
+    explanation: "Backend-detected CoinJoin mixing pattern.",
+  },
+  burner_wallet: {
+    title: "Burner wallet detected",
+    icon: Flame,
+    badgeStyle: "bg-orange-950/90 border-orange-800 text-orange-400",
+    explanation: "Backend-detected burner wallet pattern.",
+  },
 };
 
 export function TypologyFlags({ flags }: TypologyFlagsProps) {
@@ -73,21 +85,22 @@ export function TypologyFlags({ flags }: TypologyFlagsProps) {
 
   return (
     <div className="space-y-2 font-mono text-xs">
-      {flags.map((flag) => {
-        const config = TYPOLOGY_CONFIG[flag] || {
-          title: flag,
+      {flags.map((flag, idx) => {
+        const flagKey = typeof flag === "string" ? flag : String(flag);
+        const config = TYPOLOGY_CONFIG[flagKey] || {
+          title: flagKey.replace(/_/g, " "),
           icon: Info,
           badgeStyle: "bg-slate-900 border-slate-700 text-slate-300",
-          explanation: "Automated transaction anomaly detected.",
+          explanation: "Backend Typology",
         };
         const Icon = config.icon;
 
         return (
           <div
-            key={flag}
+            key={`${flagKey}-${idx}`}
             className={`p-2.5 rounded border ${config.badgeStyle} space-y-1`}
           >
-            <div className="flex items-center gap-2 font-bold font-sans text-xs">
+            <div className="flex items-center gap-2 font-bold font-sans text-xs capitalize">
               <Icon className="w-3.5 h-3.5 shrink-0" />
               <span>{config.title}</span>
             </div>

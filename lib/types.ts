@@ -37,6 +37,15 @@ export interface WalletNode {
   isVasp?: boolean;
   sanctionsInfo?: SanctionsInfo;
   bridgeInfo?: BridgeInfo;
+
+  // AI / ML Forensic Intelligence Fields (Optional Backend Schema)
+  gnn_risk_score?: number | null;
+  anomaly_score?: number | null;
+  typology_score?: number | null;
+  heuristics_score?: number | null;
+  risk_category?: string | null;
+  explanation?: string | null;
+  pmla_flag?: boolean | string | null;
 }
 
 export type TypologyFlag =
@@ -46,7 +55,10 @@ export type TypologyFlag =
   | "first_funder_match"
   | "dex_swap"
   | "ofac_sanctioned"
-  | "bridge_hop";
+  | "bridge_hop"
+  | "coinjoin_mixer"
+  | "burner_wallet"
+  | (string & {});
 
 export interface TransferEdge {
   txHash: string;
@@ -130,32 +142,28 @@ export interface CaseSummary {
 }
 
 export type ClusterType =
-  | "exchange_sweep"
-  | "syndicate_gas_funder"
-  | "laundering_typology"
+  | "vasp_sweep"
+  | "syndicate_gas"
+  | "layering_cell"
+  | "smurfing_cell"
+  | "dex_liquidity"
   | (string & {});
 
 export interface WalletCluster {
-  cluster_id?: string;
-  id?: string;
-  cluster_label?: string;
-  label?: string;
-  name?: string;
+  cluster_id: string;
   cluster_type: ClusterType;
-  confidence: number | string;
-  node_count?: number;
-  address_count?: number;
-  addresses: string[];
-  entity_name?: string;
-  entity?: string;
-  summary?: string;
-  description?: string;
+  label: string;
+  member_addresses: string[];
+  total_volume_usdt?: number;
+  dominant_risk_score?: number;
+  description: string;
+  entity_name?: string | null;
 }
 
 export interface CaseClustersResponse {
   case_id: string;
+  cluster_count: number;
   clusters: WalletCluster[];
-  total_clusters?: number;
 }
 
 export interface FIRCreate {
@@ -186,63 +194,76 @@ export interface FIRResponse {
   sha256_hash?: string;
 }
 
-export interface NCRPComplaint {
-  complaint_id: string;
-  acknowledgement_no?: string;
-  category?: string;
-  sub_category?: string;
+export interface NCRPComplaintRecord {
+  acknowledgement_number: string;
+  complainant_name: string;
   suspect_wallet_address: string;
-  blockchain: Chain | string;
-  transaction_hash?: string;
-  loss_amount_inr?: number;
-  complainant_state?: string;
-  district?: string;
-  incident_datetime?: string;
+  category?:
+    | "Investment Scam"
+    | "Task-Based Fraud"
+    | "Sextortion"
+    | "Phishing"
+    | "Ransomware"
+    | "Darknet / Organised Crime"
+    | "Impersonation Fraud"
+    | (string & {});
+  sub_category?: string | null;
+  complaint_date?: string;
+  incident_state?: string;
+  complainant_contact?: string | null;
+  blockchain?: Chain | string;
+  reported_loss_inr?: number | null;
+  complaint_text?: string | null;
 }
 
-export interface NCRPIngestRecordResult {
-  complaint_id: string;
-  status: "success" | "failed" | string;
-  error?: string;
-  message?: string;
-  case_id?: string;
+export interface NCRPBatchIngestRequest {
+  batch_id?: string;
+  source_portal?: "NCRP" | "SAHYOG" | "I4C_PORTAL" | string;
+  complaints: NCRPComplaintRecord[];
 }
 
-export interface NCRPIngestResponse {
-  submitted_count: number;
-  successful_count: number;
-  failed_count: number;
-  successful_records?: NCRPIngestRecordResult[];
-  failed_records?: NCRPIngestRecordResult[];
-  batch_trace_supported?: boolean;
-  message?: string;
+export interface IngestedSummaryItem {
+  acknowledgement_number: string;
+  case_id: string;
+  suspect_address: string;
+  chain: string;
+  is_valid_address: boolean;
+  status: string;
 }
 
-export interface SyndicateCorrelation {
-  syndicate_id?: string;
-  id?: string;
-  syndicate_label?: string;
-  label?: string;
-  name?: string;
-  common_attribute?: string;
-  attribute_type?: string;
-  complaint_ids: string[];
-  total_victims_linked?: number;
-  victims_linked?: number;
-  total_loss_inr?: number;
-  confidence?: number | string;
-  common_wallet?: string;
-  suspect_wallet?: string;
-  case_id?: string;
+export interface NCRPBatchIngestResponse {
+  batch_id: string;
+  source_portal: string;
+  total_complaints: number;
+  valid_wallets_count: number;
+  records: IngestedSummaryItem[];
+  ingested_at: string;
+}
+
+export type CorrelationType =
+  | "shared_gas_funder"
+  | "shared_vasp_deposit"
+  | "cross_jurisdiction_syndicate"
+  | (string & {});
+
+export type SyndicateThreatLevel = "CRITICAL" | "HIGH" | "MEDIUM" | (string & {});
+
+export interface SyndicateCorrelationItem {
+  correlation_id: string;
+  correlation_type: CorrelationType;
+  pivot_address: string;
+  pivot_entity_label: string;
+  linked_ncrp_ack_numbers: string[];
+  linked_suspect_addresses: string[];
+  total_aggregate_loss_inr: number;
+  reporting_states: string[];
+  syndicate_threat_level: SyndicateThreatLevel;
+  action_recommendation: string;
 }
 
 export interface NcrpCorrelationsResponse {
-  correlations: SyndicateCorrelation[];
-  total_correlations?: number;
-  total_victims?: number;
-  total_complaints?: number;
-  total_loss_inr?: number;
-  message?: string;
+  total_correlations: number;
+  correlations: SyndicateCorrelationItem[];
 }
 
 export interface AuditLogItem {
@@ -310,6 +331,8 @@ export interface BridgeHopItem {
   amount_usd?: number;
   token?: string;
   destination_wallet?: string;
+  destination_tx_hash?: string;
+  dest_tx_hash?: string;
 }
 
 export interface CaseBridgesResponse {
@@ -371,6 +394,16 @@ export interface EvidenceCertResponse {
   total_nodes_analyzed?: number;
   total_transactions_traced?: number;
   attributed_vasp?: string | null;
+  statutory_declarations?: string[] | string | null;
+  statutory_declaration?: string | null;
+}
+
+export interface AIReportResponse {
+  case_id?: string;
+  suspect_address?: string;
+  chain?: string;
+  overall_risk_score?: number;
+  report?: string;
 }
 
 

@@ -17,7 +17,8 @@ import { AddressBadge } from "@/components/ui/AddressBadge";
 import { getCase, downloadCourtEvidenceBundle } from "@/lib/api";
 import { TraceResult, WalletNode, TransferEdge, WalletCluster } from "@/lib/types";
 import { EvidenceCertModal } from "@/components/case/EvidenceCertModal";
-import { ShieldAlert, ArrowRightLeft, X, Boxes, XCircle, FileCheck, Archive, ShieldCheck, Loader2, AlertCircle } from "lucide-react";
+import { AIInvestigationDocketModal } from "@/components/case/AIInvestigationDocketModal";
+import { ShieldAlert, ArrowRightLeft, X, Boxes, XCircle, FileCheck, Archive, ShieldCheck, Loader2, AlertCircle, Sparkles, FileText } from "lucide-react";
 
 export default function CaseWorkbenchPage({
   params,
@@ -39,6 +40,7 @@ export default function CaseWorkbenchPage({
   const [loading, setLoading] = useState(true);
 
   const [isCertModalOpen, setIsCertModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isDownloadingBundle, setIsDownloadingBundle] = useState(false);
   const [bundleError, setBundleError] = useState<string | null>(null);
 
@@ -68,7 +70,7 @@ export default function CaseWorkbenchPage({
       .finally(() => setLoading(false));
   }, [caseId]);
 
-  const selectedClusterAddresses = selectedCluster?.addresses || [];
+  const selectedClusterAddresses = selectedCluster?.member_addresses || [];
 
   const handleSelectNodeFromDeepDive = (addr: string) => {
     if (!traceData?.nodes) return;
@@ -134,6 +136,25 @@ export default function CaseWorkbenchPage({
               <span>View Certificate Details</span>
             </button>
 
+            <button
+              type="button"
+              onClick={() => setIsReportModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1 bg-purple-950 hover:bg-purple-900 text-purple-300 font-sans font-bold text-[11px] rounded border border-purple-800 transition-colors shadow cursor-pointer"
+              title="Generate AI Forensic Investigation Docket (Gemini 2.0 Flash)"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+              <span>Generate AI Docket</span>
+            </button>
+
+            <Link
+              href={`/case/${caseId}/notice`}
+              className="flex items-center gap-1.5 px-3 py-1 bg-teal-600 hover:bg-teal-500 text-slate-950 font-sans font-bold text-[11px] rounded transition-colors shadow cursor-pointer"
+              title="Issue Section 94 BNSS Legal Freeze Notice"
+            >
+              <FileText className="w-3.5 h-3.5 text-slate-950" />
+              <span>Issue Section 94 Notice</span>
+            </Link>
+
             <Link
               href={`/case/${caseId}/fir`}
               className="flex items-center gap-1.5 px-3 py-1 bg-slate-900 hover:bg-slate-800 text-teal-300 font-sans font-bold text-[11px] rounded border border-slate-700 transition-colors shadow"
@@ -181,10 +202,10 @@ export default function CaseWorkbenchPage({
               <div className="absolute top-14 left-4 z-20 bg-purple-950/90 border border-purple-600 backdrop-blur px-3 py-1.5 rounded text-[11px] font-mono flex items-center gap-3 text-purple-200 shadow-xl">
                 <span className="flex items-center gap-1.5 font-bold font-sans">
                   <Boxes className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
-                  Cluster Active: {selectedCluster.cluster_label || selectedCluster.label || selectedCluster.name || "Cluster"}
+                  Cluster Active: {selectedCluster.label || "Cluster"}
                 </span>
                 <span className="text-[10px] bg-purple-900 text-purple-200 px-1.5 py-0.5 rounded font-mono border border-purple-700">
-                  {selectedCluster.addresses?.length || 0} Wallets
+                  {(selectedCluster.member_addresses || []).length} Wallets
                 </span>
                 <button
                   type="button"
@@ -387,6 +408,13 @@ export default function CaseWorkbenchPage({
         isOpen={isCertModalOpen}
         onClose={() => setIsCertModalOpen(false)}
         caseId={caseId}
+      />
+
+      <AIInvestigationDocketModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        caseId={caseId}
+        traceData={traceData}
       />
     </AppShell>
   );

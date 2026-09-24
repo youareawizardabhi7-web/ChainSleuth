@@ -2,12 +2,13 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { AppShell } from "@/components/layout/AppShell";
-import { VASPRegistryItem } from "@/lib/types";
+import { CustomWalletLabelItem } from "@/lib/types";
 import { getVaspRegistry } from "@/lib/api";
-import { Building2, Search, Filter, RefreshCw, AlertTriangle, ShieldCheck, Mail, Globe, Clock, ExternalLink } from "lucide-react";
+import { AddressBadge } from "@/components/ui/AddressBadge";
+import { Building2, Search, Filter, RefreshCw, AlertTriangle } from "lucide-react";
 
 export default function VaspDirectoryPage() {
-  const [vasps, setVasps] = useState<VASPRegistryItem[]>([]);
+  const [vasps, setVasps] = useState<CustomWalletLabelItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -25,12 +26,12 @@ export default function VaspDirectoryPage() {
         setVasps(data || []);
       }
     } catch (err) {
-      console.error("[VaspDirectory] Error fetching VASP registry:", err);
+      console.error("[VaspDirectory] Error fetching VASP labels:", err);
       if (isMounted) {
-        const msg = err instanceof Error ? err.message : "Unable to load VASP registry.";
+        const msg = err instanceof Error ? err.message : "Unable to load VASP labels database.";
         setErrorMsg(msg);
       }
-    } fontout: {
+    } finally {
       if (isMounted) {
         setIsLoading(false);
       }
@@ -47,9 +48,9 @@ export default function VaspDirectoryPage() {
           setErrorMsg(null);
         }
       } catch (err) {
-        console.error("[VaspDirectory] Error fetching VASP registry:", err);
+        console.error("[VaspDirectory] Error fetching VASP labels:", err);
         if (isMounted) {
-          const msg = err instanceof Error ? err.message : "Unable to load VASP registry.";
+          const msg = err instanceof Error ? err.message : "Unable to load VASP labels database.";
           setErrorMsg(msg);
         }
       } finally {
@@ -69,16 +70,16 @@ export default function VaspDirectoryPage() {
   // Client-side filtering operating strictly on actual returned backend records
   const filteredVasps = vasps.filter((v) => {
     const q = searchQuery.toLowerCase().trim();
-    const nameMatch = v.vasp_name.toLowerCase().includes(q);
-    const jurisMatch = (v.jurisdiction || "").toLowerCase().includes(q);
-    const emailMatch = (v.nodal_officer_email || "").toLowerCase().includes(q);
-    const chainMatchStr = (v.supported_chains || []).join(" ").toLowerCase().includes(q);
+    const nameMatch = (v.entity_name || "").toLowerCase().includes(q);
+    const addrMatch = (v.address || "").toLowerCase().includes(q);
+    const typeMatch = (v.entity_type || "").toLowerCase().includes(q);
+    const notesMatch = (v.notes || "").toLowerCase().includes(q);
 
-    const matchesSearch = !q || nameMatch || jurisMatch || emailMatch || chainMatchStr;
+    const matchesSearch = !q || nameMatch || addrMatch || typeMatch || notesMatch;
 
     const matchesChain =
       selectedChain === "all" ||
-      (v.supported_chains || []).some((c) => c.toLowerCase() === selectedChain.toLowerCase());
+      (v.chain && v.chain.toLowerCase() === selectedChain.toLowerCase());
 
     return matchesSearch && matchesChain;
   });
@@ -94,10 +95,10 @@ export default function VaspDirectoryPage() {
             </div>
             <div>
               <h1 className="text-base font-bold font-sans text-slate-100 uppercase tracking-wider">
-                VASP Nodal Officer Directory
+                VASP & Custom Labeled Database
               </h1>
               <p className="text-[11px] text-slate-400 font-mono">
-                FIU-IND Registered Virtual Asset Service Providers & Legal Compliance Directives
+                Investigator Attributions & Threat Intel Labeled Wallets (`GET /api/v1/vasp/labels`)
               </p>
             </div>
           </div>
@@ -108,7 +109,7 @@ export default function VaspDirectoryPage() {
             className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-950 hover:bg-slate-800 border border-slate-700 text-slate-200 rounded font-sans text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 self-start sm:self-auto"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin text-teal-400" : "text-slate-400"}`} />
-            <span>Refresh Registry</span>
+            <span>Refresh Labels</span>
           </button>
         </div>
 
@@ -120,7 +121,7 @@ export default function VaspDirectoryPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search VASP by name, jurisdiction, email, or supported chain..."
+              placeholder="Search VASP / wallet label by entity name, address, category, or notes..."
               className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-teal-500 font-mono"
             />
           </div>
@@ -147,7 +148,7 @@ export default function VaspDirectoryPage() {
           <div className="p-8 bg-slate-900/40 border border-slate-800 rounded space-y-3">
             <div className="flex items-center justify-center gap-2 text-slate-400 font-mono text-xs">
               <RefreshCw className="w-4 h-4 text-teal-400 animate-spin" />
-              <span>Querying backend VASP registry database...</span>
+              <span>Querying backend VASP labels database...</span>
             </div>
             {/* Table Loading Skeleton */}
             <div className="space-y-2 pt-2">
@@ -160,7 +161,7 @@ export default function VaspDirectoryPage() {
           <div className="p-6 bg-red-950/60 border border-red-800 rounded space-y-3 text-center">
             <div className="flex items-center justify-center gap-2 text-red-400 font-bold font-sans text-sm uppercase">
               <AlertTriangle className="w-5 h-5 shrink-0" />
-              <span>Unable to load VASP registry.</span>
+              <span>Unable to load VASP labels.</span>
             </div>
             <p className="text-xs text-red-300 font-mono max-w-md mx-auto">{errorMsg}</p>
             <div className="pt-2">
@@ -176,11 +177,11 @@ export default function VaspDirectoryPage() {
         ) : filteredVasps.length === 0 ? (
           <div className="p-12 bg-slate-900/40 border border-slate-800 rounded text-center space-y-2">
             <Building2 className="w-8 h-8 text-slate-700 mx-auto" />
-            <div className="text-slate-300 font-sans font-semibold text-xs">No VASP records available.</div>
+            <div className="text-slate-300 font-sans font-semibold text-xs">No VASP labels available.</div>
             <p className="text-[11px] text-slate-500 max-w-sm mx-auto font-mono">
               {searchQuery || selectedChain !== "all"
-                ? "No registered VASP entries matched your search criteria."
-                : "The backend database currently has no VASP registry records available."}
+                ? "No labeled VASP entries matched your search criteria."
+                : "The backend database currently has no custom VASP labels available."}
             </p>
           </div>
         ) : (
@@ -188,81 +189,49 @@ export default function VaspDirectoryPage() {
             <table className="w-full text-left font-mono text-xs">
               <thead className="bg-slate-900 text-slate-400 border-b border-slate-800 text-[11px] uppercase tracking-wider font-semibold select-none">
                 <tr>
-                  <th className="p-3">VASP / Exchange Name</th>
-                  <th className="p-3">FIU-IND Status</th>
-                  <th className="p-3">Jurisdiction</th>
-                  <th className="p-3">Nodal Officer Email</th>
-                  <th className="p-3">Supported Chains</th>
-                  <th className="p-3">Notice Turnaround</th>
+                  <th className="p-3">Entity Name</th>
+                  <th className="p-3">Category / Type</th>
+                  <th className="p-3">Blockchain</th>
+                  <th className="p-3">Wallet Address</th>
+                  <th className="p-3">Source / Provenance</th>
+                  <th className="p-3">Notes</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/80">
                 {filteredVasps.map((vasp, idx) => {
-                  const isFiu = vasp.is_fiu_registered ?? vasp.fiu_registered ?? false;
-                  const turnaround = vasp.notice_turnaround || (vasp.notice_turnaround_hours ? `${vasp.notice_turnaround_hours}h` : "Not available");
-
                   return (
-                    <tr key={`${vasp.vasp_name}-${idx}`} className="hover:bg-slate-900/60 transition-colors">
-                      {/* VASP Name */}
+                    <tr key={`${vasp.address}-${idx}`} className="hover:bg-slate-900/60 transition-colors">
+                      {/* Entity Name */}
                       <td className="p-3 font-sans font-bold text-slate-100 flex items-center gap-2">
                         <Building2 className="w-4 h-4 text-teal-400 shrink-0" />
-                        <span>{vasp.vasp_name}</span>
+                        <span>{vasp.entity_name || "Unknown Entity"}</span>
                       </td>
 
-                      {/* FIU-IND Status */}
+                      {/* Category */}
                       <td className="p-3">
-                        {isFiu ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/80 text-emerald-400 border border-emerald-800">
-                            <ShieldCheck className="w-3 h-3" />
-                            Registered
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-950/60 text-amber-400 border border-amber-800">
-                            Not Registered
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Jurisdiction */}
-                      <td className="p-3 text-slate-300">
-                        <span className="flex items-center gap-1.5">
-                          <Globe className="w-3.5 h-3.5 text-slate-500" />
-                          <span>{vasp.jurisdiction || "Global"}</span>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-purple-950/80 text-purple-300 border border-purple-800">
+                          {vasp.entity_type || "Exchange"}
                         </span>
                       </td>
 
-                      {/* Nodal Email */}
-                      <td className="p-3 text-slate-300">
-                        {vasp.nodal_officer_email ? (
-                          <a
-                            href={`mailto:${vasp.nodal_officer_email}`}
-                            className="inline-flex items-center gap-1 text-teal-400 hover:text-teal-300 hover:underline"
-                            title="Draft Section 94 Notice email"
-                          >
-                            <Mail className="w-3.5 h-3.5" />
-                            <span>{vasp.nodal_officer_email}</span>
-                            <ExternalLink className="w-3 h-3 opacity-60" />
-                          </a>
-                        ) : (
-                          <span className="text-slate-600">None Provided</span>
-                        )}
+                      {/* Blockchain */}
+                      <td className="p-3 text-slate-300 font-bold uppercase text-[11px]">
+                        {vasp.chain || "ethereum"}
                       </td>
 
-                      {/* Supported Chains */}
-                      <td className="p-3 text-slate-300">
-                        {vasp.supported_chains && vasp.supported_chains.length > 0 ? (
-                          <span>{vasp.supported_chains.join(" · ")}</span>
-                        ) : (
-                          <span className="text-slate-600">Not specified</span>
-                        )}
-                      </td>
-
-                      {/* Notice Turnaround */}
+                      {/* Wallet Address */}
                       <td className="p-3 text-slate-300 font-mono">
-                        <span className="flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-slate-500" />
-                          <span>{turnaround}</span>
-                        </span>
+                        <AddressBadge address={vasp.address} truncateLength={6} />
+                      </td>
+
+                      {/* Source */}
+                      <td className="p-3 text-slate-400">
+                        {vasp.source || "LE_Investigation"}
+                      </td>
+
+                      {/* Notes */}
+                      <td className="p-3 text-slate-400 max-w-xs truncate">
+                        {vasp.notes || "None"}
                       </td>
                     </tr>
                   );

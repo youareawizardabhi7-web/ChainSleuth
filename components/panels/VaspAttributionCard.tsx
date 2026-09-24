@@ -88,7 +88,13 @@ export function VaspAttributionCard({ attribution, caseId }: VaspAttributionCard
             Attribution Confidence Score
           </span>
           <span className="text-teal-400 font-bold text-xs font-mono">
-            {attribution.confidence_score}% CONFIDENCE
+            {attribution.confidence_score !== undefined && attribution.confidence_score !== null
+              ? `${
+                  attribution.confidence_score <= 1
+                    ? Math.round(attribution.confidence_score * 100)
+                    : Math.round(attribution.confidence_score)
+                }% CONFIDENCE`
+              : "Confidence unavailable"}
           </span>
         </div>
         <p className="text-[11px] text-slate-300 font-sans leading-normal">

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { SyndicateCorrelation } from "@/lib/types";
+import { SyndicateCorrelationItem } from "@/lib/types";
 import { getNcrpCorrelations } from "@/lib/api";
 import { AddressBadge } from "@/components/ui/AddressBadge";
 import {
@@ -20,16 +20,13 @@ import {
 } from "lucide-react";
 
 export function NcrpCorrelationDashboard() {
-  const [correlations, setCorrelations] = useState<SyndicateCorrelation[]>([]);
+  const [correlations, setCorrelations] = useState<SyndicateCorrelationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
   const [backendAggregates, setBackendAggregates] = useState<{
     totalCorrelations?: number;
-    totalVictims?: number;
-    totalComplaints?: number;
-    totalLossInr?: number;
   }>({});
 
   useEffect(() => {
@@ -41,9 +38,6 @@ export function NcrpCorrelationDashboard() {
         setCorrelations(data.correlations || []);
         setBackendAggregates({
           totalCorrelations: data.total_correlations,
-          totalVictims: data.total_victims,
-          totalComplaints: data.total_complaints,
-          totalLossInr: data.total_loss_inr,
         });
       })
       .catch((err) => {
@@ -60,26 +54,29 @@ export function NcrpCorrelationDashboard() {
     };
   }, []);
 
-  // ONLY calculate aggregate values directly from backend response records
   const totalCorrelations = backendAggregates.totalCorrelations ?? correlations.length;
 
-  const totalVictims =
-    backendAggregates.totalVictims ??
-    correlations.reduce(
-      (acc, item) => acc + (item.total_victims_linked ?? item.victims_linked ?? 0),
-      0
-    );
+  const totalComplaints = new Set(correlations.flatMap((c) => c.linked_ncrp_ack_numbers || [])).size;
 
-  const totalComplaints =
-    backendAggregates.totalComplaints ??
-    new Set(correlations.flatMap((c) => c.complaint_ids || [])).size;
+  const totalSuspectWallets = new Set(correlations.flatMap((c) => c.linked_suspect_addresses || [])).size;
 
-  const totalLoss =
-    backendAggregates.totalLossInr ??
-    correlations.reduce((acc, item) => acc + (item.total_loss_inr ?? 0), 0);
+  const totalLoss = correlations.reduce((acc, item) => acc + (item.total_aggregate_loss_inr || 0), 0);
 
   const toggleExpand = (idx: number) => {
     setExpandedIndex((prev) => (prev === idx ? null : idx));
+  };
+
+  const getThreatBadge = (level?: string) => {
+    switch (level?.toUpperCase()) {
+      case "CRITICAL":
+        return "bg-rose-950/80 text-rose-300 border-rose-700";
+      case "HIGH":
+        return "bg-amber-950/80 text-amber-300 border-amber-700";
+      case "MEDIUM":
+        return "bg-yellow-950/80 text-yellow-300 border-yellow-700";
+      default:
+        return "bg-purple-950/80 text-purple-300 border-purple-700";
+    }
   };
 
   return (
@@ -138,7 +135,7 @@ export function NcrpCorrelationDashboard() {
       {/* SUCCESSFUL DATA PRESENTATION */}
       {!loading && !error && correlations.length > 0 && (
         <div className="space-y-4">
-          {/* Summary Section (Aggregates strictly computed from backend data) */}
+          {/* Summary Section */}
           <div className="grid grid-cols-4 gap-3">
             <div className="p-3 bg-slate-950 border border-slate-800 rounded text-center space-y-1">
               <span className="text-slate-400 text-[10px] uppercase font-bold flex items-center justify-center gap-1">
@@ -151,14 +148,14 @@ export function NcrpCorrelationDashboard() {
 
             <div className="p-3 bg-slate-950 border border-slate-800 rounded text-center space-y-1">
               <span className="text-slate-400 text-[10px] uppercase font-bold flex items-center justify-center gap-1">
-                <Users className="w-3.5 h-3.5 text-teal-400" /> Linked Victims
+                <Users className="w-3.5 h-3.5 text-teal-400" /> Linked Wallets
               </span>
-              <div className="text-xl font-bold font-mono text-teal-300">{totalVictims}</div>
+              <div className="text-xl font-bold font-mono text-teal-300">{totalSuspectWallets}</div>
             </div>
 
             <div className="p-3 bg-slate-950 border border-slate-800 rounded text-center space-y-1">
               <span className="text-slate-400 text-[10px] uppercase font-bold flex items-center justify-center gap-1">
-                <FileText className="w-3.5 h-3.5 text-cyan-400" /> Linked Complaints
+                <FileText className="w-3.5 h-3.5 text-cyan-400" /> Linked Ack Nos
               </span>
               <div className="text-xl font-bold font-mono text-cyan-300 font-mono">
                 {totalComplaints}
@@ -167,7 +164,7 @@ export function NcrpCorrelationDashboard() {
 
             <div className="p-3 bg-slate-950 border border-slate-800 rounded text-center space-y-1">
               <span className="text-slate-400 text-[10px] uppercase font-bold flex items-center justify-center gap-1">
-                <TrendingDown className="w-3.5 h-3.5 text-rose-400" /> Aggregated Loss (INR)
+                <TrendingDown className="w-3.5 h-3.5 text-rose-400" /> Aggregate Loss (INR)
               </span>
               <div className="text-xl font-bold font-mono text-rose-300">
                 ₹{totalLoss.toLocaleString()}
@@ -178,22 +175,21 @@ export function NcrpCorrelationDashboard() {
           {/* Correlation Cards */}
           <div className="space-y-3">
             {correlations.map((item, idx) => {
-              const syndicateLabel =
-                item.syndicate_label || item.label || item.name || `Syndicate Correlation #${idx + 1}`;
-              const attributeType = item.attribute_type || "common_link";
-              const commonAttribute = item.common_attribute || "N/A";
-              const victimsCount = item.total_victims_linked ?? item.victims_linked ?? 0;
-              const lossInr = item.total_loss_inr ?? 0;
-              const confidenceVal = item.confidence;
-              const complaintIds = item.complaint_ids || [];
+              const correlationId = item.correlation_id || `correlation-${idx}`;
+              const pivotLabel = item.pivot_entity_label || `Syndicate Pivot #${idx + 1}`;
+              const correlationType = item.correlation_type || "shared_link";
+              const pivotAddress = item.pivot_address;
+              const ackNumbers = item.linked_ncrp_ack_numbers || [];
+              const suspectAddresses = item.linked_suspect_addresses || [];
+              const lossInr = item.total_aggregate_loss_inr || 0;
+              const states = item.reporting_states || [];
+              const threatLevel = item.syndicate_threat_level;
+              const recommendation = item.action_recommendation;
               const isExpanded = expandedIndex === idx;
-
-              const targetAddress = item.common_wallet || item.suspect_wallet;
-              const targetCaseId = item.case_id;
 
               return (
                 <div
-                  key={idx}
+                  key={correlationId}
                   className={`bg-slate-950 border rounded-lg transition-all overflow-hidden ${
                     isExpanded ? "border-purple-600 shadow-xl" : "border-slate-800 hover:border-slate-700"
                   }`}
@@ -210,15 +206,18 @@ export function NcrpCorrelationDashboard() {
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-bold font-sans text-slate-100 uppercase">
-                            {syndicateLabel}
+                            {pivotLabel}
                           </span>
-                          <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-purple-950 text-purple-300 border border-purple-800">
-                            {attributeType.toUpperCase().replace(/_/g, " ")}
+                          <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${getThreatBadge(threatLevel)}`}>
+                            {threatLevel || "SYNDICATE LINK"}
+                          </span>
+                          <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-slate-900 text-purple-300 border border-slate-700">
+                            {correlationType.toUpperCase().replace(/_/g, " ")}
                           </span>
                         </div>
-                        {commonAttribute && (
-                          <div className="text-[11px] text-slate-400 font-mono mt-0.5">
-                            Common Attribute: <span className="text-teal-300 font-bold">{commonAttribute}</span>
+                        {pivotAddress && (
+                          <div className="text-[11px] text-slate-400 font-mono mt-0.5 flex items-center gap-1.5">
+                            Pivot Address: <AddressBadge address={pivotAddress} truncateLength={8} />
                           </div>
                         )}
                       </div>
@@ -228,10 +227,10 @@ export function NcrpCorrelationDashboard() {
                     <div className="flex items-center gap-6">
                       <div className="text-right">
                         <span className="text-[9px] text-slate-500 uppercase block font-sans">
-                          Victims Linked
+                          Acks Linked
                         </span>
                         <span className="font-bold text-teal-300 text-xs font-mono">
-                          {victimsCount}
+                          {ackNumbers.length}
                         </span>
                       </div>
 
@@ -243,18 +242,6 @@ export function NcrpCorrelationDashboard() {
                           ₹{lossInr.toLocaleString()}
                         </span>
                       </div>
-
-                      {confidenceVal !== undefined && confidenceVal !== null && (
-                        <div className="text-right">
-                          <span className="text-[9px] text-slate-500 uppercase block font-sans">
-                            Confidence
-                          </span>
-                          <span className="font-bold text-purple-400 text-xs font-mono">
-                            {confidenceVal}
-                            {typeof confidenceVal === "number" && confidenceVal <= 1 ? "%" : ""}
-                          </span>
-                        </div>
-                      )}
 
                       <button
                         type="button"
@@ -272,61 +259,86 @@ export function NcrpCorrelationDashboard() {
                   {/* Expanded Details Row */}
                   {isExpanded && (
                     <div className="p-4 border-t border-slate-800 bg-slate-950 space-y-3.5">
-                      {/* Optional Case / Wallet Navigation if returned by backend */}
-                      {(targetAddress || targetCaseId) && (
-                        <div className="p-3 bg-slate-900 border border-teal-800/80 rounded flex items-center justify-between">
-                          <div className="space-y-0.5">
-                            <span className="text-[10px] text-teal-400 uppercase font-bold tracking-wider">
-                              Backend Linked Infrastructure Target
-                            </span>
-                            <div className="flex items-center gap-2">
-                              {targetAddress && (
-                                <AddressBadge address={targetAddress} truncateLength={8} />
-                              )}
-                              {targetCaseId && (
-                                <span className="text-slate-300 font-mono">
-                                  Case ID: <strong>{targetCaseId}</strong>
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          <Link
-                            href={
-                              targetCaseId
-                                ? `/case/${targetCaseId}`
-                                : `/trace/new?address=${encodeURIComponent(targetAddress || "")}`
-                            }
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-slate-950 font-sans font-bold text-xs rounded transition-colors"
-                          >
-                            <span>Inspect Case Workbench</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </Link>
+                      {/* Action Recommendation */}
+                      {recommendation && (
+                        <div className="p-3 bg-purple-950/40 border border-purple-800/80 rounded space-y-1">
+                          <span className="text-[10px] text-purple-300 uppercase font-bold tracking-wider font-sans block">
+                            Investigative Action Recommendation
+                          </span>
+                          <p className="text-[11px] text-purple-100 font-sans leading-relaxed">
+                            {recommendation}
+                          </p>
                         </div>
                       )}
 
-                      {/* Linked Complaint IDs */}
-                      <div className="space-y-1.5">
-                        <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
-                          Backend Linked Complaint IDs ({complaintIds.length})
-                        </div>
-                        {complaintIds.length > 0 ? (
-                          <div className="flex flex-wrap gap-1.5">
-                            {complaintIds.map((cid) => (
+                      {/* Reporting States */}
+                      {states.length > 0 && (
+                        <div className="space-y-1">
+                          <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block font-sans">
+                            Reporting Victim Jurisdictions / States ({states.length})
+                          </span>
+                          <div className="flex flex-wrap gap-1">
+                            {states.map((st) => (
                               <span
-                                key={cid}
+                                key={st}
+                                className="px-2 py-0.5 bg-slate-900 text-teal-300 border border-slate-700 rounded text-[10px]"
+                              >
+                                {st}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Linked Suspect Addresses */}
+                      {suspectAddresses.length > 0 && (
+                        <div className="space-y-1">
+                          <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block font-sans">
+                            Linked Suspect Wallets ({suspectAddresses.length})
+                          </span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {suspectAddresses.map((addr) => (
+                              <AddressBadge key={addr} address={addr} truncateLength={6} />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Linked NCRP Ack Numbers */}
+                      <div className="space-y-1.5">
+                        <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider font-sans">
+                          Linked NCRP Acknowledgement Numbers ({ackNumbers.length})
+                        </div>
+                        {ackNumbers.length > 0 ? (
+                          <div className="flex flex-wrap gap-1.5">
+                            {ackNumbers.map((ack) => (
+                              <span
+                                key={ack}
                                 className="px-2.5 py-1 bg-slate-900 text-slate-200 border border-slate-800 rounded font-mono text-[11px]"
                               >
-                                {cid}
+                                {ack}
                               </span>
                             ))}
                           </div>
                         ) : (
                           <div className="text-slate-500 font-mono text-[11px]">
-                            No explicit complaint IDs specified for this correlation record.
+                            No explicit NCRP acknowledgement numbers linked.
                           </div>
                         )}
                       </div>
+
+                      {/* Action Button */}
+                      {pivotAddress && (
+                        <div className="pt-2 flex justify-end">
+                          <Link
+                            href={`/trace/new?address=${encodeURIComponent(pivotAddress)}`}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-slate-950 font-sans font-bold text-xs rounded transition-colors"
+                          >
+                            <span>Initiate Forensic Trace on Pivot Address</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </Link>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

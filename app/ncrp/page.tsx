@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
-import { NCRPComplaint, NCRPIngestResponse } from "@/lib/types";
+import { NCRPBatchIngestResponse, IngestedSummaryItem, Chain } from "@/lib/types";
 import { ingestNcrpComplaints, runNcrpBatchTrace } from "@/lib/api";
 import { NcrpCorrelationDashboard } from "@/components/ncrp/NcrpCorrelationDashboard";
 import {
@@ -20,10 +20,24 @@ import {
   Network,
 } from "lucide-react";
 
+export interface NCRPFormItem {
+  complaint_id: string;
+  acknowledgement_no?: string;
+  category?: string;
+  sub_category?: string;
+  suspect_wallet_address: string;
+  blockchain: Chain | string;
+  transaction_hash?: string;
+  loss_amount_inr?: number;
+  complainant_state?: string;
+  district?: string;
+  incident_datetime?: string;
+}
+
 export default function NcrpIngestionPage() {
   const [mainTab, setMainTab] = useState<"ingestion" | "correlations">("ingestion");
   const [mode, setMode] = useState<"form" | "raw">("form");
-  const [complaints, setComplaints] = useState<NCRPComplaint[]>([
+  const [complaints, setComplaints] = useState<NCRPFormItem[]>([
     {
       complaint_id: "",
       acknowledgement_no: "",
@@ -42,7 +56,7 @@ export default function NcrpIngestionPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [ingestResponse, setIngestResponse] = useState<NCRPIngestResponse | null>(null);
+  const [ingestResponse, setIngestResponse] = useState<NCRPBatchIngestResponse | null>(null);
 
   const [batchTracing, setBatchTracing] = useState(false);
   const [batchTraceMessage, setBatchTraceMessage] = useState<string | null>(null);
@@ -71,7 +85,7 @@ export default function NcrpIngestionPage() {
     setComplaints((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleFieldChange = (index: number, field: keyof NCRPComplaint, value: unknown) => {
+  const handleFieldChange = (index: number, field: keyof NCRPFormItem, value: unknown) => {
     setComplaints((prev) => {
       const copy = [...prev];
       copy[index] = { ...copy[index], [field]: value };
@@ -79,14 +93,14 @@ export default function NcrpIngestionPage() {
     });
   };
 
-  const validateComplaints = (items: NCRPComplaint[]): string | null => {
+  const validateComplaints = (items: NCRPFormItem[]): string | null => {
     if (items.length === 0) {
       return "At least one complaint record is required.";
     }
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
-      if (!item.complaint_id || !item.complaint_id.trim()) {
-        return `Row #${i + 1}: Complaint ID is required.`;
+      if (!item.complaint_id && !item.acknowledgement_no) {
+        return `Row #${i + 1}: Complaint ID or Acknowledgement Number is required.`;
       }
       if (!item.suspect_wallet_address || !item.suspect_wallet_address.trim()) {
         return `Row #${i + 1}: Suspect wallet address is required.`;
@@ -103,7 +117,7 @@ export default function NcrpIngestionPage() {
     setIngestResponse(null);
     setBatchTraceMessage(null);
 
-    let itemsToIngest: NCRPComplaint[] = [];
+    let rawRecords: NCRPFormItem[] = [];
 
     if (mode === "form") {
       const valErr = validateComplaints(complaints);
@@ -111,18 +125,12 @@ export default function NcrpIngestionPage() {
         setError(valErr);
         return;
       }
-      itemsToIngest = complaints.map((c) => ({
-        ...c,
-        complaint_id: c.complaint_id.trim(),
-        suspect_wallet_address: c.suspect_wallet_address.trim(),
-        transaction_hash: c.transaction_hash?.trim() || undefined,
-        loss_amount_inr: c.loss_amount_inr ? Number(c.loss_amount_inr) : undefined,
-      }));
+      rawRecords = complaints;
     } else {
       try {
         const parsed = JSON.parse(rawJson);
-        itemsToIngest = Array.isArray(parsed) ? parsed : parsed.complaints || [parsed];
-        const valErr = validateComplaints(itemsToIngest);
+        rawRecords = Array.isArray(parsed) ? parsed : parsed.complaints || [parsed];
+        const valErr = validateComplaints(rawRecords);
         if (valErr) {
           setError(valErr);
           return;
@@ -133,9 +141,20 @@ export default function NcrpIngestionPage() {
       }
     }
 
+    const payloadComplaints = rawRecords.map((c, idx) => ({
+      acknowledgement_number: c.acknowledgement_no?.trim() || c.complaint_id?.trim() || `ACK-${Date.now()}-${idx + 1}`,
+      complainant_name: "Investigating Officer / Complainant",
+      suspect_wallet_address: c.suspect_wallet_address.trim(),
+      blockchain: c.blockchain || "tron",
+      category: c.category || "Investment Scam",
+      sub_category: c.sub_category || undefined,
+      reported_loss_inr: c.loss_amount_inr ? Number(c.loss_amount_inr) : undefined,
+      incident_state: c.complainant_state || undefined,
+    }));
+
     setLoading(true);
     try {
-      const response = await ingestNcrpComplaints(itemsToIngest);
+      const response = await ingestNcrpComplaints({ complaints: payloadComplaints });
       setIngestResponse(response);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Connection error: Unable to reach backend server.";
@@ -146,14 +165,13 @@ export default function NcrpIngestionPage() {
   };
 
   const handleBatchTrace = async () => {
-    if (!ingestResponse || !ingestResponse.batch_trace_supported) return;
+    if (!ingestResponse || !ingestResponse.records || ingestResponse.records.length === 0) return;
     setBatchTracing(true);
     setBatchTraceMessage(null);
     try {
-      const ids =
-        ingestResponse.successful_records?.map((r) => r.complaint_id) || [];
-      const res = await runNcrpBatchTrace(ids);
-      setBatchTraceMessage(res.message || "Multi-complaint batch trace launched successfully.");
+      const caseIds = ingestResponse.records.map((r) => r.case_id).filter(Boolean);
+      const results = await runNcrpBatchTrace(caseIds);
+      setBatchTraceMessage(`Batch trace completed: ${results.length} trace graphs generated by backend.`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to run multi-complaint batch trace.";
       setBatchTraceMessage(`Batch trace error: ${msg}`);
@@ -498,7 +516,7 @@ export default function NcrpIngestionPage() {
                   Backend Ingestion Execution Summary
                 </div>
                 <div className="text-[11px] text-slate-400 font-mono">
-                  {ingestResponse.message || "Complaints processed by server endpoint."}
+                  Ingested {ingestResponse.total_complaints} complaint(s) successfully ({ingestResponse.valid_wallets_count} valid wallet(s)).
                 </div>
               </div>
 
@@ -507,12 +525,8 @@ export default function NcrpIngestionPage() {
                 <button
                   type="button"
                   onClick={handleBatchTrace}
-                  disabled={!ingestResponse.batch_trace_supported || batchTracing}
-                  title={
-                    !ingestResponse.batch_trace_supported
-                      ? "Multi-Complaint Batch Trace disabled: Backend endpoint does not expose batch tracing for this payload."
-                      : "Trigger batch trace execution on backend"
-                  }
+                  disabled={!ingestResponse.records || ingestResponse.records.length === 0 || batchTracing}
+                  title="Trigger batch trace execution on backend for ingested cases"
                   className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 disabled:bg-slate-900 disabled:text-slate-600 border border-purple-500/50 disabled:border-slate-800 text-slate-100 font-sans font-bold text-xs rounded transition-colors shadow cursor-pointer disabled:cursor-not-allowed"
                 >
                   {batchTracing ? (
@@ -522,11 +536,6 @@ export default function NcrpIngestionPage() {
                   )}
                   <span>Run Multi-Complaint Batch Trace</span>
                 </button>
-                {!ingestResponse.batch_trace_supported && (
-                  <span className="text-[9px] text-slate-500 mt-1">
-                    (Disabled: Backend feature flag not exposed)
-                  </span>
-                )}
               </div>
             </div>
 
@@ -539,79 +548,61 @@ export default function NcrpIngestionPage() {
             {/* Stat Cards */}
             <div className="grid grid-cols-3 gap-3">
               <div className="p-3 bg-slate-900 border border-slate-800 rounded text-center space-y-1">
-                <span className="text-slate-400 text-[10px] uppercase font-bold">Total Submitted</span>
+                <span className="text-slate-400 text-[10px] uppercase font-bold">Total Complaints Ingested</span>
                 <div className="text-xl font-bold font-mono text-slate-100">
-                  {ingestResponse.submitted_count}
+                  {ingestResponse.total_complaints}
                 </div>
               </div>
 
               <div className="p-3 bg-teal-950/60 border border-teal-700/80 rounded text-center space-y-1">
                 <span className="text-teal-400 text-[10px] uppercase font-bold flex items-center justify-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Successful Ingestions
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Valid Wallet Traces
                 </span>
                 <div className="text-xl font-bold font-mono text-teal-300">
-                  {ingestResponse.successful_count}
+                  {ingestResponse.valid_wallets_count}
                 </div>
               </div>
 
-              <div className="p-3 bg-rose-950/60 border border-rose-700/80 rounded text-center space-y-1">
-                <span className="text-rose-400 text-[10px] uppercase font-bold flex items-center justify-center gap-1">
-                  <XCircle className="w-3.5 h-3.5" /> Failed / Discarded
+              <div className="p-3 bg-purple-950/60 border border-purple-700/80 rounded text-center space-y-1">
+                <span className="text-purple-400 text-[10px] uppercase font-bold flex items-center justify-center gap-1">
+                  <Network className="w-3.5 h-3.5" /> Source Portal
                 </span>
-                <div className="text-xl font-bold font-mono text-rose-300">
-                  {ingestResponse.failed_count}
+                <div className="text-sm font-bold font-mono text-purple-300">
+                  {ingestResponse.source_portal || "NCRP"}
                 </div>
               </div>
             </div>
 
-            {/* Successful Records Detail */}
-            {ingestResponse.successful_records && ingestResponse.successful_records.length > 0 && (
+            {/* Confirmed Records Detail */}
+            {ingestResponse.records && ingestResponse.records.length > 0 && (
               <div className="space-y-2 bg-slate-950 border border-teal-800/80 rounded p-3">
                 <div className="text-xs font-bold text-teal-300 font-sans uppercase">
-                  Successfully Confirmed Backend Records
+                  Processed Backend Records ({ingestResponse.records.length})
                 </div>
                 <div className="space-y-1 text-[11px] font-mono">
-                  {ingestResponse.successful_records.map((rec, i) => (
+                  {ingestResponse.records.map((rec: IngestedSummaryItem, i: number) => (
                     <div
                       key={i}
                       className="p-2 bg-slate-900 rounded border border-slate-800 flex items-center justify-between text-slate-200"
                     >
                       <div className="flex items-center gap-2">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-teal-400 shrink-0" />
-                        <span className="font-bold">{rec.complaint_id}</span>
+                        {rec.is_valid_address ? (
+                          <CheckCircle2 className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+                        ) : (
+                          <XCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                        )}
+                        <span className="font-bold">{rec.acknowledgement_number}</span>
                         {rec.case_id && (
-                          <span className="text-[10px] bg-teal-950 text-teal-300 px-1.5 py-0.5 rounded border border-teal-800">
+                          <span className="text-[10px] bg-teal-950 text-teal-300 px-1.5 py-0.5 rounded border border-teal-800 font-mono">
                             Case: {rec.case_id}
                           </span>
                         )}
+                        <span className="text-slate-400 text-[10px]">
+                          ({rec.chain.toUpperCase()} · {rec.suspect_address.slice(0, 6)}...{rec.suspect_address.slice(-4)})
+                        </span>
                       </div>
-                      <span className="text-slate-400 text-[10px]">
-                        {rec.message || "Confirmed & Indexed"}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Failed Records Detail */}
-            {ingestResponse.failed_records && ingestResponse.failed_records.length > 0 && (
-              <div className="space-y-2 bg-slate-950 border border-rose-800/80 rounded p-3">
-                <div className="text-xs font-bold text-rose-300 font-sans uppercase">
-                  Failed Records / Backend Validation Errors
-                </div>
-                <div className="space-y-1 text-[11px] font-mono">
-                  {ingestResponse.failed_records.map((rec, i) => (
-                    <div
-                      key={i}
-                      className="p-2 bg-slate-900 rounded border border-rose-900/60 flex items-center justify-between text-rose-200"
-                    >
-                      <div className="flex items-center gap-2">
-                        <XCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-                        <span className="font-bold">{rec.complaint_id}</span>
-                      </div>
-                      <span className="text-rose-300 text-[10px]">
-                        {rec.error || rec.message || "Validation Error"}
+                      <span className="text-teal-400 text-[10px] font-bold uppercase">
+                        {rec.status}
                       </span>
                     </div>
                   ))}

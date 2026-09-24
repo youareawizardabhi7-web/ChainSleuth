@@ -8,13 +8,49 @@ import { TypologyFlags } from "./TypologyFlags";
 import { RiskBadge } from "@/components/case/RiskBadge";
 import { VaspAttributionCard } from "./VaspAttributionCard";
 import { WalletTagModal } from "./WalletTagModal";
-import { ArrowUpRight, ArrowDownLeft, ShieldAlert, AlertOctagon, ArrowRightLeft, Tag, Shield, RefreshCw } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, ShieldAlert, AlertOctagon, ArrowRightLeft, Tag, Shield, RefreshCw, Cpu, Activity, FileText, Scale } from "lucide-react";
 
 interface WalletDetailPanelProps {
   node: WalletNode | null;
   edges?: TransferEdge[];
   attribution?: VASPAttribution | null;
   caseId?: string;
+}
+
+function renderComponentScoreBar(label: string, weightLabel: string, score: number | null | undefined) {
+  const isAvailable = score !== undefined && score !== null;
+  const numScore = isAvailable ? Number(score) : null;
+  const normalizedVal = numScore !== null ? (numScore <= 1 ? Math.round(numScore * 100) : Math.round(numScore)) : 0;
+
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between text-[10px]">
+        <div className="flex items-center gap-1.5">
+          <span className="text-slate-300 font-semibold">{label}</span>
+          <span className="text-[9px] px-1 py-0.2 rounded bg-slate-800 text-slate-400 font-bold">
+            {weightLabel}
+          </span>
+        </div>
+        <span className={isAvailable ? "text-slate-100 font-bold font-mono" : "text-slate-500 italic font-mono"}>
+          {isAvailable ? String(score) : "Unavailable"}
+        </span>
+      </div>
+      <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+        <div
+          className={`h-full transition-all duration-300 ${
+            isAvailable
+              ? normalizedVal > 70
+                ? "bg-red-500"
+                : normalizedVal > 30
+                ? "bg-amber-500"
+                : "bg-emerald-500"
+              : "bg-slate-800"
+          }`}
+          style={{ width: isAvailable ? `${Math.min(100, Math.max(0, normalizedVal))}%` : "0%" }}
+        />
+      </div>
+    </div>
+  );
 }
 
 export function WalletDetailPanel({
@@ -223,6 +259,122 @@ export function WalletDetailPanel({
           <div className="text-slate-300 text-[11px]">
             {node.firstSeen ? new Date(node.firstSeen).toLocaleDateString() : "N/A"}
           </div>
+        </div>
+      </div>
+
+      {/* PMLA 2002 Statutory Classification Banner */}
+      {Boolean(node.pmla_flag) && (
+        <div className="p-2.5 bg-amber-950/80 border border-amber-600/80 rounded font-mono text-xs space-y-1">
+          <div className="flex items-center justify-between font-bold font-sans text-xs text-amber-300 uppercase">
+            <span className="flex items-center gap-1.5">
+              <Scale className="w-4 h-4 text-amber-400" />
+              PMLA 2002
+            </span>
+            <span className="text-[9px] bg-amber-900 text-amber-200 px-1.5 py-0.5 rounded font-extrabold border border-amber-700">
+              STATUTORY REFERENCE
+            </span>
+          </div>
+          <p className="text-[10px] text-amber-200/90 font-mono leading-normal">
+            Prevention of Money Laundering Act (PMLA 2002) legal classification returned by backend.
+          </p>
+        </div>
+      )}
+
+      {/* AI / ML Forensic Signals */}
+      <div className="p-3 bg-slate-900/90 border border-slate-800 rounded space-y-2.5">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span className="text-teal-400 font-bold font-sans uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+            <Cpu className="w-3.5 h-3.5 text-teal-400" />
+            AI / ML FORENSIC SIGNALS
+          </span>
+          <span className="text-[9px] text-slate-500 font-mono">BACKEND ENGINE</span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 text-[11px]">
+          <div className="p-2 bg-slate-950 rounded border border-slate-800/80 space-y-1">
+            <div className="text-slate-400 text-[10px] uppercase font-semibold">GraphSAGE Risk</div>
+            <div className="font-bold font-mono text-slate-100">
+              {node.gnn_risk_score !== undefined && node.gnn_risk_score !== null
+                ? String(node.gnn_risk_score)
+                : "Unavailable"}
+            </div>
+          </div>
+
+          <div className="p-2 bg-slate-950 rounded border border-slate-800/80 space-y-1">
+            <div className="text-slate-400 text-[10px] uppercase font-semibold">Anomaly Index</div>
+            <div className="font-bold font-mono text-slate-100">
+              {node.anomaly_score !== undefined && node.anomaly_score !== null
+                ? String(node.anomaly_score)
+                : "Unavailable"}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Ensemble Risk Breakdown */}
+      <div className="p-3 bg-slate-900/90 border border-slate-800 rounded space-y-2.5">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span className="text-slate-300 font-bold font-sans uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+            <Activity className="w-3.5 h-3.5 text-teal-400" />
+            ENSEMBLE RISK BREAKDOWN
+          </span>
+          <span className="text-[9px] text-slate-500 font-mono">MODEL WEIGHTS</span>
+        </div>
+
+        <div className="space-y-2 text-[11px] font-mono">
+          {renderComponentScoreBar("GraphSAGE GNN", "40%", node.gnn_risk_score)}
+          {renderComponentScoreBar("XGBoost Typology", "30%", node.typology_score)}
+          {renderComponentScoreBar("Anomaly Detection", "20%", node.anomaly_score)}
+          {renderComponentScoreBar("Heuristic Rules", "10%", node.heuristics_score)}
+        </div>
+      </div>
+
+      {/* Why This Wallet Was Flagged */}
+      <div className="p-3 bg-slate-900/90 border border-slate-800 rounded space-y-2">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
+          <span className="text-slate-300 font-bold font-sans uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+            <FileText className="w-3.5 h-3.5 text-teal-400" />
+            WHY THIS WALLET WAS FLAGGED
+          </span>
+          <span className="text-[9px] text-slate-500 font-mono">BACKEND SIGNALS</span>
+        </div>
+
+        <div className="text-[11px] text-slate-300 font-mono space-y-1 leading-relaxed">
+          {node.explanation ? (
+            <p className="p-2 bg-slate-950 rounded border border-slate-800 text-slate-200">
+              {node.explanation}
+            </p>
+          ) : (
+            <ul className="list-disc list-inside space-y-1 text-slate-300">
+              {node.typologyFlags && node.typologyFlags.length > 0 ? (
+                node.typologyFlags.map((flag, idx) => (
+                  <li key={idx}>
+                    Backend detected <span className="font-bold text-slate-100">{String(flag)}</span> typology.
+                  </li>
+                ))
+              ) : null}
+              {node.gnn_risk_score !== undefined && node.gnn_risk_score !== null && (
+                <li>
+                  GraphSAGE risk score: <span className="font-bold text-slate-100">{node.gnn_risk_score}</span>
+                </li>
+              )}
+              {node.anomaly_score !== undefined && node.anomaly_score !== null && (
+                <li>
+                  Isolation Forest anomaly index: <span className="font-bold text-slate-100">{node.anomaly_score}</span>
+                </li>
+              )}
+              {node.riskScore !== undefined && node.riskScore !== null && (
+                <li>
+                  Backend assigned ensemble risk score: <span className="font-bold text-slate-100">{node.riskScore}/100</span>.
+                </li>
+              )}
+              {(!node.typologyFlags || node.typologyFlags.length === 0) &&
+                (node.gnn_risk_score === undefined || node.gnn_risk_score === null) &&
+                (node.anomaly_score === undefined || node.anomaly_score === null) && (
+                  <li className="text-slate-500 italic">No specific risk flags reported by backend.</li>
+                )}
+            </ul>
+          )}
         </div>
       </div>
 

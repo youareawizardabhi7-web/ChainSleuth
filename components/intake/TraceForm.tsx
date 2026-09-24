@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { Chain, TraceRequest } from "@/lib/types";
+import { Chain, TraceRequest, TraceResult, WalletNode, TypologyFlag } from "@/lib/types";
 import { createTrace, parseFir } from "@/lib/api";
 import { FirParserPreview } from "./FirParserPreview";
 import {
@@ -12,7 +12,6 @@ import {
   ArrowRight,
   Sparkles,
   ShieldCheck,
-  CheckCircle2,
   Loader2,
 } from "lucide-react";
 
@@ -24,15 +23,6 @@ interface FormInputs {
   complaint_id?: string;
   complaint_text?: string;
 }
-
-const LOADING_STEPS = [
-  "Initializing investigation session",
-  "Identifying target blockchain format",
-  "Tracing multi-hop TRC-20 transactions",
-  "Building Neo4j graph topology",
-  "Analyzing laundering typologies (Peeling & Gas attribution)",
-  "Checking VASP registry & deposit cluster attribution",
-];
 
 export function TraceForm() {
   const router = useRouter();
@@ -46,9 +36,8 @@ export function TraceForm() {
     amountInr: number;
   } | null>(null);
 
-  // Simulated progressive loading state
   const [loading, setLoading] = useState(false);
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [traceResult, setTraceResult] = useState<TraceResult | null>(null);
 
   const {
     register,
@@ -103,18 +92,7 @@ export function TraceForm() {
   const onSubmit = async (data: FormInputs) => {
     setLoading(true);
     setSubmitError(null);
-    setCurrentStepIndex(0);
-
-    // Simulate 1.8s progressive loading sequence steps
-    const stepInterval = setInterval(() => {
-      setCurrentStepIndex((prev) => {
-        if (prev < LOADING_STEPS.length - 1) {
-          return prev + 1;
-        }
-        clearInterval(stepInterval);
-        return prev;
-      });
-    }, 300);
+    setTraceResult(null);
 
     try {
       const requestPayload: TraceRequest = {
@@ -125,13 +103,16 @@ export function TraceForm() {
         complaint_id: data.complaint_id,
       };
 
-      // Wait total 1.8s delay to demonstrate investigation loading sequence
-      await new Promise((res) => setTimeout(res, 1800));
-
       const result = await createTrace(requestPayload);
-      router.push(`/case/${result.case_id}`);
+      setTraceResult(result);
+      setLoading(false);
+      
+      // Auto-navigate to case workbench
+      setTimeout(() => {
+        router.push(`/case/${result.case_id}`);
+      }, 1500);
     } catch (err: unknown) {
-      console.error(err);
+      console.warn("[TraceForm] Trace execution error:", err);
       const msg = err instanceof Error ? err.message : "Failed to initiate trace with backend API.";
       setSubmitError(msg);
       setLoading(false);
@@ -324,48 +305,115 @@ export function TraceForm() {
         </button>
       </form>
 
-      {/* Professional Investigation Loading Sequence Overlay */}
+      {/* Real Execution Loading Overlay */}
       {loading && (
-        <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-sm rounded p-6 flex flex-col items-center justify-center text-center space-y-6 z-20 font-mono">
-          <div className="w-10 h-10 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+        <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-sm rounded p-6 flex flex-col items-center justify-center text-center space-y-4 z-20 font-mono">
+          <Loader2 className="w-8 h-8 text-teal-400 animate-spin" />
 
-          <div className="space-y-1">
-            <div className="text-sm font-bold font-sans uppercase tracking-wider text-slate-100">
-              Executing Automated Investigation Trace
+          <div className="space-y-1.5">
+            <div className="text-xs font-bold font-sans uppercase tracking-widest text-teal-400">
+              AI / FORENSIC ANALYSIS
             </div>
-            <p className="text-xs text-slate-400">
-              Analyzing transaction ledger & graph typologies...
+            <div className="text-sm font-bold font-sans text-slate-100">
+              Running forensic analysis...
+            </div>
+            <p className="text-[11px] text-slate-400 max-w-sm leading-relaxed">
+              Executing backend graph traversal & forensic intelligence pipeline.
             </p>
           </div>
+        </div>
+      )}
 
-          {/* Progressive Step Tracker */}
-          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded p-3 text-left space-y-2">
-            {LOADING_STEPS.map((stepText, idx) => {
-              const isDone = idx < currentStepIndex;
-              const isCurrent = idx === currentStepIndex;
+      {/* Post-Trace Telemetry Result Overlay */}
+      {!loading && traceResult && (
+        <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-sm rounded p-6 flex flex-col items-center justify-center text-center space-y-4 z-20 font-mono">
+          <div className="w-full max-w-md bg-slate-900 border border-teal-500/80 rounded p-4 text-left space-y-3 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+              <span className="text-xs font-bold font-sans text-teal-400 uppercase tracking-wider">
+                AI / ML TRACE TELEMETRY
+              </span>
+              <span className="text-[10px] bg-teal-950 text-teal-300 font-bold px-2 py-0.5 rounded border border-teal-800">
+                EXECUTION COMPLETED
+              </span>
+            </div>
+
+            {(() => {
+              const suspectNode =
+                traceResult.nodes?.find(
+                  (n: WalletNode) => n.address.toLowerCase() === traceResult.suspect_address.toLowerCase()
+                ) || traceResult.nodes?.[0];
+
+              const overallRiskDisplay =
+                traceResult.overall_risk_score !== undefined && traceResult.overall_risk_score !== null
+                  ? `${traceResult.overall_risk_score}/100`
+                  : "Unavailable";
+
+              const gnnRiskDisplay =
+                suspectNode?.gnn_risk_score !== undefined && suspectNode?.gnn_risk_score !== null
+                  ? String(suspectNode.gnn_risk_score)
+                  : "Unavailable";
+
+              const anomalyScoreDisplay =
+                suspectNode?.anomaly_score !== undefined && suspectNode?.anomaly_score !== null
+                  ? String(suspectNode.anomaly_score)
+                  : "Unavailable";
+
+              const vaspDisplay = traceResult.attribution?.vasp_name || "VASP attribution unavailable";
+
+              const typologies = suspectNode?.typologyFlags;
+
               return (
-                <div key={stepText} className="flex items-center gap-2.5 text-[11px]">
-                  {isDone ? (
-                    <CheckCircle2 className="w-3.5 h-3.5 text-teal-400 shrink-0" />
-                  ) : isCurrent ? (
-                    <Loader2 className="w-3.5 h-3.5 text-amber-400 animate-spin shrink-0" />
-                  ) : (
-                    <div className="w-3.5 h-3.5 rounded-full border border-slate-700 shrink-0" />
-                  )}
-                  <span
-                    className={
-                      isDone
-                        ? "text-teal-300 font-medium"
-                        : isCurrent
-                        ? "text-slate-100 font-bold"
-                        : "text-slate-600"
-                    }
-                  >
-                    {stepText}
-                  </span>
+                <div className="space-y-2.5 text-xs">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="p-2 bg-slate-950 rounded border border-slate-800">
+                      <div className="text-slate-500 text-[10px] uppercase">Overall Risk</div>
+                      <div className="font-bold text-slate-100">{overallRiskDisplay}</div>
+                    </div>
+                    <div className="p-2 bg-slate-950 rounded border border-slate-800">
+                      <div className="text-slate-500 text-[10px] uppercase">GNN Risk Score</div>
+                      <div className="font-bold text-slate-100">{gnnRiskDisplay}</div>
+                    </div>
+                    <div className="p-2 bg-slate-950 rounded border border-slate-800">
+                      <div className="text-slate-500 text-[10px] uppercase">Anomaly Score</div>
+                      <div className="font-bold text-slate-100">{anomalyScoreDisplay}</div>
+                    </div>
+                    <div className="p-2 bg-slate-950 rounded border border-slate-800">
+                      <div className="text-slate-500 text-[10px] uppercase">Attributed VASP</div>
+                      <div className="font-bold text-teal-300 truncate">{vaspDisplay}</div>
+                    </div>
+                  </div>
+
+                  <div className="p-2 bg-slate-950 rounded border border-slate-800 space-y-1">
+                    <div className="text-slate-500 text-[10px] uppercase">Detected Typologies</div>
+                    {typologies === undefined || typologies === null ? (
+                      <div className="text-slate-400 italic">Unavailable</div>
+                    ) : typologies.length === 0 ? (
+                      <div className="text-slate-400">None</div>
+                    ) : (
+                      <div className="flex flex-wrap gap-1">
+                        {typologies.map((t: TypologyFlag | string, idx: number) => (
+                          <span
+                            key={idx}
+                            className="text-[10px] px-1.5 py-0.2 bg-teal-950 text-teal-300 border border-teal-800 rounded font-bold uppercase"
+                          >
+                            {String(t)}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
-            })}
+            })()}
+
+            <button
+              type="button"
+              onClick={() => router.push(`/case/${traceResult.case_id}`)}
+              className="w-full py-2 bg-teal-600 hover:bg-teal-500 text-slate-950 font-sans font-bold text-xs rounded transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              <span>Open Case Workbench</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
       )}
