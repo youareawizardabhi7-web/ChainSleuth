@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { CaseSummary } from "@/lib/types";
 import { AddressBadge } from "@/components/ui/AddressBadge";
 import { RiskBadge } from "@/components/case/RiskBadge";
-import { ChevronRight, ShieldCheck, Clock, CheckCircle2, Lock, AlertCircle } from "lucide-react";
+import { ArrowRight, Building2, Clock, CheckCircle2, Lock, AlertCircle, ShieldAlert } from "lucide-react";
 
 interface CaseTableProps {
   cases: CaseSummary[];
@@ -17,18 +17,21 @@ export function CaseTable({ cases, loading = false }: CaseTableProps) {
 
   if (loading) {
     return (
-      <div className="w-full border border-slate-800 rounded bg-slate-950 p-8 text-center font-mono text-xs text-slate-500 space-y-3">
-        <div className="w-5 h-5 border-2 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto" />
-        <div>Querying case database & traversal logs...</div>
+      <div className="w-full border border-white/10 rounded-2xl bg-white/[0.02] p-12 text-center text-xs text-neutral-400 space-y-3">
+        <div className="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin mx-auto" />
+        <div className="font-mono text-neutral-400">Loading case records & topology indices...</div>
       </div>
     );
   }
 
   if (!cases || cases.length === 0) {
     return (
-      <div className="w-full border border-slate-800 rounded bg-slate-950 p-12 text-center font-mono text-xs text-slate-500 space-y-2">
-        <AlertCircle className="w-6 h-6 text-slate-600 mx-auto mb-1" />
-        <div className="text-slate-300 font-semibold font-sans">No investigations found.</div>
+      <div className="w-full border border-white/10 rounded-2xl bg-white/[0.02] p-16 text-center text-xs text-neutral-400 space-y-3">
+        <AlertCircle className="w-7 h-7 text-neutral-500 mx-auto" />
+        <div className="text-white font-medium text-sm font-sans">No matching investigations found</div>
+        <p className="text-neutral-500 text-xs max-w-sm mx-auto">
+          Try adjusting your search query, blockchain network filters, or risk thresholds.
+        </p>
       </div>
     );
   }
@@ -36,116 +39,176 @@ export function CaseTable({ cases, loading = false }: CaseTableProps) {
   // Sort by risk score descending by default
   const sortedCases = [...cases].sort((a, b) => b.overall_risk_score - a.overall_risk_score);
 
-  const statusBadgeMap = {
+  const statusBadgeMap: Record<
+    string,
+    { label: string; icon: React.ElementType; style: string; dot: string }
+  > = {
     active: {
       label: "Active Trace",
       icon: Clock,
-      style: "bg-slate-900 text-slate-300 border-slate-700",
+      style: "bg-white/[0.04] text-neutral-200 border-white/10",
+      dot: "bg-emerald-400",
     },
     pending_approval: {
-      label: "Pending Approval",
+      label: "Pending Review",
       icon: Clock,
-      style: "bg-amber-950/70 text-amber-400 border-amber-800",
+      style: "bg-amber-950/40 text-amber-300 border-amber-800/40",
+      dot: "bg-amber-400",
     },
     frozen: {
-      label: "Notice Served / Frozen",
+      label: "Notice Served",
       icon: Lock,
-      style: "bg-teal-950/70 text-teal-300 border-teal-800",
+      style: "bg-cyan-950/40 text-cyan-300 border-cyan-800/40",
+      dot: "bg-cyan-400",
     },
     closed: {
-      label: "Case Closed",
+      label: "Closed",
       icon: CheckCircle2,
-      style: "bg-slate-950 text-slate-500 border-slate-800",
+      style: "bg-white/[0.02] text-neutral-500 border-white/5",
+      dot: "bg-neutral-600",
     },
   };
 
-  const chainBadgeMap: Record<string, string> = {
-    tron: "bg-red-950/60 text-red-400 border-red-800/60",
-    solana: "bg-purple-950/60 text-purple-400 border-purple-800/60",
-    ethereum: "bg-blue-950/60 text-blue-400 border-blue-800/60",
-    bitcoin: "bg-amber-950/60 text-amber-400 border-amber-800/60",
+  const chainBadgeMap: Record<string, { label: string; dot: string; style: string }> = {
+    tron: {
+      label: "TRON",
+      dot: "bg-red-400",
+      style: "bg-red-950/30 text-red-300 border-red-800/40",
+    },
+    ethereum: {
+      label: "Ethereum",
+      dot: "bg-blue-400",
+      style: "bg-blue-950/30 text-blue-300 border-blue-800/40",
+    },
+    solana: {
+      label: "Solana",
+      dot: "bg-purple-400",
+      style: "bg-purple-950/30 text-purple-300 border-purple-800/40",
+    },
+    bitcoin: {
+      label: "Bitcoin",
+      dot: "bg-amber-400",
+      style: "bg-amber-950/30 text-amber-300 border-amber-800/40",
+    },
   };
 
   return (
-    <div className="w-full overflow-x-auto border border-slate-800 rounded bg-slate-950 select-none">
-      <table className="w-full text-left text-xs font-mono">
-        <thead className="bg-slate-900/90 border-b border-slate-800 text-slate-400 uppercase tracking-wider text-[10px]">
-          <tr>
-            <th className="py-2.5 px-3">Case ID</th>
-            <th className="py-2.5 px-3">Suspect Wallet</th>
-            <th className="py-2.5 px-3">Chain</th>
-            <th className="py-2.5 px-3">Risk Assessment</th>
-            <th className="py-2.5 px-3">Status</th>
-            <th className="py-2.5 px-3">Target VASP</th>
-            <th className="py-2.5 px-3">Created</th>
-            <th className="py-2.5 px-3 text-right">Action</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-800/60 text-slate-300">
-          {sortedCases.map((c) => {
-            const statusInfo = statusBadgeMap[c.status] || statusBadgeMap.active;
-            const StatusIcon = statusInfo.icon;
-            const chainStyle = chainBadgeMap[c.chain] || "bg-slate-900 text-slate-400 border-slate-800";
+    <div className="w-full overflow-hidden border border-white/10 rounded-2xl bg-white/[0.02] backdrop-blur-sm shadow-xl">
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-xs font-inter">
+          <thead className="border-b border-white/10 bg-white/[0.03] text-neutral-400 font-mono text-[11px] uppercase tracking-wider select-none">
+            <tr>
+              <th className="py-3.5 px-4 font-medium">Case Reference</th>
+              <th className="py-3.5 px-4 font-medium">Suspect Wallet</th>
+              <th className="py-3.5 px-4 font-medium">Network</th>
+              <th className="py-3.5 px-4 font-medium">Risk Score</th>
+              <th className="py-3.5 px-4 font-medium">Status</th>
+              <th className="py-3.5 px-4 font-medium">Target VASP</th>
+              <th className="py-3.5 px-4 font-medium">Created</th>
+              <th className="py-3.5 px-4 font-medium text-right">Workbench</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/5 text-neutral-300">
+            {sortedCases.map((c) => {
+              const statusInfo = statusBadgeMap[c.status] || statusBadgeMap.active;
+              const chainInfo = chainBadgeMap[c.chain] || {
+                label: c.chain.toUpperCase(),
+                dot: "bg-neutral-400",
+                style: "bg-white/[0.04] text-neutral-300 border-white/10",
+              };
 
-            return (
-              <tr
-                key={c.case_id}
-                onClick={() => router.push(`/case/${c.case_id}`)}
-                className="hover:bg-slate-900/70 transition-colors cursor-pointer group"
-              >
-                <td className="py-2.5 px-3 font-semibold text-slate-100 font-sans">
-                  {c.case_id}
-                </td>
-                <td className="py-2.5 px-3" onClick={(e) => e.stopPropagation()}>
-                  <AddressBadge address={c.suspect_address} truncateLength={6} />
-                </td>
-                <td className="py-2.5 px-3">
-                  <span
-                    className={`inline-block text-[10px] px-2 py-0.5 rounded border uppercase font-bold tracking-wider ${chainStyle}`}
-                  >
-                    {c.chain}
-                  </span>
-                </td>
-                <td className="py-2.5 px-3">
-                  <RiskBadge score={c.overall_risk_score} size="sm" />
-                </td>
-                <td className="py-2.5 px-3">
-                  <span
-                    className={`inline-flex items-center gap-1.5 text-[11px] px-2 py-0.5 rounded border font-medium ${statusInfo.style}`}
-                  >
-                    <StatusIcon className="w-3 h-3 shrink-0" />
-                    <span>{statusInfo.label}</span>
-                  </span>
-                </td>
-                <td className="py-2.5 px-3 font-sans font-medium text-xs">
-                  {c.attributed_vasp_name ? (
-                    <span className="text-teal-400 flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5 text-teal-400 shrink-0" />
-                      {c.attributed_vasp_name}
-                    </span>
-                  ) : (
-                    <span className="text-slate-600 text-[11px]">Unattributed</span>
-                  )}
-                </td>
-                <td className="py-2.5 px-3 text-slate-500 text-[11px]">
-                  {new Date(c.created_at).toLocaleDateString("en-IN", {
+              // Clean short case reference badge
+              const shortId = c.case_id.includes("-")
+                ? `#CS-${c.case_id.split("-")[0].toUpperCase()}`
+                : `#CS-${c.case_id.slice(0, 6).toUpperCase()}`;
+
+              // Formatted relative date
+              const createdDate = c.created_at
+                ? new Date(c.created_at).toLocaleDateString("en-US", {
                     month: "short",
-                    day: "2-digit",
+                    day: "numeric",
                     hour: "2-digit",
                     minute: "2-digit",
-                  })}
-                </td>
-                <td className="py-2.5 px-3 text-right">
-                  <span className="inline-flex items-center gap-1 text-[11px] font-sans text-slate-400 group-hover:text-teal-400 transition-colors">
-                    Workbench
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </span>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                  })
+                : "Active";
+
+              return (
+                <tr
+                  key={c.case_id}
+                  onClick={() => router.push(`/case/${c.case_id}`)}
+                  className="hover:bg-white/[0.04] transition-colors cursor-pointer group"
+                >
+                  {/* Case Identifier */}
+                  <td className="py-3.5 px-4">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-semibold text-white group-hover:text-violet-300 transition-colors">
+                        {shortId}
+                      </span>
+                    </div>
+                  </td>
+
+                  {/* Suspect Target Wallet */}
+                  <td className="py-3.5 px-4" onClick={(e) => e.stopPropagation()}>
+                    <AddressBadge address={c.suspect_address} truncateLength={6} />
+                  </td>
+
+                  {/* Blockchain Network */}
+                  <td className="py-3.5 px-4">
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-mono ${chainInfo.style}`}
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${chainInfo.dot}`} />
+                      <span>{chainInfo.label}</span>
+                    </span>
+                  </td>
+
+                  {/* Calibrated Risk Score */}
+                  <td className="py-3.5 px-4">
+                    <RiskBadge score={c.overall_risk_score} size="sm" />
+                  </td>
+
+                  {/* Investigation Status */}
+                  <td className="py-3.5 px-4">
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-mono ${statusInfo.style}`}
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dot}`} />
+                      <span>{statusInfo.label}</span>
+                    </span>
+                  </td>
+
+                  {/* Destination VASP Match */}
+                  <td className="py-3.5 px-4">
+                    {c.attributed_vasp_name ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/40 border border-emerald-700/50 text-emerald-300 text-[11px] font-medium font-mono">
+                        <Building2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>{c.attributed_vasp_name}</span>
+                      </span>
+                    ) : (
+                      <span className="text-neutral-500 text-xs font-mono">
+                        Unattributed transit
+                      </span>
+                    )}
+                  </td>
+
+                  {/* Date Created */}
+                  <td className="py-3.5 px-4 text-xs font-mono text-neutral-400">
+                    {createdDate}
+                  </td>
+
+                  {/* Action Link */}
+                  <td className="py-3.5 px-4 text-right">
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-neutral-400 group-hover:text-white transition-colors">
+                      <span>View</span>
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

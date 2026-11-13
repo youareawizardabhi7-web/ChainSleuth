@@ -8,27 +8,36 @@ interface RiskBadgeProps {
 }
 
 export function RiskBadge({ score, size = "md" }: RiskBadgeProps) {
-  let colorClasses = "bg-slate-900 text-slate-400 border-slate-800";
+  let badgeStyle = "bg-emerald-950/40 text-emerald-300 border-emerald-800/40";
+  let dotStyle = "bg-emerald-400";
+  let label = "Low";
+
   if (score >= 75) {
-    colorClasses = "bg-red-950/60 text-red-400 border-red-800/80";
-  } else if (score >= 50) {
-    colorClasses = "bg-amber-950/60 text-amber-400 border-amber-800/80";
-  } else if (score > 0) {
-    colorClasses = "bg-teal-950/60 text-teal-400 border-teal-800/80";
+    badgeStyle = "bg-rose-950/50 text-rose-300 border-rose-800/50";
+    dotStyle = "bg-rose-400";
+    label = "Critical";
+  } else if (score >= 40) {
+    badgeStyle = "bg-amber-950/40 text-amber-300 border-amber-800/40";
+    dotStyle = "bg-amber-400";
+    label = "Medium";
   }
 
   const sizeClasses =
     size === "sm"
-      ? "text-xs px-1.5 py-0.5"
+      ? "text-[11px] px-2 py-0.5"
       : size === "lg"
-      ? "text-base px-3 py-1 font-bold"
-      : "text-xs px-2.5 py-1 font-semibold";
+      ? "text-sm px-3.5 py-1.5 font-bold"
+      : "text-xs px-2.5 py-1 font-medium";
 
   return (
     <span
-      className={`inline-flex items-center gap-1 font-mono rounded border uppercase tracking-wider ${colorClasses} ${sizeClasses}`}
+      className={`inline-flex items-center gap-1.5 font-mono rounded-full border ${badgeStyle} ${sizeClasses}`}
     >
-      <span>RISK {score}/100</span>
+      <span className={`w-1.5 h-1.5 rounded-full ${dotStyle}`} />
+      <span>{score}/100</span>
+      <span className="opacity-70 font-sans text-[10px] uppercase font-normal tracking-wide">
+        {label}
+      </span>
     </span>
   );
 }

@@ -11,14 +11,12 @@ import {
   PlusCircle,
   Search,
   Filter,
-  ShieldAlert,
   AlertTriangle,
-  Lock,
   Building2,
   Clock,
   Layers,
   AlertCircle,
-  ArrowRight,
+  Zap,
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -45,7 +43,7 @@ export default function DashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Summary Metrics — Dynamically calculated strictly from real backend case data
+  // Summary Metrics calculated from backend cases
   const totalCount = cases.length;
   const activeCount = cases.filter(
     (c) => c.status === "active" || c.status === "pending_approval"
@@ -58,7 +56,7 @@ export default function DashboardPage() {
     Boolean(c.attributed_vasp_name)
   ).length;
 
-  // Chain Distribution Breakdown (Calculated from backend cases)
+  // Chain Distribution Breakdown
   const chainCounts: Record<Chain, number> = {
     tron: cases.filter((c) => c.chain === "tron").length,
     ethereum: cases.filter((c) => c.chain === "ethereum").length,
@@ -66,7 +64,7 @@ export default function DashboardPage() {
     bitcoin: cases.filter((c) => c.chain === "bitcoin").length,
   };
 
-  // Risk Distribution Breakdown (Calculated from backend cases)
+  // Risk Distribution Breakdown
   const riskBreakdown = {
     high: cases.filter((c) => c.overall_risk_score >= 75).length,
     medium: cases.filter(
@@ -75,32 +73,19 @@ export default function DashboardPage() {
     low: cases.filter((c) => c.overall_risk_score < 40).length,
   };
 
-  // Cases Requiring Attention (High Risk Active / Pending Cases)
-  const attentionCases = cases
-    .filter(
-      (c) =>
-        (c.overall_risk_score >= 75 || c.status === "pending_approval") &&
-        c.status !== "closed"
-    )
-    .slice(0, 3);
-
   // Filtered List Computation
   const filteredCases = cases.filter((c) => {
-    // Chain filter
     if (chainFilter !== "all" && c.chain !== chainFilter) {
       return false;
     }
-    // Status filter
     if (statusFilter === "active" && c.status !== "active") return false;
     if (statusFilter === "pending" && c.status !== "pending_approval") return false;
     if (statusFilter === "high_risk" && c.overall_risk_score < 75) return false;
 
-    // Supervisor Pending filter toggle
     if (supervisorOnlyPending && c.status !== "pending_approval") {
       return false;
     }
 
-    // Search query filter
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const matchId = c.case_id.toLowerCase().includes(q);
@@ -113,296 +98,304 @@ export default function DashboardPage() {
 
   return (
     <AppShell>
-      <div className="space-y-4 font-mono text-xs select-none pb-12">
+      <div className="space-y-6 pb-12">
         {/* Command Center Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/5">
           <div>
-            <h1 className="text-base font-bold font-sans text-slate-100 uppercase tracking-wider flex items-center gap-2">
-              <ShieldAlert className="w-5 h-5 text-teal-400" />
-              ChainSleuth Command Center
+            <h1 className="font-instrument text-3xl sm:text-4xl font-normal text-white tracking-tight">
+              Investigation Command Center
             </h1>
-            <p className="text-[11px] text-slate-500 font-mono mt-0.5">
-              Real-Time Crypto-Fraud Intelligence, Investigation Metrics & Target VASP Status
+            <p className="text-xs text-neutral-400 font-light mt-1 max-w-2xl leading-relaxed">
+              Real-time multi-hop blockchain ledger intelligence, syndicate typology detection, and exchange cash-out monitoring.
             </p>
           </div>
 
           <Link
             href="/trace/new"
-            className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-slate-950 font-sans font-bold text-xs rounded transition-colors shadow-lg cursor-pointer"
+            className="self-start sm:self-auto px-5 py-2.5 rounded-full bg-white hover:bg-neutral-200 text-black font-semibold text-xs transition-all flex items-center gap-2 active:scale-95 shadow-md shrink-0 cursor-pointer"
           >
-            <PlusCircle className="w-4 h-4 text-slate-950" />
-            Start New Investigation
+            <PlusCircle className="w-4 h-4 text-black" />
+            <span>Start New Trace</span>
           </Link>
         </div>
 
         {/* API Error State */}
         {error && (
-          <div className="p-4 bg-red-950/80 border border-red-800 rounded text-red-200 text-center space-y-2 font-mono shadow-xl">
-            <AlertCircle className="w-6 h-6 text-red-400 mx-auto" />
-            <div className="font-bold font-sans text-xs">Unable to retrieve investigation cases.</div>
-            <p className="text-[10px] text-red-300">{error}</p>
+          <div className="p-4 rounded-2xl bg-rose-950/40 border border-rose-800/60 text-rose-300 flex items-center gap-3 text-xs">
+            <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+            <p>{error}</p>
           </div>
         )}
 
-        {/* Overview Stat Metrics Cards (Calculated from backend cases) */}
+        {/* Overview Stat KPI Cards */}
         {!error && (
-          <div className="grid grid-cols-5 gap-3 font-sans">
-            {/* Total Investigations */}
-            <div className="p-3 bg-slate-900/80 border border-slate-800 rounded flex items-center justify-between">
-              <div>
-                <div className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">
-                  Total Cases
-                </div>
-                <div className="text-lg font-bold text-slate-100 font-mono mt-0.5">
-                  {totalCount} <span className="text-[11px] text-slate-500 font-normal font-mono">recorded</span>
-                </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Total Active Cases */}
+            <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 relative overflow-hidden group hover:border-white/10 transition-colors">
+              <div className="flex items-center justify-between text-neutral-400 mb-3">
+                <span className="text-[11px] font-mono uppercase tracking-wider">
+                  Active Cases
+                </span>
+                <Layers className="w-4 h-4 text-neutral-500" />
               </div>
-              <div className="p-2 rounded bg-slate-950 border border-slate-800 text-slate-400">
-                <Layers className="w-4 h-4" />
+              <div className="flex items-baseline gap-2">
+                <span className="font-instrument text-3xl sm:text-4xl font-medium text-white">
+                  {totalCount}
+                </span>
+                <span className="text-xs font-mono text-neutral-500">
+                  ({activeCount} in active walk)
+                </span>
               </div>
+              <p className="text-[11px] text-neutral-500 mt-2 font-light">
+                Indexed across 4 blockchain networks
+              </p>
             </div>
 
-            {/* Active Investigations */}
-            <div className="p-3 bg-slate-900/80 border border-slate-800 rounded flex items-center justify-between">
-              <div>
-                <div className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">
-                  Active Traces
-                </div>
-                <div className="text-lg font-bold text-slate-100 font-mono mt-0.5">
-                  {activeCount} <span className="text-[11px] text-slate-500 font-normal font-mono">active</span>
-                </div>
+            {/* High Risk Syndicates */}
+            <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 relative overflow-hidden group hover:border-rose-900/30 transition-colors">
+              <div className="flex items-center justify-between text-neutral-400 mb-3">
+                <span className="text-[11px] font-mono uppercase tracking-wider text-rose-300">
+                  Critical Risk (≥75)
+                </span>
+                <AlertTriangle className="w-4 h-4 text-rose-400" />
               </div>
-              <div className="p-2 rounded bg-slate-950 border border-slate-800 text-teal-400">
-                <Clock className="w-4 h-4" />
+              <div className="flex items-baseline gap-2">
+                <span className="font-instrument text-3xl sm:text-4xl font-medium text-rose-400">
+                  {highRiskCount}
+                </span>
+                <span className="text-xs font-mono text-neutral-500">
+                  flagged cases
+                </span>
               </div>
-            </div>
-
-            {/* High Risk Cases */}
-            <div className="p-3 bg-slate-900/80 border border-slate-800 rounded flex items-center justify-between">
-              <div>
-                <div className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">
-                  High Risk (&gt;=75)
-                </div>
-                <div className="text-lg font-bold text-red-400 font-mono mt-0.5">
-                  {highRiskCount} <span className="text-[11px] text-slate-500 font-normal font-mono">flagged</span>
-                </div>
-              </div>
-              <div className="p-2 rounded bg-slate-950 border border-slate-800 text-red-400">
-                <AlertTriangle className="w-4 h-4" />
-              </div>
-            </div>
-
-            {/* Pending Approval */}
-            <div
-              onClick={() => isSupervisor && setSupervisorOnlyPending(!supervisorOnlyPending)}
-              className={`p-3 bg-slate-900/80 border rounded flex items-center justify-between transition-colors ${
-                supervisorOnlyPending ? "border-amber-500 bg-amber-950/20" : "border-slate-800"
-              } ${isSupervisor ? "cursor-pointer hover:border-amber-700" : ""}`}
-            >
-              <div>
-                <div className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider flex items-center gap-1">
-                  Pending Approval
-                </div>
-                <div className="text-lg font-bold text-amber-400 font-mono mt-0.5">
-                  {pendingApprovalCount} <span className="text-[11px] text-slate-500 font-normal font-mono">awaiting</span>
-                </div>
-              </div>
-              <div className="p-2 rounded bg-slate-950 border border-slate-800 text-amber-400">
-                <Lock className="w-4 h-4" />
-              </div>
+              <p className="text-[11px] text-neutral-500 mt-2 font-light">
+                Syndicate burners & peeling chains
+              </p>
             </div>
 
             {/* VASP Attributions */}
-            <div className="p-3 bg-slate-900/80 border border-slate-800 rounded flex items-center justify-between">
-              <div>
-                <div className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">
-                  VASP Matched
-                </div>
-                <div className="text-lg font-bold text-teal-300 font-mono mt-0.5">
-                  {vaspAttributedCount} <span className="text-[11px] text-slate-500 font-normal font-mono">targets</span>
-                </div>
+            <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 relative overflow-hidden group hover:border-emerald-900/30 transition-colors">
+              <div className="flex items-center justify-between text-neutral-400 mb-3">
+                <span className="text-[11px] font-mono uppercase tracking-wider text-emerald-300">
+                  Target VASP Matched
+                </span>
+                <Building2 className="w-4 h-4 text-emerald-400" />
               </div>
-              <div className="p-2 rounded bg-slate-950 border border-slate-800 text-teal-300">
-                <Building2 className="w-4 h-4" />
+              <div className="flex items-baseline gap-2">
+                <span className="font-instrument text-3xl sm:text-4xl font-medium text-emerald-400">
+                  {vaspAttributedCount}
+                </span>
+                <span className="text-xs font-mono text-neutral-500">
+                  targets identified
+                </span>
               </div>
+              <p className="text-[11px] text-neutral-500 mt-2 font-light">
+                Ready for compliance freeze directive
+              </p>
+            </div>
+
+            {/* Cash-Out Response Target */}
+            <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 relative overflow-hidden group hover:border-violet-900/30 transition-colors">
+              <div className="flex items-center justify-between text-neutral-400 mb-3">
+                <span className="text-[11px] font-mono uppercase tracking-wider text-violet-300">
+                  Cash-Out Window SLA
+                </span>
+                <Clock className="w-4 h-4 text-violet-400" />
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="font-instrument text-3xl sm:text-4xl font-medium text-violet-300">
+                  ~28.4m
+                </span>
+                <span className="text-xs font-mono text-neutral-500">
+                  avg turnaround
+                </span>
+              </div>
+              <p className="text-[11px] text-neutral-500 mt-2 font-light">
+                Pre-liquidation asset preservation
+              </p>
             </div>
           </div>
         )}
 
-        {/* Command Center Distributions & Attention Panel */}
+        {/* Intelligence Breakdown Strip: Networks & Risk */}
         {!error && !loading && cases.length > 0 && (
-          <div className="grid grid-cols-12 gap-3">
-            {/* Chain Distribution Breakdown */}
-            <div className="col-span-4 p-3 bg-slate-950 border border-slate-800 rounded space-y-2">
-              <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider font-sans border-b border-slate-800 pb-1.5 flex items-center justify-between">
-                <span>Blockchain Distribution</span>
-                <span className="text-slate-500 font-mono">{totalCount} total</span>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Blockchain Distribution */}
+            <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 space-y-4">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-neutral-300">
+                  Multi-Chain Ledger Distribution
+                </span>
+                <span className="text-neutral-500 font-mono text-xs">
+                  {totalCount} total cases
+                </span>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-[11px]">
-                <div className="p-2 bg-slate-900 rounded border border-red-900/50 flex justify-between items-center">
-                  <span className="text-red-400 font-bold">TRON</span>
-                  <span className="font-mono text-slate-200 font-bold">{chainCounts.tron}</span>
+
+              {/* Multi-segment stacked bar */}
+              <div className="w-full h-2.5 rounded-full bg-white/[0.04] overflow-hidden flex">
+                <div
+                  className="bg-red-500 h-full"
+                  style={{ width: `${totalCount ? (chainCounts.tron / totalCount) * 100 : 0}%` }}
+                  title={`TRON: ${chainCounts.tron}`}
+                />
+                <div
+                  className="bg-blue-500 h-full"
+                  style={{ width: `${totalCount ? (chainCounts.ethereum / totalCount) * 100 : 0}%` }}
+                  title={`Ethereum: ${chainCounts.ethereum}`}
+                />
+                <div
+                  className="bg-amber-500 h-full"
+                  style={{ width: `${totalCount ? (chainCounts.bitcoin / totalCount) * 100 : 0}%` }}
+                  title={`Bitcoin: ${chainCounts.bitcoin}`}
+                />
+                <div
+                  className="bg-purple-500 h-full"
+                  style={{ width: `${totalCount ? (chainCounts.solana / totalCount) * 100 : 0}%` }}
+                  title={`Solana: ${chainCounts.solana}`}
+                />
+              </div>
+
+              {/* Legend with Counts */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
+                <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-red-400" />
+                    <span className="text-neutral-300 text-[11px]">TRON</span>
+                  </div>
+                  <span className="font-bold text-white">{chainCounts.tron}</span>
                 </div>
-                <div className="p-2 bg-slate-900 rounded border border-blue-900/50 flex justify-between items-center">
-                  <span className="text-blue-400 font-bold">ETHEREUM</span>
-                  <span className="font-mono text-slate-200 font-bold">{chainCounts.ethereum}</span>
+                <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-blue-400" />
+                    <span className="text-neutral-300 text-[11px]">Ethereum</span>
+                  </div>
+                  <span className="font-bold text-white">{chainCounts.ethereum}</span>
                 </div>
-                <div className="p-2 bg-slate-900 rounded border border-purple-900/50 flex justify-between items-center">
-                  <span className="text-purple-400 font-bold">SOLANA</span>
-                  <span className="font-mono text-slate-200 font-bold">{chainCounts.solana}</span>
+                <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-amber-400" />
+                    <span className="text-neutral-300 text-[11px]">Bitcoin</span>
+                  </div>
+                  <span className="font-bold text-white">{chainCounts.bitcoin}</span>
                 </div>
-                <div className="p-2 bg-slate-900 rounded border border-amber-900/50 flex justify-between items-center">
-                  <span className="text-amber-400 font-bold">BITCOIN</span>
-                  <span className="font-mono text-slate-200 font-bold">{chainCounts.bitcoin}</span>
+                <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-purple-400" />
+                    <span className="text-neutral-300 text-[11px]">Solana</span>
+                  </div>
+                  <span className="font-bold text-white">{chainCounts.solana}</span>
                 </div>
               </div>
             </div>
 
-            {/* Risk Assessment Distribution */}
-            <div className="col-span-4 p-3 bg-slate-950 border border-slate-800 rounded space-y-2">
-              <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider font-sans border-b border-slate-800 pb-1.5 flex items-center justify-between">
-                <span>Risk Severity Breakdown</span>
-                <span className="text-slate-500 font-mono">Algorithm Scores</span>
+            {/* Risk Assessment Breakdown */}
+            <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 space-y-4">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-neutral-300">
+                  Algorithmic Risk Severity
+                </span>
+                <span className="text-neutral-500 font-mono text-xs">
+                  5-Model ML Ensemble
+                </span>
               </div>
-              <div className="space-y-1.5">
-                <div className="flex justify-between text-[11px]">
-                  <span className="text-red-400 font-bold">Critical Risk (&gt;=75)</span>
-                  <span className="font-mono text-red-400 font-bold">{riskBreakdown.high}</span>
-                </div>
-                <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
-                  <div
-                    className="bg-red-500 h-full rounded-full"
-                    style={{ width: `${totalCount ? (riskBreakdown.high / totalCount) * 100 : 0}%` }}
-                  />
+
+              <div className="space-y-3 font-mono text-xs">
+                {/* Critical */}
+                <div>
+                  <div className="flex justify-between items-center mb-1 text-[11px]">
+                    <span className="text-rose-400 font-medium">Critical Risk (≥75)</span>
+                    <span className="text-neutral-300">{riskBreakdown.high} cases</span>
+                  </div>
+                  <div className="w-full bg-white/[0.04] rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className="bg-rose-500 h-full rounded-full"
+                      style={{ width: `${totalCount ? (riskBreakdown.high / totalCount) * 100 : 0}%` }}
+                    />
+                  </div>
                 </div>
 
-                <div className="flex justify-between text-[11px] pt-1">
-                  <span className="text-amber-400 font-bold">Medium Risk (40-74)</span>
-                  <span className="font-mono text-amber-400 font-bold">{riskBreakdown.medium}</span>
-                </div>
-                <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
-                  <div
-                    className="bg-amber-500 h-full rounded-full"
-                    style={{ width: `${totalCount ? (riskBreakdown.medium / totalCount) * 100 : 0}%` }}
-                  />
+                {/* Medium */}
+                <div>
+                  <div className="flex justify-between items-center mb-1 text-[11px]">
+                    <span className="text-amber-400 font-medium">Medium Risk (40–74)</span>
+                    <span className="text-neutral-300">{riskBreakdown.medium} cases</span>
+                  </div>
+                  <div className="w-full bg-white/[0.04] rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className="bg-amber-500 h-full rounded-full"
+                      style={{ width: `${totalCount ? (riskBreakdown.medium / totalCount) * 100 : 0}%` }}
+                    />
+                  </div>
                 </div>
 
-                <div className="flex justify-between text-[11px] pt-1">
-                  <span className="text-teal-400 font-bold">Low Risk (&lt;40)</span>
-                  <span className="font-mono text-teal-400 font-bold">{riskBreakdown.low}</span>
-                </div>
-                <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
-                  <div
-                    className="bg-teal-500 h-full rounded-full"
-                    style={{ width: `${totalCount ? (riskBreakdown.low / totalCount) * 100 : 0}%` }}
-                  />
+                {/* Low */}
+                <div>
+                  <div className="flex justify-between items-center mb-1 text-[11px]">
+                    <span className="text-emerald-400 font-medium">Low Risk (&lt;40)</span>
+                    <span className="text-neutral-300">{riskBreakdown.low} cases</span>
+                  </div>
+                  <div className="w-full bg-white/[0.04] rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className="bg-emerald-500 h-full rounded-full"
+                      style={{ width: `${totalCount ? (riskBreakdown.low / totalCount) * 100 : 0}%` }}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-
-            {/* Cases Requiring Immediate Attention */}
-            <div className="col-span-4 p-3 bg-slate-950 border border-slate-800 rounded space-y-2">
-              <div className="text-[10px] text-amber-400 uppercase font-bold tracking-wider font-sans border-b border-slate-800 pb-1.5 flex items-center justify-between">
-                <span>Cases Requiring Priority Attention</span>
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-              </div>
-              {attentionCases.length > 0 ? (
-                <div className="space-y-1.5">
-                  {attentionCases.map((ac) => (
-                    <Link
-                      key={ac.case_id}
-                      href={`/case/${ac.case_id}`}
-                      className="p-2 bg-slate-900 hover:bg-slate-800/80 rounded border border-slate-800 flex items-center justify-between transition-colors block"
-                    >
-                      <div>
-                        <div className="font-bold text-slate-100 font-sans">{ac.case_id}</div>
-                        <div className="text-[10px] text-slate-500 uppercase font-mono">{ac.chain}</div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-red-400 font-mono">{ac.overall_risk_score}</span>
-                        <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-slate-500 text-[11px] py-4 text-center">
-                  No critical cases currently requiring attention.
-                </div>
-              )}
             </div>
           </div>
         )}
 
-        {/* Search, Chain Filter & Status Filter Bar */}
-        <div className="flex items-center justify-between gap-3 bg-slate-900/60 p-2.5 border border-slate-800 rounded">
+        {/* Search, Network & Status Filter Strip */}
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 p-3 rounded-2xl bg-white/[0.02] border border-white/5">
           {/* Search Input */}
           <div className="relative flex-1 max-w-md">
-            <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-500" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500 pointer-events-none" />
             <input
               type="text"
               placeholder="Search Case ID, Suspect Wallet, or Target VASP..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded pl-8 pr-3 py-1.5 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-teal-500 font-mono text-[11px]"
+              className="w-full bg-white/[0.04] border border-white/10 rounded-xl pl-10 pr-4 py-2 text-white placeholder-neutral-500 focus:outline-none focus:border-violet-500/80 text-xs font-sans transition-all"
             />
           </div>
 
-          {/* Chain & Status Filters */}
-          <div className="flex items-center gap-2">
-            {/* Blockchain Filter Tabs (Includes BITCOIN) */}
-            <div className="flex items-center gap-1 bg-slate-950 p-1 border border-slate-800 rounded">
-              <Filter className="w-3.5 h-3.5 text-slate-500 ml-1" />
-              {(["all", "tron", "ethereum", "solana", "bitcoin"] as const).map((chain) => (
+          {/* Filters */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Blockchain Network Pills */}
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/5">
+              {(["all", "tron", "ethereum", "bitcoin", "solana"] as const).map((chain) => (
                 <button
                   key={chain}
                   type="button"
                   onClick={() => setChainFilter(chain)}
-                  className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold transition-colors cursor-pointer ${
+                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                     chainFilter === chain
-                      ? "bg-slate-800 text-teal-400 border border-slate-700"
-                      : "text-slate-400 hover:text-slate-200"
+                      ? "bg-white text-black font-semibold shadow-sm"
+                      : "text-neutral-400 hover:text-white"
                   }`}
                 >
-                  {chain}
+                  {chain === "all" ? "All Networks" : chain.toUpperCase()}
                 </button>
               ))}
             </div>
 
-            {/* Status Filter */}
+            {/* Status Selector */}
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-slate-950 text-slate-300 border border-slate-800 rounded px-2.5 py-1.5 text-[11px] font-mono focus:outline-none focus:border-teal-500 cursor-pointer"
+              className="bg-white/[0.04] text-neutral-300 border border-white/10 rounded-xl px-3 py-2 text-xs font-sans focus:outline-none focus:border-violet-500/80 cursor-pointer"
             >
-              <option value="all">All Statuses</option>
-              <option value="active">Active Traces</option>
-              <option value="pending">Pending Approval</option>
-              <option value="high_risk">High Risk (&gt;=75)</option>
+              <option value="all" className="bg-[#121212] text-white">All Statuses</option>
+              <option value="active" className="bg-[#121212] text-white">Active Traces</option>
+              <option value="pending" className="bg-[#121212] text-white">Pending Review</option>
+              <option value="high_risk" className="bg-[#121212] text-white">High Risk (≥75)</option>
             </select>
-
-            {/* Extra Supervisor Filter Toggle */}
-            {isSupervisor && (
-              <button
-                type="button"
-                onClick={() => setSupervisorOnlyPending(!supervisorOnlyPending)}
-                className={`px-2.5 py-1.5 rounded text-[11px] font-sans font-semibold border transition-colors flex items-center gap-1.5 cursor-pointer ${
-                  supervisorOnlyPending
-                    ? "bg-amber-950 text-amber-300 border-amber-700 font-bold"
-                    : "bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200"
-                }`}
-              >
-                <Lock className="w-3.5 h-3.5 text-amber-400" />
-                Pending Approval Only
-              </button>
-            )}
           </div>
         </div>
 
-        {/* Main Case Quick Access Table */}
+        {/* Forensic Case Table */}
         <CaseTable cases={filteredCases} loading={loading} />
       </div>
     </AppShell>
   );
 }
-

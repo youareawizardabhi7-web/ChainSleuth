@@ -4,18 +4,13 @@ import React, { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAppStore } from "@/lib/store";
-import { RoleSwitcher } from "./RoleSwitcher";
 import {
   LayoutDashboard,
   PlusCircle,
-  FolderOpen,
-  FileText,
-  Activity,
-  ShieldAlert,
-  ShieldCheck,
-  UserCheck,
-  Building2,
   Database,
+  Activity,
+  ArrowUpRight,
+  ShieldCheck,
   User,
 } from "lucide-react";
 
@@ -35,27 +30,17 @@ export function Sidebar() {
 
   const navItems = [
     {
-      label: "Dashboard",
+      label: "Overview",
       href: "/dashboard",
       icon: LayoutDashboard,
     },
     {
-      label: "New Investigation",
+      label: "New Trace",
       href: "/trace/new",
       icon: PlusCircle,
     },
     {
-      label: "Investigations",
-      href: "/dashboard",
-      icon: FolderOpen,
-    },
-    {
-      label: "Legal Notices",
-      href: "/case/test-verification-456/notice",
-      icon: FileText,
-    },
-    {
-      label: "NCRP Ingestion",
+      label: "Incident Ingest",
       href: "/ncrp",
       icon: Database,
     },
@@ -63,128 +48,105 @@ export function Sidebar() {
 
   if (isSupervisor) {
     navItems.push({
-      label: "Audit Log",
+      label: "Audit Trail",
       href: "/dashboard/audit",
       icon: Activity,
     });
   }
 
-  const roleLabelMap = {
-    investigating_officer: {
-      name: "Forensic Investigator",
-      code: "INVESTIGATOR",
-      icon: UserCheck,
-      color: "text-teal-400 bg-teal-950/60 border-teal-800",
-    },
-    supervisory_officer: {
-      name: "Supervisory Lead",
-      code: "SUPERVISOR",
-      icon: ShieldCheck,
-      color: "text-amber-400 bg-amber-950/60 border-amber-800",
-    },
-    vasp_nodal_officer: {
-      name: "VASP Compliance",
-      code: "VASP COMPLIANCE",
-      icon: Building2,
-      color: "text-teal-300 bg-slate-900 border-slate-700",
-    },
+  const roleDisplayMap: Record<string, { label: string; accent: string }> = {
+    investigating_officer: { label: "Forensic Investigator", accent: "text-violet-400" },
+    supervisory_officer: { label: "Supervisory Lead", accent: "text-amber-400" },
+    vasp_nodal_officer: { label: "VASP Compliance", accent: "text-cyan-400" },
   };
 
-  const currentRoleInfo =
-    roleLabelMap[currentRole] || roleLabelMap.investigating_officer;
-  const RoleIcon = currentRoleInfo.icon;
+  const currentRoleDisplay = roleDisplayMap[currentRole] || roleDisplayMap.investigating_officer;
 
   return (
-    <aside className="w-56 shrink-0 bg-slate-950 border-r border-slate-800 flex flex-col justify-between font-mono text-xs select-none">
+    <aside className="w-60 shrink-0 bg-[#080808] border-r border-white/5 flex flex-col justify-between select-none">
       <div className="flex flex-col">
-        {/* Header Logo */}
-        <div className="h-11 px-3 border-b border-slate-800 flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-slate-900 border border-slate-700 flex items-center justify-center text-teal-400 shrink-0">
-            <ShieldAlert className="w-3.5 h-3.5" />
-          </div>
-          <div className="overflow-hidden">
-            <div className="font-bold text-slate-100 text-xs tracking-wider uppercase font-sans truncate">
+        {/* Brand Header */}
+        <div className="h-14 px-5 border-b border-white/5 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-cyan-400 to-violet-500 shadow-[0_0_8px_#8b5cf6]" />
+            <span className="font-instrument text-xl font-medium tracking-tight text-white group-hover:text-violet-300 transition-colors">
               ChainSleuth
-            </div>
-            <div className="text-[9px] text-slate-500 uppercase tracking-widest truncate">
-              Fraud Ops Platform
-            </div>
-          </div>
-        </div>
-
-        {/* Authenticated Officer Profile */}
-        {user && (
-          <div className="p-2.5 border-b border-slate-800 bg-slate-900/50 flex items-center gap-2">
-            {user.picture ? (
-              <img
-                src={user.picture}
-                alt={user.name || "Officer"}
-                className="w-6 h-6 rounded-full object-cover border border-slate-700 shrink-0"
-              />
-            ) : (
-              <div className="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-teal-400 shrink-0">
-                <User className="w-3.5 h-3.5" />
-              </div>
-            )}
-            <div className="overflow-hidden">
-              <div className="font-bold text-slate-100 text-[11px] truncate font-sans">
-                {user.name || user.email || "Authenticated User"}
-              </div>
-              <div className="text-[9px] text-slate-400 truncate">
-                {user.department || user.email || "Forensics Investigator"}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Role Indicator Banner */}
-        <div className="p-2.5 border-b border-slate-800 bg-slate-900/30">
-          <div className="text-[9px] text-slate-500 mb-1 uppercase font-semibold">
-            Active Access Role
-          </div>
-          <div
-            className={`flex items-center gap-1.5 px-2 py-1 rounded border text-[11px] font-semibold ${currentRoleInfo.color}`}
-          >
-            <RoleIcon className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate">
-              {isClient ? currentRoleInfo.name : "Loading..."}
             </span>
-          </div>
+          </Link>
+          <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest border border-white/5 px-2 py-0.5 rounded-full bg-white/[0.02]">
+            Console
+          </span>
         </div>
 
-        {/* Navigation Links */}
-        <nav className="p-2 space-y-0.5">
-          {navItems.map((item, idx) => {
+        {/* Navigation Section */}
+        <div className="p-3 space-y-1">
+          <div className="px-3 pt-3 pb-2 text-[10px] font-mono uppercase tracking-wider text-neutral-500">
+            Navigation
+          </div>
+
+          {navItems.map((item) => {
             const Icon = item.icon;
-            const active = pathname === item.href;
+            const isActive =
+              item.href === "/dashboard"
+                ? pathname === "/dashboard"
+                : pathname.startsWith(item.href);
+
             return (
               <Link
-                key={`${item.href}-${idx}`}
+                key={item.label}
                 href={item.href}
-                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded transition-colors font-sans text-xs ${
-                  active
-                    ? "bg-slate-900 text-teal-400 font-semibold border border-slate-800"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/50"
+                className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                  isActive
+                    ? "bg-white/[0.08] text-white font-semibold shadow-sm border border-white/10"
+                    : "text-neutral-400 hover:text-white hover:bg-white/[0.04]"
                 }`}
               >
-                <Icon
-                  className={`w-3.5 h-3.5 shrink-0 ${
-                    active ? "text-teal-400" : "text-slate-500"
-                  }`}
-                />
-                <span className="truncate">{item.label}</span>
+                <Icon className={`w-4 h-4 ${isActive ? "text-violet-400" : "text-neutral-500"}`} />
+                <span>{item.label}</span>
               </Link>
             );
           })}
-        </nav>
+        </div>
+
+        {/* Quick Portal Switch */}
+        <div className="p-3 pt-1">
+          <div className="px-3 pt-3 pb-2 text-[10px] font-mono uppercase tracking-wider text-neutral-500">
+            External
+          </div>
+          <Link
+            href="/"
+            className="flex items-center justify-between px-3 py-2 rounded-xl text-xs text-neutral-400 hover:text-white hover:bg-white/[0.04] transition-colors"
+          >
+            <span>Landing Page</span>
+            <ArrowUpRight className="w-3.5 h-3.5 text-neutral-500" />
+          </Link>
+        </div>
       </div>
 
-      {/* Role Switcher in Sidebar Footer */}
-      <div className="p-2.5 border-t border-slate-800 space-y-1.5">
-        <div className="text-[9px] text-slate-500 uppercase font-semibold">
-          Switch Operational Role
+      {/* User Session & Role Profile Footer */}
+      <div className="p-3 pb-7 border-t border-white/5 bg-white/[0.01]">
+        <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/5 space-y-2">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-xl bg-violet-950/60 border border-violet-800/40 flex items-center justify-center text-violet-300 font-mono text-xs font-semibold shrink-0">
+              {user?.name ? user.name.slice(0, 2).toUpperCase() : "FI"}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-xs font-medium text-white truncate">
+                {user?.name || "Investigator"}
+              </div>
+              <div className="text-[10px] font-mono text-neutral-500 truncate">
+                {user?.email || "investigator@chainsleuth.io"}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-1 border-t border-white/5 text-[10px] font-mono">
+            <span className="text-neutral-500">Active Role</span>
+            <span className={`font-medium ${currentRoleDisplay.accent}`}>
+              {currentRoleDisplay.label}
+            </span>
+          </div>
         </div>
-        <RoleSwitcher orientation="vertical" />
       </div>
     </aside>
   );
