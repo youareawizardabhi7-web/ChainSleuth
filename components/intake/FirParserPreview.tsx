@@ -30,7 +30,7 @@ export function FirParserPreview({
       <div className="flex items-center justify-between border-b border-slate-800 pb-2">
         <div className="flex items-center gap-2 text-teal-400 font-semibold uppercase tracking-wider text-[11px]">
           <Sparkles className="w-4 h-4 text-teal-400" />
-          <span>Gemini AI Extracted Parameters (Editable Review Panel)</span>
+          <span>Extracted Intelligence Parameters (Review & Validation Panel)</span>
         </div>
         <span className="text-[10px] text-teal-300 font-bold bg-teal-950 px-2 py-0.5 border border-teal-800 rounded flex items-center gap-1">
           <CheckCircle2 className="w-3 h-3" /> VERIFIED

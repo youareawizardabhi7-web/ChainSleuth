@@ -154,10 +154,10 @@ export function FirGenerationForm({
           </div>
           <div>
             <div className="text-sm font-bold font-sans text-slate-100 uppercase tracking-wider">
-              Cybercrime First Information Report (FIR)
+              Forensic Case Incident Report
             </div>
             <div className="text-[11px] text-slate-500 font-mono">
-              Official Police Registration & Digital Evidence Docket
+              Official Incident Registration & Digital Evidence Docket
             </div>
           </div>
         </div>
@@ -179,16 +179,16 @@ export function FirGenerationForm({
           <div className="p-4 bg-teal-950/80 border border-teal-600 rounded space-y-3 shadow-lg">
             <div className="flex items-center gap-2 text-teal-300 font-bold font-sans text-sm uppercase tracking-wider">
               <CheckCircle2 className="w-5 h-5 text-teal-400 shrink-0" />
-              <span>Cybercrime FIR Successfully Generated</span>
+              <span>Forensic Incident Docket Successfully Generated</span>
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-xs pt-2 border-t border-teal-800/80">
               <div>
-                <span className="text-slate-400 text-[10px] block">FIR ID</span>
+                <span className="text-slate-400 text-[10px] block">DOCKET ID</span>
                 <span className="font-bold text-slate-100 font-mono">{firResponse.fir_id}</span>
               </div>
               <div>
-                <span className="text-slate-400 text-[10px] block">FIR / Complaint Reference</span>
+                <span className="text-slate-400 text-[10px] block">Case Reference Number</span>
                 <span className="font-bold text-teal-300 font-mono">
                   {firResponse.fir_number || firResponse.complaint_id || firResponse.fir_id}
                 </span>
@@ -226,7 +226,7 @@ export function FirGenerationForm({
               className="flex items-center gap-2 px-5 py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-sans font-bold text-xs rounded transition-colors shadow-lg cursor-pointer"
             >
               <Download className="w-4 h-4" />
-              Download Official FIR PDF
+              Download Official Case Docket PDF
             </button>
           </div>
         </div>
@@ -299,11 +299,11 @@ export function FirGenerationForm({
             {/* Complainant Designation */}
             <div className="space-y-1">
               <label className="text-[10px] text-slate-400 uppercase font-semibold block">
-                Designation / Police Unit (Optional)
+                Designation / Organization Unit (Optional)
               </label>
               <input
                 type="text"
-                placeholder="e.g. Cyber Crime Cell, Special Branch"
+                placeholder="e.g. Fraud Investigation Unit, Financial Crimes Division"
                 {...register("complainant_designation")}
                 className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded text-slate-100 font-mono text-xs focus:outline-none focus:border-teal-500"
               />
@@ -408,12 +408,12 @@ export function FirGenerationForm({
               {submitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin text-teal-400" />
-                  <span className="text-slate-200">Generating Cybercrime FIR...</span>
+                  <span className="text-slate-200">Generating Forensic Case Docket...</span>
                 </>
               ) : (
                 <>
                   <FileCheck className="w-4 h-4 text-slate-950" />
-                  <span>Generate Cybercrime FIR</span>
+                  <span>Generate Forensic Case Docket</span>
                 </>
               )}
             </button>

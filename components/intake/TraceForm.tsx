@@ -67,7 +67,7 @@ export function TraceForm() {
       const extractedChain = result.chain || "tron";
 
       if (!extractedAddr) {
-        setSubmitError("Could not extract a valid suspect wallet address from the complaint text.");
+        setSubmitError("Could not extract a valid suspect wallet address from the incident narrative.");
         return;
       }
 
@@ -77,12 +77,12 @@ export function TraceForm() {
       setParsedData({
         address: extractedAddr,
         chain: extractedChain,
-        scamType: "Extracted Complaint Narrative Target",
+        scamType: "Extracted Narrative Target",
         amountInr: 0,
       });
     } catch (err: unknown) {
       console.error(err);
-      const msg = err instanceof Error ? err.message : "Failed to parse FIR complaint text.";
+      const msg = err instanceof Error ? err.message : "Failed to parse incident narrative.";
       setSubmitError(msg);
     } finally {
       setIsParsing(false);
@@ -159,7 +159,7 @@ export function TraceForm() {
           }`}
         >
           <FileText className="w-4 h-4" />
-          Paste Complaint Text (AI Extraction)
+          Incident Narrative (NLP Ingestion)
         </button>
       </div>
 
@@ -188,11 +188,11 @@ export function TraceForm() {
           <div className="space-y-4">
             <div>
               <label className="block text-slate-400 mb-1 font-semibold">
-                Raw Victim Complaint / FIR Narrative Text
+                Investigative Incident Dossier / Case Brief
               </label>
               <textarea
                 rows={5}
-                placeholder="Paste victim statement narrative describing crypto scam, transaction hashes, or wallet address..."
+                placeholder="Paste victim narrative or case brief describing crypto fraud, transaction hashes, or wallet address..."
                 {...register("complaint_text")}
                 className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded text-slate-100 focus:outline-none focus:border-teal-500 font-mono text-xs leading-relaxed"
               />
@@ -205,12 +205,12 @@ export function TraceForm() {
                 {isParsing ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    Parsing FIR narrative with Gemini AI...
+                    Extracting intelligence entities via Neural NLP...
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-3.5 h-3.5" />
-                    Parse FIR Narrative with Gemini AI
+                    Extract Entities with Autonomous NLP Engine
                   </>
                 )}
               </button>
@@ -284,7 +284,7 @@ export function TraceForm() {
 
         <div>
           <label className="block text-slate-400 mb-1 font-semibold">
-            Complaint / FIR Reference ID (Optional)
+            Case Reference Number / NCRP ID (Optional)
           </label>
           <input
             type="text"

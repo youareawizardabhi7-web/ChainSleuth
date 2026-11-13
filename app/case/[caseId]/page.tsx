@@ -130,17 +130,17 @@ export default function CaseWorkbenchPage({
               type="button"
               onClick={() => setIsCertModalOpen(true)}
               className="flex items-center gap-1.5 px-3 py-1 bg-slate-900 hover:bg-slate-800 text-teal-300 font-sans font-bold text-[11px] rounded border border-slate-700 transition-colors shadow cursor-pointer"
-              title="View Certificate Details (Section 63 BSA)"
+              title="View Cryptographic Evidence Certificate"
             >
               <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
-              <span>View Certificate Details</span>
+              <span>View Certificate</span>
             </button>
 
             <button
               type="button"
               onClick={() => setIsReportModalOpen(true)}
               className="flex items-center gap-1.5 px-3 py-1 bg-purple-950 hover:bg-purple-900 text-purple-300 font-sans font-bold text-[11px] rounded border border-purple-800 transition-colors shadow cursor-pointer"
-              title="Generate AI Forensic Investigation Docket (Gemini 2.0 Flash)"
+              title="Generate AI Forensic Investigation Docket"
             >
               <Sparkles className="w-3.5 h-3.5 text-purple-400" />
               <span>Generate AI Docket</span>
@@ -149,10 +149,10 @@ export default function CaseWorkbenchPage({
             <Link
               href={`/case/${caseId}/notice`}
               className="flex items-center gap-1.5 px-3 py-1 bg-teal-600 hover:bg-teal-500 text-slate-950 font-sans font-bold text-[11px] rounded transition-colors shadow cursor-pointer"
-              title="Issue Section 94 BNSS Legal Freeze Notice"
+              title="Issue Compliance Asset Freeze Notice"
             >
               <FileText className="w-3.5 h-3.5 text-slate-950" />
-              <span>Issue Section 94 Notice</span>
+              <span>Issue Freeze Notice</span>
             </Link>
 
             <Link
@@ -160,7 +160,7 @@ export default function CaseWorkbenchPage({
               className="flex items-center gap-1.5 px-3 py-1 bg-slate-900 hover:bg-slate-800 text-teal-300 font-sans font-bold text-[11px] rounded border border-slate-700 transition-colors shadow"
             >
               <FileCheck className="w-3.5 h-3.5 text-teal-400" />
-              <span>Generate FIR</span>
+              <span>Incident Docket</span>
             </Link>
             {traceData && <RiskBadge score={traceData.overall_risk_score} size="md" />}
           </div>

@@ -58,12 +58,12 @@ export function NoticePreview({
       const element = document.createElement("a");
       const file = new Blob(
         [
-          `CHAINSLEUTH FORMAL LEGAL NOTICE - SECTION 94 BNSS\nCase ID: ${caseId}\nTarget VASP: ${vaspName}\nDeposit Address: ${depositAddress}\nEvidence SHA-256: ${evidenceHash}`,
+          `CHAINSLEUTH FORMAL ASSET FREEZE DIRECTIVE\nCase ID: ${caseId}\nTarget VASP: ${vaspName}\nDeposit Address: ${depositAddress}\nEvidence SHA-256: ${evidenceHash}`,
         ],
         { type: "text/plain" }
       );
       element.href = URL.createObjectURL(file);
-      element.download = `SECTION_94_BNSS_NOTICE_${caseId || "RECORD"}.txt`;
+      element.download = `ASSET_FREEZE_DIRECTIVE_${caseId || "RECORD"}.txt`;
       document.body.appendChild(element);
       element.click();
       document.body.removeChild(element);
@@ -83,10 +83,10 @@ export function NoticePreview({
           <div>
             <div className="text-teal-400 font-bold text-sm tracking-wider uppercase font-sans flex items-center gap-2">
               <FileText className="w-4 h-4 text-teal-400" />
-              FORMAL FREEZE DIRECTIVE — SECTION 94 BNSS, 2023
+              FORMAL ASSET FREEZE DIRECTIVE
             </div>
             <div className="text-slate-500 text-[11px] mt-0.5">
-              Cyber Crime Police Station • Reference Case ID: {caseId}
+              Fraud Investigation & Asset Recovery • Reference Case ID: {caseId}
             </div>
           </div>
 
@@ -160,13 +160,13 @@ export function NoticePreview({
             {/* Legal Document Header */}
             <div className="text-center border-b border-slate-800 pb-4 space-y-1">
               <div className="font-bold text-slate-100 font-sans text-sm tracking-wider">
-                OFFICE OF THE SUPERINTENDENT OF POLICE
+                FINANCIAL FRAUD INVESTIGATION DIVISION
               </div>
               <div className="text-slate-400 text-[11px]">
-                CYBER CRIME INVESTIGATION CELL • POLICE HEADQUARTERS
+                BLOCKCHAIN ASSET TRACING & FORENSICS UNIT
               </div>
               <div className="text-teal-400 font-bold text-xs pt-1">
-                NOTICE UNDER SECTION 94 OF THE BHARATIYA NAGARIK SURAKSHA SANHITA (BNSS), 2023
+                FORMAL COMPLIANCE ASSET FREEZE & RESTRAINT DIRECTIVE
               </div>
             </div>
 
@@ -181,8 +181,8 @@ export function NoticePreview({
               </div>
 
               <p className="text-slate-300 text-justify">
-                WHEREAS information has been received regarding cryptocurrency scam proceeds amounting to{" "}
-                <span className="text-teal-300 font-bold">₹{(lossAmountInr ?? 0).toLocaleString()}</span> originating from victim accounts under FIR Reference <span className="text-slate-100 font-bold">{caseId || "N/A"}</span>.
+                WHEREAS information has been received regarding cryptocurrency fraud proceeds amounting to{" "}
+                <span className="text-teal-300 font-bold">₹{(lossAmountInr ?? 0).toLocaleString()}</span> originating from victim accounts under Investigation Case Reference <span className="text-slate-100 font-bold">{caseId || "N/A"}</span>.
               </p>
 
               <div className="p-3 bg-slate-950 border border-teal-500/80 rounded space-y-2">
@@ -209,14 +209,14 @@ export function NoticePreview({
         )}
       </div>
 
-      {/* Section 63 BSA Digital Evidence Certificate Stamp */}
+      {/* Cryptographic Digital Evidence Certificate Stamp */}
       <div className="p-4 bg-slate-900/90 border border-slate-800 rounded space-y-2">
         <div className="flex items-center justify-between border-b border-slate-800 pb-2">
           <div className="flex items-center gap-2 text-teal-400 font-semibold text-xs font-sans">
             <ShieldCheck className="w-4 h-4 text-teal-400" />
-            <span>Section 63 BSA Digital Evidence Certificate</span>
+            <span>Cryptographic Digital Evidence Certificate</span>
           </div>
-          <span className="text-[10px] text-slate-400 font-mono">COURT-ADMISSIBLE HASH STAMP</span>
+          <span className="text-[10px] text-slate-400 font-mono">AUDIT-VERIFIED HASH STAMP</span>
         </div>
 
         <p className="text-slate-400 text-[11px] leading-normal font-sans">

@@ -43,7 +43,7 @@ const TYPOLOGY_CONFIG: Record<
     icon: Link2,
     badgeStyle: "bg-purple-950/90 border-purple-800 text-purple-400",
     explanation:
-      "Backward gas fee trace links this burner wallet to a master syndicate wallet reused across multiple FIRs.",
+      "Backward gas fee trace links this burner wallet to a master syndicate wallet reused across multiple fraud investigations.",
   },
   dex_swap: {
     title: "DEX swap hop",

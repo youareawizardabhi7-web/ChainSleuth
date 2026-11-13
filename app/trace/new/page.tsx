@@ -15,7 +15,7 @@ export default function NewTracePage() {
             New Trace Intake
           </h1>
           <p className="text-[11px] text-slate-500 font-mono mt-0.5">
-            Initiate multi-hop asset investigation from suspect address or raw FIR complaint narrative
+            Initiate multi-hop asset investigation from suspect address or unstructured incident narrative brief
           </p>
         </div>
 

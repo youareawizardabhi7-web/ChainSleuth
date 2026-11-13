@@ -194,7 +194,7 @@ export default function NcrpIngestionPage() {
                 NCRP / SAHYOG Portal Intelligence
               </h1>
               <p className="text-[11px] text-slate-500 font-mono">
-                Official Law Enforcement Complaint Bulk Import & Cross-State Syndicate Correlation Matrix
+                Bulk Complaint Ingestion & Multi-Source Fraud Intelligence Correlation Matrix
               </p>
             </div>
           </div>

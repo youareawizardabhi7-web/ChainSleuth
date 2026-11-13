@@ -129,11 +129,11 @@ export function AIInvestigationDocketModal({
               <h2 className="text-base font-bold font-sans tracking-wide text-slate-100 flex items-center gap-2">
                 <span>AI Forensic Investigation Docket</span>
                 <span className="text-[9px] px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-700 font-extrabold uppercase">
-                  GEMINI 2.0 FLASH
+                  NEURAL FORENSIC ENGINE
                 </span>
               </h2>
               <p className="text-[11px] text-slate-400 font-mono">
-                Automated legal case narrative & law enforcement docket
+                Automated forensic case narrative & intelligence summary
               </p>
             </div>
           </div>
@@ -159,7 +159,7 @@ export function AIInvestigationDocketModal({
                 Generating Investigation Docket...
               </div>
               <p className="text-[11px] text-slate-500 max-w-md">
-                Invoking backend Gemini 2.0 Flash pipeline to assemble court-admissible legal case narrative. Please wait.
+                Invoking backend autonomous neural pipeline to assemble court-admissible legal case narrative. Please wait.
               </p>
             </div>
           )}

@@ -610,7 +610,7 @@ export async function parseFir(complaintText: string): Promise<Partial<TraceRequ
 
   if (!res.ok) {
     const errorText = await res.text().catch(() => "");
-    throw new Error(`Failed to parse FIR complaint text (${res.status}): ${errorText}`);
+    throw new Error(`Failed to parse incident narrative (${res.status}): ${errorText}`);
   }
 
   const data = await res.json();
@@ -773,10 +773,10 @@ export async function createFir(payload: FIRCreate): Promise<FIRResponse> {
   }
 
   if (res.status === 401) {
-    throw new Error("Authentication error (401): Please log in to generate an FIR.");
+    throw new Error("Authentication error (401): Please log in to generate an incident docket.");
   }
   if (res.status === 403) {
-    throw new Error("Permission error (403): You do not have authorization to generate an FIR.");
+    throw new Error("Permission error (403): You do not have authorization to generate an incident docket.");
   }
   if (res.status === 422) {
     const errorBody = await res.json().catch(() => null);
@@ -788,10 +788,10 @@ export async function createFir(payload: FIRCreate): Promise<FIRResponse> {
     throw new Error(`Validation error (422): ${detailMsg || "Please check your input fields."}`);
   }
   if (res.status >= 500) {
-    throw new Error("Backend generation failure (500): Failed to generate FIR document on server.");
+    throw new Error("Backend generation failure (500): Failed to generate case docket document on server.");
   }
   if (!res.ok) {
-    throw new Error(`FIR generation failed with status ${res.status}`);
+    throw new Error(`Case docket generation failed with status ${res.status}`);
   }
 
   const data: FIRResponse = await res.json();

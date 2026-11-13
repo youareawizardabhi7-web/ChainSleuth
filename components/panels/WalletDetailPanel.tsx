@@ -271,20 +271,20 @@ export function WalletDetailPanel({
         </div>
       </div>
 
-      {/* PMLA 2002 Statutory Classification Banner */}
+      {/* AML High-Risk Indicator Banner */}
       {Boolean(node.pmla_flag) && (
         <div className="p-2.5 bg-amber-950/80 border border-amber-600/80 rounded font-mono text-xs space-y-1">
           <div className="flex items-center justify-between font-bold font-sans text-xs text-amber-300 uppercase">
             <span className="flex items-center gap-1.5">
               <Scale className="w-4 h-4 text-amber-400" />
-              PMLA 2002
+              HIGH RISK LAUNDERING
             </span>
             <span className="text-[9px] bg-amber-900 text-amber-200 px-1.5 py-0.5 rounded font-extrabold border border-amber-700">
-              STATUTORY REFERENCE
+              AML INDICATOR
             </span>
           </div>
           <p className="text-[10px] text-amber-200/90 font-mono leading-normal">
-            Prevention of Money Laundering Act (PMLA 2002) legal classification returned by backend.
+            Automated anti-money laundering anomaly flag detected on address transaction pattern.
           </p>
         </div>
       )}

@@ -11,8 +11,8 @@ import { ArrowLeft, CheckCircle2, Loader2, AlertCircle, ShieldAlert } from "luci
 
 const LOADING_SEQUENCE = [
   "Preparing case evidence & traversal graph snapshot",
-  "Building Section 94 BNSS legal freeze notice template",
-  "Generating Section 63 BSA digital evidence certificate",
+  "Building compliance asset freeze notice template",
+  "Generating cryptographic digital evidence certificate",
   "Calculating cryptographic SHA-256 evidence hash",
   "Ready for legal service",
 ];
@@ -106,10 +106,10 @@ export default function LegalNoticePage({
             <div>
               <h1 className="text-base font-bold font-sans text-slate-100 uppercase tracking-wider flex items-center gap-2">
                 <ShieldAlert className="w-4 h-4 text-teal-400" />
-                Section 94 BNSS Legal Freeze Notice Generator
+                Compliance Asset Freeze Notice Generator
               </h1>
               <p className="text-[11px] text-slate-500 font-mono mt-0.5">
-                Target VASP Freeze Directive & Section 63 BSA Evidence Hash Stamp
+                Target VASP Freeze Directive & Cryptographic Evidence Hash Stamp
               </p>
             </div>
           </div>
@@ -162,10 +162,10 @@ export default function LegalNoticePage({
 
             <div className="space-y-1">
               <div className="text-sm font-bold font-sans uppercase tracking-wider text-slate-100">
-                Generating Section 94 BNSS Legal Freeze Directive
+                Generating Compliance Asset Freeze Directive
               </div>
               <p className="text-xs text-slate-400">
-                Stamping Section 63 BSA evidence certificate...
+                Stamping cryptographic evidence certificate...
               </p>
             </div>
 

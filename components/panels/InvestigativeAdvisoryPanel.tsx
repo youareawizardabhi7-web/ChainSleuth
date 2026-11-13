@@ -9,6 +9,18 @@ interface InvestigativeAdvisoryPanelProps {
   caseId?: string;
 }
 
+function sanitizeAdvisory(text: string): string {
+  if (!text) return "";
+  return text
+    .replace(/Section\s*94\s*(?:of\s*the\s*)?(?:BNSS|Bharatiya\s*Nagarik\s*Suraksha\s*Sanhita)(?:,?\s*\d{4})?\s*(?:freeze\s*notice|legal\s*freeze\s*notice)?/gi, "compliance freeze notice")
+    .replace(/BNSS\s*§?\s*94\s*(?:freeze\s*notice)?/gi, "compliance freeze notice")
+    .replace(/Section\s*63\s*(?:of\s*the\s*)?(?:BSA|Bharatiya\s*Sakshya\s*Adhiniyam)(?:,?\s*\d{4})?\s*(?:evidence\s*certificate|digital\s*evidence\s*certificate)?/gi, "cryptographic evidence certificate")
+    .replace(/BSA\s*§?\s*63\s*(?:certificate)?/gi, "cryptographic evidence certificate")
+    .replace(/courtroom admissibility/gi, "audit admissibility")
+    .replace(/case diary/gi, "investigation docket")
+    .replace(/\bIO\b|\bInvestigating Officer\b/gi, "Investigator");
+}
+
 export function InvestigativeAdvisoryPanel({
   recommendations = [],
   slaAlert,
@@ -25,10 +37,10 @@ export function InvestigativeAdvisoryPanel({
   const handleCopy = () => {
     const text = [
       `CASE INVESTIGATION ADVISORY — ${caseId}`,
-      `SLA STATUS: ${slaAlert || "Standard"}`,
+      `SLA STATUS: ${sanitizeAdvisory(slaAlert || "Standard")}`,
       "",
-      "ACTIONABLE RECOMMENDATIONS FOR INVESTIGATING OFFICER (IO):",
-      ...recommendations.map((r, i) => `${i + 1}. ${r}`),
+      "ACTIONABLE FORENSIC RECOMMENDATIONS:",
+      ...recommendations.map((r, i) => `${i + 1}. ${sanitizeAdvisory(r)}`),
     ].join("\n");
 
     navigator.clipboard.writeText(text);
@@ -55,7 +67,7 @@ export function InvestigativeAdvisoryPanel({
             <Clock className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
           )}
           <div className="flex-1 font-sans text-xs font-semibold leading-relaxed">
-            {slaAlert}
+            {sanitizeAdvisory(slaAlert)}
           </div>
         </div>
       )}
@@ -65,7 +77,7 @@ export function InvestigativeAdvisoryPanel({
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-teal-400" />
           <span className="font-sans font-bold text-xs uppercase tracking-wider text-teal-300">
-            Automated IO Recommendations ({recommendations.length})
+            Automated Forensic Recommendations ({recommendations.length})
           </span>
         </div>
 
@@ -110,7 +122,7 @@ export function InvestigativeAdvisoryPanel({
               <span className="w-4 h-4 rounded-full bg-teal-950 text-teal-400 border border-teal-800 flex items-center justify-center shrink-0 font-bold text-[9px] mt-0.5">
                 {idx + 1}
               </span>
-              <div className="text-slate-300 font-sans">{rec}</div>
+              <div className="text-slate-300 font-sans">{sanitizeAdvisory(rec)}</div>
             </div>
           ))}
         </div>
