@@ -1,18 +1,159 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
 @import "tailwindcss";
 
+html {
+  scroll-behavior: smooth;
+}
+
 :root {
-  --background: #060913;
+  --background: #030303;
   --foreground: #f1f5f9;
-  --border: #1e293b;
+  --border: rgba(255, 255, 255, 0.08);
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-  overflow: hidden;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow-x: hidden;
+  overflow-y: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Synapse Typography Classes */
+.font-instrument {
+  font-family: 'Instrument Serif', Georgia, serif;
+}
+
+.font-inter {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.font-mono-data {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Shimmer Animation */
+@keyframes text-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+.text-shimmer {
+  background: linear-gradient(90deg, #a78bfa 0%, #ffffff 40%, #ffffff 60%, #22d3ee 100%);
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: text-shimmer 4s linear infinite;
+}
+
+/* Infinite Floating Ambient Orbs */
+@keyframes float-orb-1 {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-24px) scale(1.06);
+  }
+}
+
+@keyframes float-orb-2 {
+  0%, 100% {
+    transform: translateY(0px) scale(1.05);
+  }
+  50% {
+    transform: translateY(28px) scale(1);
+  }
+}
+
+.animate-float-orb-1 {
+  animation: float-orb-1 9s ease-in-out infinite;
+}
+
+.animate-float-orb-2 {
+  animation: float-orb-2 13s ease-in-out infinite;
+}
+
+/* 40s Infinite Metrics Ticker */
+@keyframes ticker {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-ticker {
+  display: flex;
+  width: max-content;
+  animation: ticker 40s linear infinite;
+}
+
+.animate-ticker:hover {
+  animation-play-state: paused;
+}
+
+/* Shiny Border Conic Gradient Button */
+@keyframes spin-conic {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.shiny-border-btn {
+  position: relative;
+  display: inline-flex;
+  padding: 1px;
+  border-radius: 9999px;
+  overflow: hidden;
+  transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.shiny-border-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 0 30px -5px rgba(139, 92, 246, 0.5);
+}
+
+.shiny-border-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 260%;
+  height: 260%;
+  background: conic-gradient(from 0deg, transparent 0%, #8b5cf6 40%, #06b6d4 50%, transparent 60%);
+  animation: spin-conic 4s linear infinite;
+  z-index: 0;
+}
+
+/* Feature Card Hover Micro-Interactions */
+.synapse-card {
+  transition: all 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.synapse-card:hover {
+  transform: translateY(-12px);
+  border-color: rgba(139, 92, 246, 0.4) !important;
+  box-shadow: 0 0 25px -8px rgba(139, 92, 246, 0.45);
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+.synapse-card:hover .synapse-icon {
+  transform: scale(1.1) rotate(4deg);
+}
+
+.synapse-icon {
+  transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 /* SIEM Console Scrollbars */
@@ -21,14 +162,14 @@ body {
   height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #090d16;
+  background: #030303;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: rgba(255, 255, 255, 0.25);
 }
 
 /* Subtle panel transitions */
