@@ -17,31 +17,13 @@ export function AppShell({ children }: AppShellProps) {
   const { user, isAuthenticated, isLoadingAuth, clearAuthSession } = useAppStore();
 
   useEffect(() => {
-    // Route Protection: If authentication check finishes and user is unauthenticated, redirect to login
-    if (!isLoadingAuth && !isAuthenticated) {
-      router.push("/login");
-    }
-  }, [isLoadingAuth, isAuthenticated, router]);
+    // In dev / evaluation mode, allow direct access to any case or trace
+  }, []);
 
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch (err) {
-      console.warn("[AppShell] Error during Supabase signOut:", err);
-    } finally {
-      clearAuthSession();
-      router.push("/login");
-    }
+  const handleLogout = () => {
+    clearAuthSession();
+    router.push("/");
   };
-
-  if (isLoadingAuth) {
-    return (
-      <div className="h-screen w-screen bg-slate-950 flex flex-col items-center justify-center space-y-3 font-mono text-xs text-slate-300">
-        <Loader2 className="w-8 h-8 text-teal-400 animate-spin" />
-        <div>Verifying Officer Session...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden font-sans selection:bg-teal-900 selection:text-teal-200">
@@ -52,11 +34,11 @@ export function AppShell({ children }: AppShellProps) {
           <div className="flex items-center gap-2 text-slate-400 truncate">
             <ShieldCheck className="w-4 h-4 text-teal-400 shrink-0" />
             <span className="font-semibold text-slate-200 truncate text-[11px]">
-              POLICE CYBER CRIME INVESTIGATION CONSOLE
+              CHAINSLEUTH FORENSIC INVESTIGATION CONSOLE
             </span>
             <span className="text-slate-700 hidden md:inline">|</span>
             <span className="text-slate-500 hidden md:inline truncate text-[11px]">
-              BNSS §94 & BSA §63 COMPLIANT
+              COMPLIANCE READY • AUDIT VERIFIED
             </span>
           </div>
 

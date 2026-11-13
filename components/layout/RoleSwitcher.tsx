@@ -41,22 +41,22 @@ export function RoleSwitcher({ orientation = "vertical" }: RoleSwitcherProps) {
   }[] = [
     {
       id: "investigating_officer",
-      label: "IO",
-      fullLabel: "Investigating Officer",
+      label: "Investigator",
+      fullLabel: "Forensic Investigator",
       icon: UserCheck,
       activeStyle: "bg-slate-800 text-teal-400 font-bold border border-teal-500/30",
     },
     {
       id: "supervisory_officer",
-      label: "Supervisor",
-      fullLabel: "Supervisory Officer",
+      label: "Lead",
+      fullLabel: "Supervisory Lead",
       icon: Shield,
       activeStyle: "bg-slate-800 text-amber-400 font-bold border border-amber-500/30",
     },
     {
       id: "vasp_nodal_officer",
-      label: "VASP Nodal",
-      fullLabel: "VASP Nodal Officer",
+      label: "Compliance",
+      fullLabel: "VASP Compliance",
       icon: Building2,
       activeStyle: "bg-slate-800 text-teal-300 font-bold border border-teal-500/30",
     },

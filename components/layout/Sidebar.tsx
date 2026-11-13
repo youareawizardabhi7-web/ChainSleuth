@@ -71,20 +71,20 @@ export function Sidebar() {
 
   const roleLabelMap = {
     investigating_officer: {
-      name: "Investigating Officer",
-      code: "IO (LEO)",
+      name: "Forensic Investigator",
+      code: "INVESTIGATOR",
       icon: UserCheck,
       color: "text-teal-400 bg-teal-950/60 border-teal-800",
     },
     supervisory_officer: {
-      name: "Supervisory Officer",
+      name: "Supervisory Lead",
       code: "SUPERVISOR",
       icon: ShieldCheck,
       color: "text-amber-400 bg-amber-950/60 border-amber-800",
     },
     vasp_nodal_officer: {
-      name: "VASP Nodal Officer",
-      code: "VASP NODAL",
+      name: "VASP Compliance",
+      code: "VASP COMPLIANCE",
       icon: Building2,
       color: "text-teal-300 bg-slate-900 border-slate-700",
     },
@@ -128,10 +128,10 @@ export function Sidebar() {
             )}
             <div className="overflow-hidden">
               <div className="font-bold text-slate-100 text-[11px] truncate font-sans">
-                {user.name || user.email || "Authenticated Officer"}
+                {user.name || user.email || "Authenticated User"}
               </div>
               <div className="text-[9px] text-slate-400 truncate">
-                {user.department || user.email || "Authorized Law Enforcement"}
+                {user.department || user.email || "Forensics Investigator"}
               </div>
             </div>
           </div>
