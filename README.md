@@ -1,16 +1,16 @@
-# 🛡️ ChainSleuth — Crypto Fraud Investigation & Asset Tracing Console
+# ChainSleuth — Crypto Fraud Investigation & Asset Tracing Console
 
-> **Smart India Hackathon (SIH26183) + Web3 / Law Enforcement Security Track**  
-> *Automated multi-chain asset tracing, NCRP complaint ingestion, laundering typology detection, VASP deposit attribution, and Section 94 BNSS legal freeze notice generator for Indian Cyber Crime Law Enforcement.*
+> **Blockchain Forensics & Financial Intelligence Operations**  
+> *Automated multi-hop asset tracing, incident narrative ingestion, laundering typology detection, VASP deposit attribution, and compliance freeze directives for rapid fraud investigation.*
 
-[![Live App](https://img.shields.io/badge/Live_Console-Netlify-00C7B7?style=for-the-badge&logo=netlify)](https://chainsleuth.netlify.app/dashboard)
-[![Backend API](https://img.shields.io/badge/Live_Backend-FastAPI_Render-009688?style=for-the-badge&logo=fastapi)](https://chain-sleuth-backend.onrender.com/openapi.json)
-[![Next.js](https://img.shields.io/badge/Frontend-Next.js_16-000000?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![Live App](https://img.shields.io/badge/Live_Console-Vercel-000000?style=for-the-badge&logo=vercel)](https://chain-sleuth-six.vercel.app)
+[![Backend API](https://img.shields.io/badge/Live_Backend-FastAPI_Render-009688?style=for-the-badge&logo=fastapi)](https://chain-sleuth-backend.onrender.com/docs)
+[![Next.js](https://img.shields.io/badge/Frontend-Next.js_15-000000?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/Language-TypeScript_5-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 
 ---
 
-## 📌 Executive Summary
+## Executive Summary
 
 When cryptocurrency fraud occurs, criminals launder stolen funds across disposable burner wallets, peeling chains, fan-out smurfing splits, cross-chain bridges, and privacy mixers before depositing into centralized exchanges (VASPs like Binance, CoinDCX, WazirX) to cash out into fiat currency. Criminals complete cash-outs within **~30 minutes**, whereas traditional manual ledger tracing takes hours or days.
 
@@ -24,7 +24,7 @@ When cryptocurrency fraud occurs, criminals launder stolen funds across disposab
 
 ---
 
-## 💡 Core Domain Concepts & Heuristics
+## Core Domain Concepts & Heuristics
 
 | Concept | Explanation | Algorithmic Importance |
 | :--- | :--- | :--- |
@@ -37,7 +37,7 @@ When cryptocurrency fraud occurs, criminals launder stolen funds across disposab
 
 ---
 
-## ⚙️ Platform Architecture
+## Platform Architecture
 
 ```
   1. INTAKE            2. NCRP & TRACE          3. PATTERN DETECTION      4. VASP TARGET         5. LEGAL FREEZE
@@ -50,18 +50,18 @@ When cryptocurrency fraud occurs, criminals launder stolen funds across disposab
 
 ---
 
-## 🎨 Design Semantics & UI System
+## Design Semantics & UI System
 
 Built as a dark-mode-first, desktop-first SIEM crime-operations command center (`1366x768` to `1920x1080` optimized):
 
-- ⚪ **Slate / Neutral (`#475569`):** Intermediate transit wallets & unflagged hops
-- 🔴 **Coral / Red (`#ef4444`):** Suspicious burner wallets & detected laundering typologies
-- 🟢 **Teal / Emerald (`#0d9488`):** Attributed VASP deposit target addresses (Actionable Freeze Targets)
-- 🟣 **Purple / Indigo (`#9333ea`):** Syndicate Gas Funders & Cross-jurisdiction pivots
+- **Slate / Neutral (`#475569`):** Intermediate transit wallets & unflagged hops
+- **Coral / Red (`#ef4444`):** Suspicious burner wallets & detected laundering typologies
+- **Teal / Emerald (`#0d9488`):** Attributed VASP deposit target addresses (Actionable Freeze Targets)
+- **Purple / Indigo (`#9333ea`):** Syndicate Gas Funders & Cross-jurisdiction pivots
 
 ---
 
-## 🚀 Key Features & Modules
+## Key Features & Modules
 
 ### 1. Investigation Intake Screen (`/trace/new`)
 - **Address & FIR Parsing Tabs**: Direct suspect wallet input or raw FIR text ingestion parsed via Gemini AI.
@@ -96,11 +96,11 @@ Built as a dark-mode-first, desktop-first SIEM crime-operations command center (
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-- **Framework:** Next.js 16 (App Router with Turbopack)
+- **Framework:** Next.js 15 (App Router with Turbopack)
 - **Language:** TypeScript 5 (Strict Type Safety)
-- **Styling:** Vanilla CSS & Tailwind CSS (Dark Command Center Design System)
+- **Styling:** Tailwind CSS (Dark Command Center Design System)
 - **Graph Visualization Engine:** Cytoscape.js (`cytoscape` & `@types/cytoscape`)
 - **State Management:** Zustand (Persisted User Roles & Active Case State)
 - **Icons:** Lucide React
@@ -108,10 +108,10 @@ Built as a dark-mode-first, desktop-first SIEM crime-operations command center (
 
 ---
 
-## 📂 Repository Structure
+## Repository Structure
 
 ```
-TRACEX FRONT/
+ChainSleuth/
 ├── app/
 │   ├── layout.tsx                      # Root layout & global SIEM theme metadata
 │   ├── page.tsx                        # Redirects to /dashboard
@@ -156,7 +156,7 @@ TRACEX FRONT/
 
 ---
 
-## 🔗 Live OpenAPI Endpoints Reference
+## Live OpenAPI Endpoints Reference
 
 All frontend API functions in `lib/api.ts` connect directly to the live backend OpenAPI specification (`https://chain-sleuth-backend.onrender.com/openapi.json`):
 
@@ -172,7 +172,7 @@ All frontend API functions in `lib/api.ts` connect directly to the live backend 
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - **Node.js**: v18.0.0 or higher
@@ -196,7 +196,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 🧪 Verification & Build Commands
+## Verification & Build Commands
 
 ```bash
 # 1. ESLint code quality check
@@ -208,15 +208,15 @@ npm run build
 
 ---
 
-## 📜 Legal & Compliance Framework
+## Compliance & Evidence Architecture
 
-ChainSleuth complies with Indian Criminal Procedure and Evidence Laws:
-- **BNSS §94 (*Bharatiya Nagarik Suraksha Sanhita, 2023*)**: Authorizes law enforcement officers to issue production orders and asset freeze directives to Virtual Asset Service Providers (VASPs).
-- **BSA §63 (*Bharatiya Sakshya Adhiniyam, 2023*)**: Mandatory cryptographic evidence certificate establishing chain of custody and immutable SHA-256 evidence hashing for digital records.
+ChainSleuth adheres to global compliance and digital forensics standards:
+- **Compliance Freeze Directives**: Structured asset preservation notices formatted directly for Virtual Asset Service Provider (VASP) compliance desks.
+- **Cryptographic Evidence Certification**: Mandatory chain of custody documentation stamped with immutable SHA-256 evidence hashes for verifiable audit trails.
 
 ---
 
-## 📄 License & Attribution
+## Attribution & Team
 
-Developed for **Smart India Hackathon 2026 (SIH26183)** and **MLH Web3 / Security Track**.  
-© 2026 ChainSleuth Team. All rights reserved.
+Developed by **Amit Dey** (Backend & Machine Learning) and **Abhigyan Paswan** (Frontend & Research).  
+© 2026 ChainSleuth. All rights reserved.
