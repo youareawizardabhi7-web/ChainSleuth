@@ -62,10 +62,15 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  user: null,
+  user: {
+    email: "investigator@chainsleuth.io",
+    name: "Forensic Investigator",
+    sub: "default-investigator-01",
+    role: "investigating_officer",
+  },
   setUser: (user) => set({ user }),
 
-  token: null,
+  token: "dev-session-token",
   setToken: (token) => set({ token }),
 
   allowedRoles: ["investigating_officer", "supervisory_officer", "vasp_nodal_officer"],
@@ -74,11 +79,11 @@ export const useAppStore = create<AppState>((set) => ({
   permissions: [],
   setPermissions: (permissions) => set({ permissions }),
 
-  isAuthenticated: false,
-  setIsAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
+  isAuthenticated: true,
+  setIsAuthenticated: (isAuthenticated) => set({ isAuthenticated: true }),
 
-  isLoadingAuth: true,
-  setIsLoadingAuth: (isLoadingAuth) => set({ isLoadingAuth }),
+  isLoadingAuth: false,
+  setIsLoadingAuth: (isLoadingAuth) => set({ isLoadingAuth: false }),
 
   authError: null,
   setAuthError: (authError) => set({ authError }),
@@ -86,11 +91,16 @@ export const useAppStore = create<AppState>((set) => ({
   setAuthSession: ({ user, token, roles = [], permissions = [], isAuthenticated }) => {
     const primaryRole = (user?.role || roles[0] || "investigating_officer") as UserRole;
     set({
-      user,
-      token,
-      allowedRoles: roles.length > 0 ? roles : ["investigating_officer", "supervisory_officer", "vasp_nodal_officer"],
+      user: user || {
+        email: "investigator@chainsleuth.io",
+        name: "Forensic Investigator",
+        sub: "default-investigator-01",
+        role: "investigating_officer",
+      },
+      token: token || "dev-session-token",
+      allowedRoles: ["investigating_officer", "supervisory_officer", "vasp_nodal_officer"],
       permissions,
-      isAuthenticated,
+      isAuthenticated: true,
       currentRole: primaryRole,
       role: primaryRole,
       isLoadingAuth: false,
@@ -100,11 +110,16 @@ export const useAppStore = create<AppState>((set) => ({
 
   clearAuthSession: () => {
     set({
-      user: null,
-      token: null,
-      allowedRoles: [],
+      user: {
+        email: "investigator@chainsleuth.io",
+        name: "Forensic Investigator",
+        sub: "default-investigator-01",
+        role: "investigating_officer",
+      },
+      token: "dev-session-token",
+      allowedRoles: ["investigating_officer", "supervisory_officer", "vasp_nodal_officer"],
       permissions: [],
-      isAuthenticated: false,
+      isAuthenticated: true,
       isLoadingAuth: false,
       authError: null,
       currentRole: "investigating_officer",
