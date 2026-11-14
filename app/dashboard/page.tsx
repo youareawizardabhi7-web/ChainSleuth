@@ -103,10 +103,10 @@ export default function DashboardPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/5">
           <div>
             <h1 className="font-instrument text-3xl sm:text-4xl font-normal text-white tracking-tight">
-              Investigation Command Center
+              Investigation Overview
             </h1>
             <p className="text-xs text-neutral-400 font-light mt-1 max-w-2xl leading-relaxed">
-              Real-time multi-hop blockchain ledger intelligence, syndicate typology detection, and exchange cash-out monitoring.
+              Active cases, multi-hop transaction tracing, and asset freeze directives.
             </p>
           </div>
 

@@ -63,8 +63,8 @@ interface AppState {
 
 export const useAppStore = create<AppState>((set) => ({
   user: {
-    email: "investigator@chainsleuth.io",
-    name: "Forensic Investigator",
+    email: "deyamit0044l@gmail.com",
+    name: "Amit Dey",
     sub: "default-investigator-01",
     role: "investigating_officer",
   },
@@ -92,8 +92,8 @@ export const useAppStore = create<AppState>((set) => ({
     const primaryRole = (user?.role || roles[0] || "investigating_officer") as UserRole;
     set({
       user: user || {
-        email: "investigator@chainsleuth.io",
-        name: "Forensic Investigator",
+        email: "deyamit0044l@gmail.com",
+        name: "Amit Dey",
         sub: "default-investigator-01",
         role: "investigating_officer",
       },
@@ -111,8 +111,8 @@ export const useAppStore = create<AppState>((set) => ({
   clearAuthSession: () => {
     set({
       user: {
-        email: "investigator@chainsleuth.io",
-        name: "Forensic Investigator",
+        email: "deyamit0044l@gmail.com",
+        name: "Amit Dey",
         sub: "default-investigator-01",
         role: "investigating_officer",
       },
