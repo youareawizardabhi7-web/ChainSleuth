@@ -52,7 +52,7 @@ export function NoticePreview({
   };
 
   const handleDownload = () => {
-    if (pdfUrl && pdfUrl !== "#mock-pdf-url") {
+    if (pdfUrl && pdfUrl.startsWith("http")) {
       window.open(pdfUrl, "_blank");
     } else {
       const element = document.createElement("a");
@@ -149,7 +149,7 @@ export function NoticePreview({
 
       {/* Inline Document Container / iFrame Preview */}
       <div className="bg-slate-900 border border-slate-800 rounded p-6 text-slate-200 space-y-4 shadow-2xl relative">
-        {pdfUrl && pdfUrl !== "#mock-pdf-url" ? (
+        {pdfUrl && pdfUrl.startsWith("http") ? (
           <iframe
             src={pdfUrl}
             className="w-full h-96 border border-slate-800 rounded"

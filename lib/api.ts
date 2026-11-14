@@ -37,372 +37,6 @@ export const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_URL || "https://chain-sleuth-backend.onrender.com/api/v1"
 ).replace(/\/+$/, "");
 
-const USE_MOCK_DATA = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-// 12-Node Realistic TRON Crypto-Fraud Investigation Mock Graph
-const MOCK_NODES: WalletNode[] = [
-  {
-    address: "TABC1234567890XYZ99887766554433",
-    chain: "tron",
-    riskScore: 94,
-    balance: 0.0,
-    firstSeen: "2026-09-20T09:00:00Z",
-    typologyFlags: ["zero_gas_burner"],
-    gnn_risk_score: 95,
-    typology_score: 90,
-    anomaly_score: 0.88,
-    heuristics_score: 85,
-    risk_category: "CRITICAL",
-    explanation: "High-risk nexus wallet flagged for zero-gas burner laundering on TRON with calibrated risk 94/100.",
-    pmla_flag: true,
-  },
-  {
-    address: "TFUNDER00000000000000000000001",
-    chain: "tron",
-    riskScore: 91,
-    balance: 1540.0,
-    firstSeen: "2026-09-18T14:20:00Z",
-    typologyFlags: ["first_funder_match"],
-    gnn_risk_score: 92,
-    typology_score: 88,
-    anomaly_score: 0.82,
-    heuristics_score: 80,
-    risk_category: "CRITICAL",
-    explanation: "Gas-funding nexus wallet financing suspected money mule addresses.",
-    pmla_flag: false,
-  },
-  {
-    address: "TBURNER00100100100100100100101",
-    chain: "tron",
-    riskScore: 88,
-    balance: 0.0,
-    firstSeen: "2026-09-19T11:10:00Z",
-    typologyFlags: ["zero_gas_burner"],
-    gnn_risk_score: 89,
-    typology_score: 85,
-    anomaly_score: 0.78,
-    heuristics_score: 75,
-    risk_category: "CRITICAL",
-    explanation: "Burner wallet with zero native gas balance after high-velocity transfers.",
-    pmla_flag: false,
-  },
-  {
-    address: "TPEEL00100100100100100100100101",
-    chain: "tron",
-    riskScore: 85,
-    balance: 12.0,
-    firstSeen: "2026-09-20T09:15:00Z",
-    typologyFlags: ["peeling_chain"],
-    gnn_risk_score: 86,
-    typology_score: 88,
-    anomaly_score: 0.75,
-    heuristics_score: 70,
-    risk_category: "CRITICAL",
-    explanation: "Intermediate layering node engaged in peeling-chain structuring.",
-    pmla_flag: true,
-  },
-  {
-    address: "TPEEL00200200200200200200200202",
-    chain: "tron",
-    riskScore: 83,
-    balance: 8.5,
-    firstSeen: "2026-09-20T09:22:00Z",
-    typologyFlags: ["peeling_chain"],
-    gnn_risk_score: 84,
-    typology_score: 85,
-    anomaly_score: 0.72,
-    heuristics_score: 70,
-    risk_category: "CRITICAL",
-    explanation: "Peeling-chain hop splitting funds into sub-threshold amounts.",
-    pmla_flag: true,
-  },
-  {
-    address: "TPEEL00300300300300300300300303",
-    chain: "tron",
-    riskScore: 86,
-    balance: 5.0,
-    firstSeen: "2026-09-20T09:30:00Z",
-    typologyFlags: ["peeling_chain"],
-    gnn_risk_score: 87,
-    typology_score: 88,
-    anomaly_score: 0.76,
-    heuristics_score: 70,
-    risk_category: "CRITICAL",
-    explanation: "Peeling-chain conduit routing structured transfers toward exchange deposit.",
-    pmla_flag: true,
-  },
-  {
-    address: "TFANOUT00100100100100100100101",
-    chain: "tron",
-    riskScore: 79,
-    balance: 45.0,
-    firstSeen: "2026-09-20T09:40:00Z",
-    typologyFlags: ["fan_out"],
-    gnn_risk_score: 80,
-    typology_score: 82,
-    anomaly_score: 0.69,
-    heuristics_score: 65,
-    risk_category: "CRITICAL",
-    explanation: "Smurfing / fan-out node dispersing assets across multiple beneficiary wallets.",
-    pmla_flag: true,
-  },
-  {
-    address: "TSMURF010010010010010010010011",
-    chain: "tron",
-    riskScore: 72,
-    balance: 2.0,
-    firstSeen: "2026-09-20T09:45:00Z",
-    typologyFlags: [],
-    gnn_risk_score: 73,
-    typology_score: 60,
-    anomaly_score: 0.61,
-    heuristics_score: 55,
-    risk_category: "HIGH",
-    explanation: "Downstream mule account receiving dispersed smurfed funds.",
-    pmla_flag: false,
-  },
-  {
-    address: "TSMURF020020020020020020020022",
-    chain: "tron",
-    riskScore: 70,
-    balance: 1.5,
-    firstSeen: "2026-09-20T09:46:00Z",
-    typologyFlags: [],
-    gnn_risk_score: 71,
-    typology_score: 58,
-    anomaly_score: 0.59,
-    heuristics_score: 55,
-    risk_category: "HIGH",
-    explanation: "Downstream mule account receiving dispersed smurfed funds.",
-    pmla_flag: false,
-  },
-  {
-    address: "TDEXSWAP001001001001001001001",
-    chain: "tron",
-    riskScore: 45,
-    balance: 8900.0,
-    firstSeen: "2026-08-01T00:00:00Z",
-    typologyFlags: ["dex_swap"],
-    gnn_risk_score: 42,
-    typology_score: 40,
-    anomaly_score: 0.35,
-    heuristics_score: 40,
-    risk_category: "MEDIUM",
-    explanation: "Decentralized automated market maker liquidity pool contract.",
-    pmla_flag: false,
-  },
-  {
-    address: "TCOINDCXDEPOSIT9988776655443311",
-    chain: "tron",
-    riskScore: 96,
-    balance: 0.0,
-    firstSeen: "2026-09-20T10:05:00Z",
-    typologyFlags: [],
-    isVasp: true,
-    gnn_risk_score: 96,
-    typology_score: 92,
-    anomaly_score: 0.91,
-    heuristics_score: 90,
-    risk_category: "CRITICAL",
-    explanation: "Final beneficiary deposit address at CoinDCX registered exchange.",
-    pmla_flag: true,
-  },
-  {
-    address: "TCOINDCXHOTSWEEP0000000000000000",
-    chain: "tron",
-    riskScore: 10,
-    balance: 450000.0,
-    firstSeen: "2024-01-01T00:00:00Z",
-    typologyFlags: [],
-    isVasp: true,
-    gnn_risk_score: 12,
-    typology_score: 0,
-    anomaly_score: 0.05,
-    heuristics_score: 30,
-    risk_category: "LOW",
-    explanation: "CoinDCX exchange hot wallet infrastructure address.",
-    pmla_flag: false,
-  },
-];
-
-const MOCK_EDGES: TransferEdge[] = [
-  {
-    txHash: "0x1111111111111111111111111111111111111111111111111111111111111111",
-    from: "TFUNDER00000000000000000000001",
-    to: "TABC1234567890XYZ99887766554433",
-    value: 15.0,
-    token: "TRX",
-    timestamp: "2026-09-20T08:55:00Z",
-  },
-  {
-    txHash: "0x2222222222222222222222222222222222222222222222222222222222222222",
-    from: "TFUNDER00000000000000000000001",
-    to: "TBURNER00100100100100100100101",
-    value: 15.0,
-    token: "TRX",
-    timestamp: "2026-09-19T11:05:00Z",
-  },
-  {
-    txHash: "0x3333333333333333333333333333333333333333333333333333333333333333",
-    from: "TBURNER00100100100100100100101",
-    to: "TABC1234567890XYZ99887766554433",
-    value: 50000.0,
-    token: "USDT",
-    timestamp: "2026-09-20T09:02:00Z",
-  },
-  {
-    txHash: "0x4444444444444444444444444444444444444444444444444444444444444444",
-    from: "TABC1234567890XYZ99887766554433",
-    to: "TPEEL00100100100100100100100101",
-    value: 48500.0,
-    token: "USDT",
-    timestamp: "2026-09-20T09:14:00Z",
-  },
-  {
-    txHash: "0x5555555555555555555555555555555555555555555555555555555555555555",
-    from: "TABC1234567890XYZ99887766554433",
-    to: "TFANOUT00100100100100100100101",
-    value: 15000.0,
-    token: "USDT",
-    timestamp: "2026-09-20T09:38:00Z",
-  },
-  {
-    txHash: "0x6666666666666666666666666666666666666666666666666666666666666666",
-    from: "TFANOUT00100100100100100100101",
-    to: "TSMURF010010010010010010010011",
-    value: 5000.0,
-    token: "USDT",
-    timestamp: "2026-09-20T09:44:00Z",
-  },
-  {
-    txHash: "0x7777777777777777777777777777777777777777777777777777777777777777",
-    from: "TFANOUT00100100100100100100101",
-    to: "TSMURF020020020020020020020022",
-    value: 5000.0,
-    token: "USDT",
-    timestamp: "2026-09-20T09:45:00Z",
-  },
-  {
-    txHash: "0x8888888888888888888888888888888888888888888888888888888888888888",
-    from: "TPEEL00100100100100100100100101",
-    to: "TPEEL00200200200200200200200202",
-    value: 42600.0,
-    token: "USDT",
-    timestamp: "2026-09-20T09:21:00Z",
-  },
-  {
-    txHash: "0x9999999999999999999999999999999999999999999999999999999999999999",
-    from: "TPEEL00200200200200200200200202",
-    to: "TDEXSWAP001001001001001001001",
-    value: 3500.0,
-    token: "USDT",
-    timestamp: "2026-09-20T09:26:00Z",
-  },
-  {
-    txHash: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    from: "TPEEL00200200200200200200200202",
-    to: "TPEEL00300300300300300300300303",
-    value: 39100.0,
-    token: "USDT",
-    timestamp: "2026-09-20T09:29:00Z",
-  },
-  {
-    txHash: "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-    from: "TPEEL00300300300300300300300303",
-    to: "TCOINDCXDEPOSIT9988776655443311",
-    value: 36000.0,
-    token: "USDT",
-    timestamp: "2026-09-20T10:04:00Z",
-  },
-  {
-    txHash: "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-    from: "TCOINDCXDEPOSIT9988776655443311",
-    to: "TCOINDCXHOTSWEEP0000000000000000",
-    value: 36000.0,
-    token: "USDT",
-    timestamp: "2026-09-20T10:12:00Z",
-  },
-];
-
-const MOCK_ATTRIBUTION: VASPAttribution = {
-  vasp_name: "CoinDCX (Neblio Technologies Pvt Ltd)",
-  is_fiu_registered: true,
-  confidence_score: 97.8,
-  deposit_address: "TCOINDCXDEPOSIT9988776655443311",
-  hot_wallet_address: "TCOINDCXHOTSWEEP0000000000000000",
-  nodal_officer_email: "nodal.compliance@coindcx.com",
-  nodal_officer_phone: "+91-22-6900-1122",
-};
-
-export const MOCK_TRACE_RESULT: TraceResult = {
-  case_id: "CS-2026-8891",
-  suspect_address: "TABC1234567890XYZ99887766554433",
-  nodes: MOCK_NODES,
-  edges: MOCK_EDGES,
-  attribution: MOCK_ATTRIBUTION,
-  overall_risk_score: 94,
-  chain: "tron",
-  created_at: "2026-09-20T10:30:00Z",
-  status: "active",
-};
-
-export const MOCK_CASES: CaseSummary[] = [
-  {
-    case_id: "CS-2026-8891",
-    suspect_address: "TABC1234567890XYZ99887766554433",
-    chain: "tron",
-    overall_risk_score: 94,
-    status: "active",
-    created_at: "2026-09-20T10:30:00Z",
-    attributed_vasp_name: "CoinDCX",
-  },
-  {
-    case_id: "CS-2026-8892",
-    suspect_address: "TX998877665544332211AABBCCDDEEFF",
-    chain: "tron",
-    overall_risk_score: 88,
-    status: "pending_approval",
-    created_at: "2026-09-20T08:15:00Z",
-    attributed_vasp_name: "WazirX",
-  },
-  {
-    case_id: "CS-2026-8893",
-    suspect_address: "4k3Dyjzvzp8eMZWUXbBCjEvwSkkkkkkk",
-    chain: "solana",
-    overall_risk_score: 82,
-    status: "pending_approval",
-    created_at: "2026-09-19T14:45:00Z",
-    attributed_vasp_name: "Binance",
-  },
-  {
-    case_id: "CS-2026-8894",
-    suspect_address: "0x71C7656EC7ab88b098defB751B7401B5f6d8976F",
-    chain: "ethereum",
-    overall_risk_score: 79,
-    status: "frozen",
-    created_at: "2026-09-18T16:20:00Z",
-    attributed_vasp_name: "CoinDCX",
-  },
-  {
-    case_id: "CS-2026-8895",
-    suspect_address: "TL889900112233445566778899AABBCC",
-    chain: "tron",
-    overall_risk_score: 65,
-    status: "active",
-    created_at: "2026-09-17T11:10:00Z",
-    attributed_vasp_name: undefined,
-  },
-  {
-    case_id: "CS-2026-8896",
-    suspect_address: "9xZzL771239840192841029834019284",
-    chain: "solana",
-    overall_risk_score: 42,
-    status: "closed",
-    created_at: "2026-09-15T09:00:00Z",
-    attributed_vasp_name: undefined,
-  },
-];
-
 export function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
   const storeToken = useAppStore.getState().token;
@@ -490,14 +124,6 @@ export async function fetchAuthRoles(token?: string): Promise<AuthRoles> {
 }
 
 export async function createTrace(req: TraceRequest): Promise<TraceResult> {
-  if (USE_MOCK_DATA) {
-    return Promise.resolve({
-      ...MOCK_TRACE_RESULT,
-      suspect_address: req.suspect_address || MOCK_TRACE_RESULT.suspect_address,
-      chain: req.chain || MOCK_TRACE_RESULT.chain,
-    });
-  }
-
   try {
     const res = await fetch(`${API_BASE_URL}/trace/`, {
       method: "POST",
@@ -510,11 +136,18 @@ export async function createTrace(req: TraceRequest): Promise<TraceResult> {
       throw new Error(`Backend API Error (${res.status}): ${errorText || res.statusText}`);
     }
 
-    return await res.json();
+    const data = await res.json();
+    return {
+      ...data,
+      chain: normalizeChain(data.chain || data.blockchain_type),
+      nodes: data.nodes || [],
+      edges: data.edges || [],
+      attribution: data.attribution || null,
+    };
   } catch (err: unknown) {
     if (err instanceof Error && (err.name === "TypeError" || err.message === "Failed to fetch")) {
       throw new Error(
-        `Unable to reach forensic trace backend service (${API_BASE_URL}). The Render backend may be starting up or experiencing network connectivity issues. Please try again.`
+        `Unable to reach forensic trace backend service (${API_BASE_URL}). The backend service may be starting up or experiencing network connectivity issues. Please try again.`
       );
     }
     throw err;
@@ -522,26 +155,19 @@ export async function createTrace(req: TraceRequest): Promise<TraceResult> {
 }
 
 export async function getCase(caseId: string): Promise<TraceResult> {
-  if (USE_MOCK_DATA) {
-    return Promise.resolve({
-      ...MOCK_TRACE_RESULT,
-      case_id: caseId,
-    });
-  }
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
 
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 3500);
-
     // Try primary route: /cases/{caseId}
-    let res = await fetch(`${API_BASE_URL}/cases/${caseId}`, {
+    let res = await fetch(`${API_BASE_URL}/cases/${encodeURIComponent(caseId)}`, {
       headers: getAuthHeaders("", ""),
       signal: controller.signal,
     });
 
     // If 404, try secondary route: /trace/{caseId}
     if (!res.ok && res.status === 404) {
-      const secondaryRes = await fetch(`${API_BASE_URL}/trace/${caseId}`, {
+      const secondaryRes = await fetch(`${API_BASE_URL}/trace/${encodeURIComponent(caseId)}`, {
         headers: getAuthHeaders("", ""),
         signal: controller.signal,
       });
@@ -562,14 +188,14 @@ export async function getCase(caseId: string): Promise<TraceResult> {
         attribution: data.attribution || null,
       };
     }
-  } catch (err) {
-    console.warn("[API] getCase fallback to mock topology:", err);
-  }
 
-  return {
-    ...MOCK_TRACE_RESULT,
-    case_id: caseId,
-  };
+    const errorText = await res.text().catch(() => "");
+    throw new Error(`Failed to load case "${caseId}" (${res.status}): ${errorText || res.statusText}`);
+  } catch (err) {
+    clearTimeout(timer);
+    console.error(`[API] getCase failed for case ${caseId}:`, err);
+    throw err;
+  }
 }
 
 export function normalizeChain(rawChain?: string): Chain {
@@ -583,10 +209,6 @@ export function normalizeChain(rawChain?: string): Chain {
 }
 
 export async function getCases(): Promise<CaseSummary[]> {
-  if (USE_MOCK_DATA) {
-    return Promise.resolve(MOCK_CASES);
-  }
-
   const res = await fetch(`${API_BASE_URL}/cases/`, {
     headers: getAuthHeaders("", ""),
   });
@@ -605,16 +227,6 @@ export async function getCases(): Promise<CaseSummary[]> {
 }
 
 export async function parseFir(complaintText: string): Promise<Partial<TraceRequest>> {
-  if (USE_MOCK_DATA) {
-    return Promise.resolve({
-      suspect_address: "TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9",
-      chain: "tron",
-      max_hops: 5,
-      value_threshold_pct: 2.0,
-      complaint_id: "FIR-2026-DELHI-402",
-    });
-  }
-
   const res = await fetch(`${API_BASE_URL}/fir/parse`, {
     method: "POST",
     headers: getAuthHeaders(),
@@ -639,13 +251,6 @@ export async function parseFir(complaintText: string): Promise<Partial<TraceRequ
 export async function generateNotice(
   payload: LegalNoticePayload
 ): Promise<{ pdfUrl: string; sha256_evidence_hash: string }> {
-  if (USE_MOCK_DATA) {
-    return Promise.resolve({
-      pdfUrl: "#mock-pdf-url",
-      sha256_evidence_hash: payload.sha256_evidence_hash || "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    });
-  }
-
   const res = await fetch(`${API_BASE_URL}/notices/generate`, {
     method: "POST",
     headers: getAuthHeaders(),
@@ -720,42 +325,11 @@ export async function downloadCourtEvidenceBundle(caseId: string): Promise<void>
 }
 
 export async function getCaseClusters(caseId: string): Promise<CaseClustersResponse> {
-  const fallbackClusters: WalletCluster[] = [
-    {
-      cluster_id: "cluster-01",
-      label: "CoinDCX Sweep Deposit Cluster",
-      cluster_type: "vasp_sweep",
-      dominant_risk_score: 95,
-      total_volume_usdt: 36000,
-      entity_name: "CoinDCX Exchange",
-      description: "Direct deposit address connected to hot-wallet sweep infrastructure.",
-      member_addresses: [
-        "TCOINDCXDEPOSIT9988776655443311",
-        "TCOINDCXHOTSWEEP0000000000000000",
-      ],
-    },
-    {
-      cluster_id: "cluster-02",
-      label: "Intermediary Layering Cell",
-      cluster_type: "layering_cell",
-      dominant_risk_score: 82,
-      total_volume_usdt: 42600,
-      description: "Multi-hop peeling chain dispersing victim funds before exchange deposit.",
-      member_addresses: [
-        "TPEEL00100100100100100100100101",
-        "TPEEL00200200200200200200200202",
-        "TPEEL00300300300300300300300303",
-      ],
-    },
-  ];
-
-  if (USE_MOCK_DATA) {
-    return {
-      case_id: caseId,
-      cluster_count: fallbackClusters.length,
-      clusters: fallbackClusters,
-    };
-  }
+  const emptyResponse: CaseClustersResponse = {
+    case_id: caseId,
+    cluster_count: 0,
+    clusters: [],
+  };
 
   try {
     const headers: Record<string, string> = {};
@@ -770,7 +344,7 @@ export async function getCaseClusters(caseId: string): Promise<CaseClustersRespo
     }
 
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 3500);
+    const timer = setTimeout(() => controller.abort(), 6000);
 
     const res = await fetch(`${API_BASE_URL}/cases/${encodeURIComponent(caseId)}/clusters`, {
       method: "GET",
@@ -782,25 +356,23 @@ export async function getCaseClusters(caseId: string): Promise<CaseClustersRespo
 
     if (res.ok) {
       const data = await res.json();
-      const clustersList: WalletCluster[] = Array.isArray(data.clusters) && data.clusters.length > 0
+      const clustersList: WalletCluster[] = Array.isArray(data.clusters)
         ? data.clusters
-        : fallbackClusters;
+        : Array.isArray(data)
+        ? data
+        : [];
 
       return {
         case_id: data.case_id || caseId,
-        cluster_count: clustersList.length,
+        cluster_count: typeof data.cluster_count === "number" ? data.cluster_count : clustersList.length,
         clusters: clustersList,
       };
     }
+    return emptyResponse;
   } catch (err) {
-    console.warn("[API] getCaseClusters fallback to cached clusters:", err);
+    console.warn("[API] getCaseClusters lookup failed:", err);
+    return emptyResponse;
   }
-
-  return {
-    case_id: caseId,
-    cluster_count: fallbackClusters.length,
-    clusters: fallbackClusters,
-  };
 }
 
 export async function createFir(payload: FIRCreate): Promise<FIRResponse> {
@@ -954,50 +526,11 @@ export async function runNcrpBatchTrace(complaintIds: string[]): Promise<TraceRe
 }
 
 export async function getNcrpCorrelations(): Promise<NcrpCorrelationsResponse> {
-  const fallbackCorrelations: SyndicateCorrelationItem[] = [
-    {
-      correlation_id: "corr-syn-01",
-      pivot_entity_label: "Syndicate Cash-Out Node Alpha",
-      correlation_type: "shared_deposit_cluster",
-      pivot_address: "TX9K2ce4vX9YnFQHwKENnHjoxb3m9TN3W4",
-      linked_ncrp_ack_numbers: ["ACK-2026-8910", "ACK-2026-9041", "ACK-2026-9205"],
-      linked_suspect_addresses: [
-        "TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9",
-        "TLyqzVGLV1srkB7dToTAvhg29E2A52AYUo",
-        "TKfrhSLWq6Kq546C9v9jWvE5k9wE7mB1aB",
-      ],
-      total_aggregate_loss_inr: 4850000,
-      reporting_states: ["Maharashtra", "Karnataka", "Delhi NCR"],
-      syndicate_threat_level: "CRITICAL",
-      action_recommendation:
-        "Initiate statutory freezing request to primary VASP compliance desk for deposit cluster TX9K2... cross-referenced in 3 distinct state cybercrime dockets.",
-    },
-    {
-      correlation_id: "corr-syn-02",
-      pivot_entity_label: "Inter-Exchange Layering Mule",
-      correlation_type: "fan_out_dispersion",
-      pivot_address: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
-      linked_ncrp_ack_numbers: ["ACK-2026-8114", "ACK-2026-8432"],
-      linked_suspect_addresses: [
-        "0x1111111254fb6c44bac0bed2854e76f90643097d",
-        "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
-      ],
-      total_aggregate_loss_inr: 2150000,
-      reporting_states: ["Telangana", "Gujarat"],
-      syndicate_threat_level: "HIGH",
-      action_recommendation:
-        "Deploy automated trace monitor on bridge smart contract interactions to capture final hop cash-out before privacy-protocol ingestion.",
-    },
-  ];
+  const emptyResponse: NcrpCorrelationsResponse = {
+    total_correlations: 0,
+    correlations: [],
+  };
 
-  if (USE_MOCK_DATA) {
-    return {
-      total_correlations: fallbackCorrelations.length,
-      correlations: fallbackCorrelations,
-    };
-  }
-
-  let res: Response;
   try {
     const headers: Record<string, string> = {};
     if (typeof window !== "undefined") {
@@ -1010,38 +543,30 @@ export async function getNcrpCorrelations(): Promise<NcrpCorrelationsResponse> {
       }
     }
 
-    res = await fetch(`${API_BASE_URL}/ncrp/correlations`, {
+    const res = await fetch(`${API_BASE_URL}/ncrp/correlations`, {
       method: "GET",
       headers,
     });
+
+    if (!res.ok) {
+      return emptyResponse;
+    }
+
+    const data = await res.json();
+    const rawList: SyndicateCorrelationItem[] = Array.isArray(data.correlations)
+      ? data.correlations
+      : Array.isArray(data)
+      ? data
+      : [];
+
+    return {
+      total_correlations: typeof data.total_correlations === "number" ? data.total_correlations : rawList.length,
+      correlations: rawList,
+    };
   } catch (err) {
-    console.warn("[API] getNcrpCorrelations network failure, returning cached correlations:", err);
-    return {
-      total_correlations: fallbackCorrelations.length,
-      correlations: fallbackCorrelations,
-    };
+    console.warn("[API] getNcrpCorrelations network failure:", err);
+    return emptyResponse;
   }
-
-  if (!res.ok) {
-    console.warn("[API] getNcrpCorrelations returned non-ok status, falling back to local intelligence:", res.status);
-    return {
-      total_correlations: fallbackCorrelations.length,
-      correlations: fallbackCorrelations,
-    };
-  }
-
-  const data = await res.json();
-  const rawList = Array.isArray(data.correlations)
-    ? data.correlations
-    : Array.isArray(data)
-    ? data
-    : [];
-  const list: SyndicateCorrelationItem[] = rawList.length > 0 ? rawList : fallbackCorrelations;
-
-  return {
-    total_correlations: data.total_correlations ?? list.length,
-    correlations: list,
-  };
 }
 
 export async function getAuditLogs(): Promise<AuditLogItem[]> {
@@ -1223,256 +748,187 @@ export const fetchCase = getCase;
 export const fetchCases = getCases;
 
 export async function getCaseBridges(caseId: string): Promise<CaseBridgesResponse> {
-  const fallbackHops: BridgeHopItem[] = [
-    {
-      bridge_protocol: "Allbridge Core",
-      source_chain: "tron",
-      destination_chain: "ethereum",
-      source_tx_hash: "0x8888888888888888888888888888888888888888888888888888888888888888",
-      amount_usd: 42600,
-      token: "USDT",
-      destination_wallet: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
-      destination_tx_hash: "0x9999999999999999999999999999999999999999999999999999999999999999",
-    },
-  ];
+  const emptyResponse: CaseBridgesResponse = {
+    case_id: caseId,
+    total_bridges_detected: 0,
+    bridge_hops: [],
+  };
 
-  let res: Response;
   const encodedId = encodeURIComponent(caseId);
   try {
     const headers = getAuthHeaders(undefined, "");
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 3000);
-    res = await fetch(`${API_BASE_URL}/cases/${encodedId}/bridge-hops`, {
+    const timer = setTimeout(() => controller.abort(), 6000);
+    const res = await fetch(`${API_BASE_URL}/cases/${encodedId}/bridge-hops`, {
       method: "GET",
       headers,
       signal: controller.signal,
     });
     clearTimeout(timer);
+
+    if (!res.ok) {
+      return emptyResponse;
+    }
+
+    const data = await res.json();
+    const rawHops: Record<string, unknown>[] = Array.isArray(data.bridge_hops)
+      ? data.bridge_hops
+      : Array.isArray(data.hops)
+      ? data.hops
+      : Array.isArray(data)
+      ? data
+      : [];
+
+    const bridge_hops: BridgeHopItem[] = rawHops.map((item) => ({
+      bridge_protocol: (item.bridge_protocol as string) || (item.bridge_name as string) || (item.protocol as string) || "Bridge Protocol",
+      source_chain: (item.source_chain as string) || (item.src_chain as string) || "tron",
+      destination_chain: (item.destination_chain as string) || (item.dest_chain as string) || "ethereum",
+      source_tx_hash: (item.source_tx_hash as string) || (item.tx_hash as string) || "",
+      amount_usd: typeof item.amount_usd === "number" ? item.amount_usd : typeof item.value === "number" ? item.value : undefined,
+      token: item.token as string | undefined,
+      destination_wallet: (item.destination_wallet as string) || (item.dest_wallet as string) || (item.recipient_address as string) || undefined,
+      destination_tx_hash: (item.destination_tx_hash as string) || (item.dest_tx_hash as string) || undefined,
+    }));
+
+    return {
+      case_id: (data.case_id as string) || caseId,
+      total_bridges_detected: typeof data.total_bridges_detected === "number"
+        ? data.total_bridges_detected
+        : typeof data.bridge_hop_count === "number"
+        ? data.bridge_hop_count
+        : bridge_hops.length,
+      bridge_hops,
+    };
   } catch (err) {
-    console.warn("[API] getCaseBridges network failure, using fallback data:", err);
-    return {
-      case_id: caseId,
-      total_bridges_detected: fallbackHops.length,
-      bridge_hops: fallbackHops,
-    };
+    console.warn("[API] getCaseBridges network failure:", err);
+    return emptyResponse;
   }
-
-  if (!res.ok) {
-    return {
-      case_id: caseId,
-      total_bridges_detected: fallbackHops.length,
-      bridge_hops: fallbackHops,
-    };
-  }
-
-  const data = await res.json();
-  const rawHops: Record<string, unknown>[] = Array.isArray(data.bridge_hops)
-    ? data.bridge_hops
-    : Array.isArray(data.hops)
-    ? data.hops
-    : Array.isArray(data)
-    ? data
-    : [];
-
-  const bridge_hops: BridgeHopItem[] = rawHops.length > 0
-    ? rawHops.map((item) => ({
-        bridge_protocol: (item.bridge_protocol as string) || (item.bridge_name as string) || (item.protocol as string) || "Allbridge",
-        source_chain: (item.source_chain as string) || (item.src_chain as string) || "tron",
-        destination_chain: (item.destination_chain as string) || (item.dest_chain as string) || "ethereum",
-        source_tx_hash: (item.source_tx_hash as string) || (item.tx_hash as string) || "",
-        amount_usd: typeof item.amount_usd === "number" ? item.amount_usd : typeof item.value === "number" ? item.value : undefined,
-        token: item.token as string | undefined,
-        destination_wallet: (item.destination_wallet as string) || (item.dest_wallet as string) || (item.recipient_address as string) || undefined,
-        destination_tx_hash: (item.destination_tx_hash as string) || (item.dest_tx_hash as string) || undefined,
-      }))
-    : fallbackHops;
-
-  return {
-    case_id: (data.case_id as string) || caseId,
-    total_bridges_detected: typeof data.total_bridges_detected === "number"
-      ? data.total_bridges_detected
-      : typeof data.bridge_hop_count === "number"
-      ? data.bridge_hop_count
-      : bridge_hops.length,
-    bridge_hops,
-  };
 }
 
 export async function getCasePrivacy(caseId: string): Promise<CasePrivacyResponse> {
-  const fallbackSwappers: PrivacySwapperItem[] = [
-    {
-      service_name: "FixedFloat Instant Swapper",
-      swapper_type: "Instant Non-KYC",
-      input_currency: "USDT (TRC-20)",
-      output_currency: "XMR (Monero)",
-      intercept_address: "TDEXSWAP001001001001001001001",
-      subpoena_questionnaire_ready: true,
-    },
-  ];
+  const emptyResponse: CasePrivacyResponse = {
+    case_id: caseId,
+    privacy_swappers_detected: [],
+  };
 
-  let res: Response;
   const encodedId = encodeURIComponent(caseId);
   try {
     const headers = getAuthHeaders(undefined, "");
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 3000);
-    res = await fetch(`${API_BASE_URL}/cases/${encodedId}/privacy-dossier`, {
+    const timer = setTimeout(() => controller.abort(), 6000);
+    const res = await fetch(`${API_BASE_URL}/cases/${encodedId}/privacy-dossier`, {
       method: "GET",
       headers,
       signal: controller.signal,
     });
     clearTimeout(timer);
+
+    if (!res.ok) {
+      return emptyResponse;
+    }
+
+    const data = await res.json();
+    const rawSwappers: Record<string, unknown>[] = Array.isArray(data.privacy_swappers_detected)
+      ? data.privacy_swappers_detected
+      : Array.isArray(data.detected_swapper_hops)
+      ? data.detected_swapper_hops
+      : Array.isArray(data.swappers)
+      ? data.swappers
+      : Array.isArray(data)
+      ? data
+      : [];
+
+    const privacy_swappers_detected: PrivacySwapperItem[] = rawSwappers.map((item) => ({
+      service_name: (item.service_name as string) || (item.swapper_name as string) || (item.service as string) || "Instant Swapper",
+      swapper_type: item.swapper_type as string | undefined,
+      input_currency: (item.input_currency as string) || (item.input_asset as string) || "N/A",
+      output_currency: (item.output_currency as string) || (item.output_asset as string) || "N/A",
+      intercept_address: (item.intercept_address as string) || (item.deposit_address as string) || (item.address as string) || "",
+      subpoena_questionnaire_ready: typeof item.subpoena_questionnaire_ready === "boolean"
+        ? item.subpoena_questionnaire_ready
+        : true,
+    }));
+
+    return {
+      case_id: (data.case_id as string) || caseId,
+      privacy_swappers_detected,
+    };
   } catch (err) {
-    console.warn("[API] getCasePrivacy network failure, using fallback data:", err);
-    return {
-      case_id: caseId,
-      privacy_swappers_detected: fallbackSwappers,
-    };
+    console.warn("[API] getCasePrivacy network failure:", err);
+    return emptyResponse;
   }
-
-  if (!res.ok) {
-    return {
-      case_id: caseId,
-      privacy_swappers_detected: fallbackSwappers,
-    };
-  }
-
-  const data = await res.json();
-  const rawSwappers: Record<string, unknown>[] = Array.isArray(data.privacy_swappers_detected)
-    ? data.privacy_swappers_detected
-    : Array.isArray(data.detected_swapper_hops)
-    ? data.detected_swapper_hops
-    : Array.isArray(data.swappers)
-    ? data.swappers
-    : Array.isArray(data)
-    ? data
-    : [];
-
-  const privacy_swappers_detected: PrivacySwapperItem[] = rawSwappers.length > 0
-    ? rawSwappers.map((item) => ({
-        service_name: (item.service_name as string) || (item.swapper_name as string) || (item.service as string) || "Instant Swapper",
-        swapper_type: item.swapper_type as string | undefined,
-        input_currency: (item.input_currency as string) || (item.input_asset as string) || "N/A",
-        output_currency: (item.output_currency as string) || (item.output_asset as string) || "N/A",
-        intercept_address: (item.intercept_address as string) || (item.deposit_address as string) || (item.address as string) || "",
-        subpoena_questionnaire_ready: typeof item.subpoena_questionnaire_ready === "boolean"
-          ? item.subpoena_questionnaire_ready
-          : true,
-      }))
-    : fallbackSwappers;
-
-  return {
-    case_id: (data.case_id as string) || caseId,
-    privacy_swappers_detected,
-  };
 }
 
 export async function getCaseLayering(caseId: string): Promise<LayeringAnalysisResponse> {
-  const fallbackMules: IntermediaryMule[] = [
-    {
-      address: "TPEEL00100100100100100100100101",
-      role: "Peeling Chain Origin",
-      holding_time_minutes: 14,
-    },
-    {
-      address: "TPEEL00200200200200200200200202",
-      role: "Intermediary Mule",
-      holding_time_minutes: 8,
-    },
-  ];
+  const emptyResponse: LayeringAnalysisResponse = {
+    case_id: caseId,
+    classified_intermediaries: [],
+    paths: [],
+  };
 
-  let res: Response;
   const encodedId = encodeURIComponent(caseId);
   try {
     const headers = getAuthHeaders(undefined, "");
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 3000);
-    res = await fetch(`${API_BASE_URL}/cases/${encodedId}/layering-analysis`, {
+    const timer = setTimeout(() => controller.abort(), 6000);
+    const res = await fetch(`${API_BASE_URL}/cases/${encodedId}/layering-analysis`, {
       method: "GET",
       headers,
       signal: controller.signal,
     });
     clearTimeout(timer);
+
+    if (!res.ok) {
+      return emptyResponse;
+    }
+
+    const data = await res.json();
+    const rawMules: Record<string, unknown>[] = Array.isArray(data.classified_intermediaries)
+      ? data.classified_intermediaries
+      : Array.isArray(data.intermediary_mules)
+      ? data.intermediary_mules
+      : Array.isArray(data.intermediaries)
+      ? data.intermediaries
+      : Array.isArray(data.mules)
+      ? data.mules
+      : [];
+
+    const classified_intermediaries: IntermediaryMule[] = rawMules.map((item) => ({
+      address: (item.address as string) || (item.wallet as string) || (item.node as string) || "",
+      role: (item.role as string) || (item.classification as string) || "Intermediary Hop",
+      holding_time_minutes: typeof item.holding_time_minutes === "number"
+        ? item.holding_time_minutes
+        : typeof item.holding_time === "number"
+        ? item.holding_time
+        : undefined,
+    }));
+
+    const paths: LayeringAnalysisPath[] = Array.isArray(data.paths) ? data.paths : [];
+
+    return {
+      case_id: (data.case_id as string) || caseId,
+      suspect_address: data.suspect_address as string | undefined,
+      total_paths_discovered: typeof data.total_paths_discovered === "number" ? data.total_paths_discovered : undefined,
+      min_hop_count: typeof data.min_hop_count === "number" ? data.min_hop_count : undefined,
+      max_hop_count: typeof data.max_hop_count === "number" ? data.max_hop_count : undefined,
+      paths,
+      classified_intermediaries,
+      summary: data.summary as string | undefined,
+      generated_at: data.generated_at as string | undefined,
+      peeling_chain_count: typeof data.peeling_chain_count === "number" ? data.peeling_chain_count : null,
+      fan_out_count: typeof data.fan_out_count === "number" ? data.fan_out_count : null,
+      rapid_movement_detected: typeof data.rapid_movement_detected === "boolean" ? data.rapid_movement_detected : null,
+      max_layering_depth: typeof data.max_hop_count === "number"
+        ? data.max_hop_count
+        : typeof data.max_layering_depth === "number"
+        ? data.max_layering_depth
+        : undefined,
+      intermediary_mules: classified_intermediaries,
+    };
   } catch (err) {
-    console.warn("[API] getCaseLayering network failure, using fallback data:", err);
-    return {
-      case_id: caseId,
-      max_hop_count: 5,
-      total_paths_discovered: 3,
-      min_hop_count: 2,
-      peeling_chain_count: 2,
-      fan_out_count: 4,
-      rapid_movement_detected: true,
-      classified_intermediaries: fallbackMules,
-      summary: "Multi-hop structuring detected across 3 distinct paths leading towards exchange deposit.",
-      paths: [
-        { hop_count: 4, summary: "Suspect wallet -> Layer 1 Peeling -> Mule -> Deposit" },
-      ],
-    };
+    console.warn("[API] getCaseLayering network failure:", err);
+    return emptyResponse;
   }
-
-  if (!res.ok) {
-    return {
-      case_id: caseId,
-      max_hop_count: 5,
-      total_paths_discovered: 3,
-      min_hop_count: 2,
-      peeling_chain_count: 2,
-      fan_out_count: 4,
-      rapid_movement_detected: true,
-      classified_intermediaries: fallbackMules,
-      summary: "Multi-hop structuring detected across 3 distinct paths leading towards exchange deposit.",
-      paths: [
-        { hop_count: 4, summary: "Suspect wallet -> Layer 1 Peeling -> Mule -> Deposit" },
-      ],
-    };
-  }
-
-  const data = await res.json();
-  const rawMules: Record<string, unknown>[] = Array.isArray(data.classified_intermediaries)
-    ? data.classified_intermediaries
-    : Array.isArray(data.intermediary_mules)
-    ? data.intermediary_mules
-    : Array.isArray(data.intermediaries)
-    ? data.intermediaries
-    : Array.isArray(data.mules)
-    ? data.mules
-    : [];
-
-  const classified_intermediaries: IntermediaryMule[] = rawMules.length > 0
-    ? rawMules.map((item) => ({
-        address: (item.address as string) || (item.wallet as string) || (item.node as string) || "",
-        role: (item.role as string) || (item.classification as string) || "Intermediary Hop",
-        holding_time_minutes: typeof item.holding_time_minutes === "number"
-          ? item.holding_time_minutes
-          : typeof item.holding_time === "number"
-          ? item.holding_time
-          : undefined,
-      }))
-    : fallbackMules;
-
-  const paths: LayeringAnalysisPath[] = Array.isArray(data.paths) ? data.paths : [];
-
-  return {
-    case_id: (data.case_id as string) || caseId,
-    suspect_address: data.suspect_address as string | undefined,
-    total_paths_discovered: typeof data.total_paths_discovered === "number" ? data.total_paths_discovered : undefined,
-    min_hop_count: typeof data.min_hop_count === "number" ? data.min_hop_count : undefined,
-    max_hop_count: typeof data.max_hop_count === "number" ? data.max_hop_count : undefined,
-    paths,
-    classified_intermediaries,
-    summary: data.summary as string | undefined,
-    generated_at: data.generated_at as string | undefined,
-    peeling_chain_count: typeof data.peeling_chain_count === "number" ? data.peeling_chain_count : null,
-    fan_out_count: typeof data.fan_out_count === "number" ? data.fan_out_count : null,
-    rapid_movement_detected: typeof data.rapid_movement_detected === "boolean" ? data.rapid_movement_detected : null,
-    max_layering_depth: typeof data.max_hop_count === "number"
-      ? data.max_hop_count
-      : typeof data.max_layering_depth === "number"
-      ? data.max_layering_depth
-      : undefined,
-    intermediary_mules: classified_intermediaries,
-  };
 }
 
 export async function getCaseEvidenceCert(caseId: string): Promise<EvidenceCertResponse> {
