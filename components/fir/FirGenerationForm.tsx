@@ -67,6 +67,7 @@ export function FirGenerationForm({
     switch (chainType) {
       case "tron":
         return trimmed.startsWith("T") && trimmed.length === 34;
+      case "base":
       case "ethereum":
         return trimmed.startsWith("0x") && trimmed.length === 42;
       case "solana":
@@ -323,7 +324,7 @@ export function FirGenerationForm({
               placeholder={`e.g. ${
                 chain === "tron"
                   ? "T..."
-                  : chain === "ethereum"
+                  : chain === "base" || chain === "ethereum"
                   ? "0x..."
                   : chain === "bitcoin"
                   ? "1..., 3..., bc1..."

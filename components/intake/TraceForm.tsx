@@ -182,7 +182,7 @@ export function TraceForm() {
               className="w-full h-11 px-4 rounded-xl bg-white/[0.04] border border-white/10 text-white placeholder-neutral-500 focus:outline-none focus:border-violet-500/80 font-mono text-xs transition-colors"
             />
             <div className="text-[11px] text-neutral-500 mt-2 font-light">
-              Supported networks: TRON (T...), EVM (0x...), Solana (Base58), or Bitcoin (1..., 3..., bc1...).
+              Supported networks: TRON (T...), Base (0x... Basescan), Ethereum (0x...), Solana (Base58), or Bitcoin (1..., 3..., bc1...).
             </div>
             {errors.suspect_address && (
               <span className="text-rose-400 text-xs mt-1.5 block">
@@ -259,8 +259,9 @@ export function TraceForm() {
               className="w-full h-11 px-4 rounded-xl bg-[#121212] border border-white/10 text-white focus:outline-none focus:border-violet-500/80 text-xs font-sans transition-colors cursor-pointer"
             >
               <option value="tron">TRON (TRC-20 USDT)</option>
-              <option value="solana">Solana (SPL Token)</option>
+              <option value="base">Base (Basescan / Coinbase L2)</option>
               <option value="ethereum">Ethereum (ERC-20)</option>
+              <option value="solana">Solana (SPL Token)</option>
               <option value="bitcoin">Bitcoin (BTC UTXO)</option>
             </select>
           </div>

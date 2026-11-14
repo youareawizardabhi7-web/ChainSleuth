@@ -63,6 +63,7 @@ export function FirParserPreview({
             className="w-full h-10 px-3.5 bg-[#121212] border border-white/10 rounded-xl text-white text-xs font-sans focus:outline-none focus:border-violet-500/80 transition-colors cursor-pointer"
           >
             <option value="tron">TRON (TRC-20)</option>
+            <option value="base">Base (Basescan / L2)</option>
             <option value="ethereum">Ethereum (ERC-20)</option>
             <option value="solana">Solana (SPL)</option>
             <option value="bitcoin">Bitcoin (UTXO)</option>

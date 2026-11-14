@@ -403,6 +403,7 @@ export default function NcrpIngestionPage() {
                             className="w-full px-3 py-2 rounded-xl bg-[#0a0a0a] border border-white/10 text-white font-mono text-xs focus:outline-none focus:border-white/30 transition-all"
                           >
                             <option value="tron">TRON (TRX / TRC-20)</option>
+                            <option value="base">BASE (Basescan / L2)</option>
                             <option value="ethereum">ETHEREUM (ETH / EVM)</option>
                             <option value="solana">SOLANA (SOL)</option>
                             <option value="bitcoin">BITCOIN (BTC UTXO)</option>

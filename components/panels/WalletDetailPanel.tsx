@@ -261,6 +261,8 @@ export function WalletDetailPanel({
               ? `${node.balance.toLocaleString()} ${
                   node.chain === "tron"
                     ? "TRX"
+                    : node.chain === "base"
+                    ? "ETH"
                     : node.chain === "ethereum"
                     ? "ETH"
                     : node.chain === "bitcoin"
@@ -417,6 +419,8 @@ export function WalletDetailPanel({
                 tx.token ||
                 (node.chain === "tron"
                   ? "TRX"
+                  : node.chain === "base"
+                  ? "ETH"
                   : node.chain === "ethereum"
                   ? "ETH"
                   : node.chain === "bitcoin"

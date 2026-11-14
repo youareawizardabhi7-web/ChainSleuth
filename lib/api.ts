@@ -201,6 +201,7 @@ export async function getCase(caseId: string): Promise<TraceResult> {
 export function normalizeChain(rawChain?: string): Chain {
   if (!rawChain) return "tron";
   const lower = rawChain.toLowerCase();
+  if (lower.includes("base")) return "base";
   if (lower.includes("btc") || lower.includes("bitcoin")) return "bitcoin";
   if (lower.includes("eth") || lower.includes("ethereum")) return "ethereum";
   if (lower.includes("sol") || lower.includes("solana")) return "solana";

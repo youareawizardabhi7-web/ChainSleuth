@@ -75,6 +75,11 @@ export function CaseTable({ cases, loading = false }: CaseTableProps) {
       dot: "bg-red-400",
       style: "bg-red-950/30 text-red-300 border-red-800/40",
     },
+    base: {
+      label: "Base",
+      dot: "bg-sky-400",
+      style: "bg-sky-950/30 text-sky-300 border-sky-800/40",
+    },
     ethereum: {
       label: "Ethereum",
       dot: "bg-blue-400",

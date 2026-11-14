@@ -44,6 +44,7 @@ function getExplorerUrl(txHash?: string | null, chain?: string | null): string |
   if (!chain || typeof chain !== "string" || !chain.trim()) return null;
   const c = chain.toLowerCase().trim();
   const hash = txHash.trim();
+  if (c.includes("base")) return `https://basescan.org/tx/${hash}`;
   if (c.includes("tron") || c.includes("trx")) return `https://tronscan.org/#/transaction/${hash}`;
   if (c.includes("eth") || c.includes("ethereum")) return `https://etherscan.io/tx/${hash}`;
   if (c.includes("sol") || c.includes("solana")) return `https://solscan.io/tx/${hash}`;

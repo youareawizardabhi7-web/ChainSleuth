@@ -136,6 +136,7 @@ export default function VaspDirectoryPage() {
             >
               <option value="all">All Chains</option>
               <option value="tron">TRON</option>
+              <option value="base">Base (Basescan)</option>
               <option value="ethereum">Ethereum</option>
               <option value="solana">Solana</option>
               <option value="bitcoin">Bitcoin</option>

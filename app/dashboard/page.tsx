@@ -59,6 +59,7 @@ export default function DashboardPage() {
   // Chain Distribution Breakdown
   const chainCounts: Record<Chain, number> = {
     tron: cases.filter((c) => c.chain === "tron").length,
+    base: cases.filter((c) => c.chain === "base").length,
     ethereum: cases.filter((c) => c.chain === "ethereum").length,
     solana: cases.filter((c) => c.chain === "solana").length,
     bitcoin: cases.filter((c) => c.chain === "bitcoin").length,
@@ -238,6 +239,11 @@ export default function DashboardPage() {
                   title={`TRON: ${chainCounts.tron}`}
                 />
                 <div
+                  className="bg-sky-500 h-full"
+                  style={{ width: `${totalCount ? (chainCounts.base / totalCount) * 100 : 0}%` }}
+                  title={`Base: ${chainCounts.base}`}
+                />
+                <div
                   className="bg-blue-500 h-full"
                   style={{ width: `${totalCount ? (chainCounts.ethereum / totalCount) * 100 : 0}%` }}
                   title={`Ethereum: ${chainCounts.ethereum}`}
@@ -255,13 +261,20 @@ export default function DashboardPage() {
               </div>
 
               {/* Legend with Counts */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs font-mono">
                 <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-red-400" />
                     <span className="text-neutral-300 text-[11px]">TRON</span>
                   </div>
                   <span className="font-bold text-white">{chainCounts.tron}</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-sky-400" />
+                    <span className="text-neutral-300 text-[11px]">Base</span>
+                  </div>
+                  <span className="font-bold text-white">{chainCounts.base}</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
@@ -363,7 +376,7 @@ export default function DashboardPage() {
           <div className="flex flex-wrap items-center gap-2">
             {/* Blockchain Network Pills */}
             <div className="flex items-center gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/5">
-              {(["all", "tron", "ethereum", "bitcoin", "solana"] as const).map((chain) => (
+              {(["all", "tron", "base", "ethereum", "bitcoin", "solana"] as const).map((chain) => (
                 <button
                   key={chain}
                   type="button"
