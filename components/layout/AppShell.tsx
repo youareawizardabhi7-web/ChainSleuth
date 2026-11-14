@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { useAppStore } from "@/lib/store";
 
@@ -10,6 +11,14 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   const { user } = useAppStore();
+  const pathname = usePathname();
+
+  const getPageTitle = (path: string) => {
+    if (path.startsWith("/trace")) return "New Trace";
+    if (path.startsWith("/ncrp")) return "Incident Intelligence";
+    if (path.startsWith("/case")) return "Forensic Dossier";
+    return "Dashboard";
+  };
 
   return (
     <div className="flex h-screen w-screen bg-[#040404] text-neutral-100 overflow-hidden font-inter selection:bg-violet-900/40 selection:text-violet-200">
@@ -20,7 +29,7 @@ export function AppShell({ children }: AppShellProps) {
           <div className="flex items-center gap-2 text-xs font-mono">
             <span className="text-neutral-500">Console</span>
             <span className="text-neutral-700">/</span>
-            <span className="text-neutral-200 font-medium">Dashboard</span>
+            <span className="text-neutral-200 font-medium">{getPageTitle(pathname)}</span>
           </div>
 
           <div className="flex items-center gap-3">

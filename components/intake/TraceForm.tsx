@@ -11,8 +11,10 @@ import {
   FileText,
   ArrowRight,
   Sparkles,
-  ShieldCheck,
   Loader2,
+  AlertCircle,
+  Building2,
+  CheckCircle2,
 } from "lucide-react";
 
 interface FormInputs {
@@ -106,7 +108,7 @@ export function TraceForm() {
       const result = await createTrace(requestPayload);
       setTraceResult(result);
       setLoading(false);
-      
+
       // Auto-navigate to case workbench
       setTimeout(() => {
         router.push(`/case/${result.case_id}`);
@@ -120,66 +122,70 @@ export function TraceForm() {
   };
 
   return (
-    <div className="relative w-full max-w-2xl bg-slate-950 border border-slate-800 rounded p-6 font-mono text-xs select-none">
+    <div className="relative w-full max-w-2xl rounded-3xl bg-white/[0.02] border border-white/10 p-7 sm:p-9 shadow-2xl backdrop-blur-sm overflow-hidden">
       {/* Submit Error Banner */}
       {submitError && (
-        <div className="mb-4 p-3 bg-red-950/80 border border-red-800 rounded text-red-300 font-sans text-xs flex items-center justify-between">
-          <span>{submitError}</span>
+        <div className="mb-6 p-4 rounded-2xl bg-rose-950/40 border border-rose-800/60 text-rose-300 text-xs flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+            <span>{submitError}</span>
+          </div>
           <button
             type="button"
             onClick={() => setSubmitError(null)}
-            className="text-red-400 hover:text-red-200 font-bold ml-2"
+            className="text-rose-400 hover:text-white font-bold ml-2 p-1"
           >
             ✕
           </button>
         </div>
       )}
-      {/* Tab Navigation */}
-      <div className="flex border-b border-slate-800 mb-6 font-sans">
+
+      {/* Segmented Tab Navigation */}
+      <div className="flex items-center gap-1 p-1 rounded-2xl bg-white/[0.04] border border-white/10 mb-6 text-xs select-none">
         <button
           type="button"
           onClick={() => setTab("address")}
-          className={`flex items-center gap-2 px-4 py-2 font-semibold text-xs border-b-2 transition-colors ${
+          className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-xl font-medium transition-all cursor-pointer ${
             tab === "address"
-              ? "border-teal-500 text-teal-400 bg-slate-900/50"
-              : "border-transparent text-slate-400 hover:text-slate-200"
+              ? "bg-white text-black font-semibold shadow-sm"
+              : "text-neutral-400 hover:text-white"
           }`}
         >
-          <Search className="w-4 h-4" />
-          Paste Address
+          <Search className="w-3.5 h-3.5" />
+          <span>Direct Wallet Address</span>
         </button>
 
         <button
           type="button"
           onClick={() => setTab("complaint")}
-          className={`flex items-center gap-2 px-4 py-2 font-semibold text-xs border-b-2 transition-colors ${
+          className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-xl font-medium transition-all cursor-pointer ${
             tab === "complaint"
-              ? "border-teal-500 text-teal-400 bg-slate-900/50"
-              : "border-transparent text-slate-400 hover:text-slate-200"
+              ? "bg-white text-black font-semibold shadow-sm"
+              : "text-neutral-400 hover:text-white"
           }`}
         >
-          <FileText className="w-4 h-4" />
-          Incident Narrative (NLP Ingestion)
+          <FileText className="w-3.5 h-3.5" />
+          <span>Incident Narrative (NLP)</span>
         </button>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {tab === "address" ? (
           <div>
-            <label className="block text-slate-400 mb-1 font-semibold">
+            <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
               Suspect Wallet Address *
             </label>
             <input
               type="text"
-              placeholder="e.g. TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9"
+              placeholder="e.g. TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9 or 0xd8da6bf..."
               {...register("suspect_address", { required: "Wallet address is required" })}
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded text-slate-100 focus:outline-none focus:border-teal-500 font-mono text-xs"
+              className="w-full h-11 px-4 rounded-xl bg-white/[0.04] border border-white/10 text-white placeholder-neutral-500 focus:outline-none focus:border-violet-500/80 font-mono text-xs transition-colors"
             />
-            <div className="text-[10px] text-slate-500 mt-1">
-              Expected: TRON (T...), EVM (0x...), Solana (Base58), or Bitcoin (1..., 3..., bc1...).
+            <div className="text-[11px] text-neutral-500 mt-2 font-light">
+              Supported networks: TRON (T...), EVM (0x...), Solana (Base58), or Bitcoin (1..., 3..., bc1...).
             </div>
             {errors.suspect_address && (
-              <span className="text-red-400 text-[11px] mt-1 block">
+              <span className="text-rose-400 text-xs mt-1.5 block">
                 {errors.suspect_address.message}
               </span>
             )}
@@ -187,30 +193,30 @@ export function TraceForm() {
         ) : (
           <div className="space-y-4">
             <div>
-              <label className="block text-slate-400 mb-1 font-semibold">
-                Investigative Incident Dossier / Case Brief
+              <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
+                Incident Narrative / Case Dossier Brief
               </label>
               <textarea
                 rows={5}
-                placeholder="Paste victim narrative or case brief describing crypto fraud, transaction hashes, or wallet address..."
+                placeholder="Paste victim narrative or case brief describing crypto fraud, transaction hashes, or suspect wallet addresses..."
                 {...register("complaint_text")}
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded text-slate-100 focus:outline-none focus:border-teal-500 font-mono text-xs leading-relaxed"
+                className="w-full p-4 rounded-xl bg-white/[0.04] border border-white/10 text-white placeholder-neutral-500 focus:outline-none focus:border-violet-500/80 font-mono text-xs leading-relaxed transition-colors"
               />
               <button
                 type="button"
                 onClick={handleParseFirSubmit}
                 disabled={isParsing}
-                className="mt-2 text-xs font-sans font-semibold text-teal-400 hover:text-teal-300 flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 border border-teal-800/80 rounded transition-colors"
+                className="mt-3 text-xs font-sans font-medium text-neutral-300 hover:text-white flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 transition-colors cursor-pointer"
               >
                 {isParsing ? (
                   <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    Extracting intelligence entities via Neural NLP...
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-violet-400" />
+                    <span>Extracting entities via Neural NLP...</span>
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-3.5 h-3.5" />
-                    Extract Entities with Autonomous NLP Engine
+                    <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+                    <span>Extract Entities with NLP Engine</span>
                   </>
                 )}
               </button>
@@ -243,24 +249,24 @@ export function TraceForm() {
         )}
 
         {/* Common Form Fields */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-slate-400 mb-1 font-semibold">
+            <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
               Blockchain Network *
             </label>
             <select
               {...register("chain", { required: "Chain is required" })}
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded text-slate-100 focus:outline-none focus:border-teal-500 uppercase font-mono text-xs"
+              className="w-full h-11 px-4 rounded-xl bg-[#121212] border border-white/10 text-white focus:outline-none focus:border-violet-500/80 text-xs font-sans transition-colors cursor-pointer"
             >
               <option value="tron">TRON (TRC-20 USDT)</option>
-              <option value="solana">SOLANA (SPL Token)</option>
-              <option value="ethereum">ETHEREUM (ERC-20)</option>
-              <option value="bitcoin">BITCOIN (BTC UTXO)</option>
+              <option value="solana">Solana (SPL Token)</option>
+              <option value="ethereum">Ethereum (ERC-20)</option>
+              <option value="bitcoin">Bitcoin (BTC UTXO)</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-slate-400 mb-1 font-semibold">
+            <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
               Max Hops (1 to 10) *
             </label>
             <input
@@ -272,10 +278,10 @@ export function TraceForm() {
                 min: { value: 1, message: "Min 1 hop" },
                 max: { value: 10, message: "Max 10 hops" },
               })}
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded text-slate-100 focus:outline-none focus:border-teal-500 font-mono text-xs"
+              className="w-full h-11 px-4 rounded-xl bg-white/[0.04] border border-white/10 text-white focus:outline-none focus:border-violet-500/80 font-mono text-xs transition-colors"
             />
             {errors.max_hops && (
-              <span className="text-red-400 text-[11px] mt-1 block">
+              <span className="text-rose-400 text-xs mt-1.5 block">
                 {errors.max_hops.message}
               </span>
             )}
@@ -283,42 +289,41 @@ export function TraceForm() {
         </div>
 
         <div>
-          <label className="block text-slate-400 mb-1 font-semibold">
-            Case Reference Number / NCRP ID (Optional)
+          <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
+            Case Reference Number (Optional)
           </label>
           <input
             type="text"
-            placeholder="e.g. NCRP-2026-88910"
+            placeholder="e.g. CS-2026-88910"
             {...register("complaint_id")}
-            className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded text-slate-100 focus:outline-none focus:border-teal-500 font-mono text-xs"
+            className="w-full h-11 px-4 rounded-xl bg-white/[0.04] border border-white/10 text-white placeholder-neutral-500 focus:outline-none focus:border-violet-500/80 font-mono text-xs transition-colors"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-2.5 bg-teal-600 hover:bg-teal-500 disabled:bg-slate-800 text-slate-950 font-sans font-bold text-xs rounded flex items-center justify-center gap-2 transition-colors mt-6 cursor-pointer"
+          className="w-full h-11 rounded-full bg-white hover:bg-neutral-200 text-black font-semibold text-xs transition-all flex items-center justify-center gap-2 active:scale-95 shadow-md mt-6 cursor-pointer disabled:opacity-50"
         >
-          <ShieldCheck className="w-4 h-4" />
-          Start Investigation
-          <ArrowRight className="w-4 h-4" />
+          <span>Start Investigation</span>
+          <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </form>
 
       {/* Real Execution Loading Overlay */}
       {loading && (
-        <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-sm rounded p-6 flex flex-col items-center justify-center text-center space-y-4 z-20 font-mono">
-          <Loader2 className="w-8 h-8 text-teal-400 animate-spin" />
+        <div className="absolute inset-0 bg-[#080808]/95 backdrop-blur-md rounded-3xl p-6 flex flex-col items-center justify-center text-center space-y-4 z-20">
+          <Loader2 className="w-8 h-8 text-violet-400 animate-spin" />
 
           <div className="space-y-1.5">
-            <div className="text-xs font-bold font-sans uppercase tracking-widest text-teal-400">
-              AI / FORENSIC ANALYSIS
+            <div className="text-xs font-mono uppercase tracking-widest text-violet-400 font-semibold">
+              Forensic Traversal
             </div>
-            <div className="text-sm font-bold font-sans text-slate-100">
-              Running forensic analysis...
+            <div className="text-base font-medium font-sans text-white">
+              Executing multi-hop ledger walk...
             </div>
-            <p className="text-[11px] text-slate-400 max-w-sm leading-relaxed">
-              Executing backend graph traversal & forensic intelligence pipeline.
+            <p className="text-xs text-neutral-400 max-w-sm leading-relaxed font-light">
+              Walking transaction graph, attributing exchange deposit endpoints, and calculating ensemble risk scores.
             </p>
           </div>
         </div>
@@ -326,14 +331,15 @@ export function TraceForm() {
 
       {/* Post-Trace Telemetry Result Overlay */}
       {!loading && traceResult && (
-        <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-sm rounded p-6 flex flex-col items-center justify-center text-center space-y-4 z-20 font-mono">
-          <div className="w-full max-w-md bg-slate-900 border border-teal-500/80 rounded p-4 text-left space-y-3 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <span className="text-xs font-bold font-sans text-teal-400 uppercase tracking-wider">
-                AI / ML TRACE TELEMETRY
+        <div className="absolute inset-0 bg-[#080808]/95 backdrop-blur-md rounded-3xl p-6 flex flex-col items-center justify-center text-center space-y-4 z-20">
+          <div className="w-full max-w-md rounded-2xl bg-white/[0.03] border border-white/10 p-5 text-left space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/5 pb-3">
+              <span className="text-xs font-mono uppercase tracking-wider text-violet-300 font-semibold">
+                Trace Telemetry Result
               </span>
-              <span className="text-[10px] bg-teal-950 text-teal-300 font-bold px-2 py-0.5 rounded border border-teal-800">
-                EXECUTION COMPLETED
+              <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/40 px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
+                <CheckCircle2 className="w-3 h-3" />
+                Completed
               </span>
             </div>
 
@@ -358,43 +364,43 @@ export function TraceForm() {
                   ? String(suspectNode.anomaly_score)
                   : "Unavailable";
 
-              const vaspDisplay = traceResult.attribution?.vasp_name || "VASP attribution unavailable";
+              const vaspDisplay = traceResult.attribution?.vasp_name || "Unattributed";
 
               const typologies = suspectNode?.typologyFlags;
 
               return (
-                <div className="space-y-2.5 text-xs">
+                <div className="space-y-3 text-xs font-mono">
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="p-2 bg-slate-950 rounded border border-slate-800">
-                      <div className="text-slate-500 text-[10px] uppercase">Overall Risk</div>
-                      <div className="font-bold text-slate-100">{overallRiskDisplay}</div>
+                    <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                      <div className="text-neutral-500 text-[10px] uppercase">Overall Risk</div>
+                      <div className="font-bold text-white text-sm mt-0.5">{overallRiskDisplay}</div>
                     </div>
-                    <div className="p-2 bg-slate-950 rounded border border-slate-800">
-                      <div className="text-slate-500 text-[10px] uppercase">GNN Risk Score</div>
-                      <div className="font-bold text-slate-100">{gnnRiskDisplay}</div>
+                    <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                      <div className="text-neutral-500 text-[10px] uppercase">GNN Score</div>
+                      <div className="font-bold text-white text-sm mt-0.5">{gnnRiskDisplay}</div>
                     </div>
-                    <div className="p-2 bg-slate-950 rounded border border-slate-800">
-                      <div className="text-slate-500 text-[10px] uppercase">Anomaly Score</div>
-                      <div className="font-bold text-slate-100">{anomalyScoreDisplay}</div>
+                    <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                      <div className="text-neutral-500 text-[10px] uppercase">Anomaly Index</div>
+                      <div className="font-bold text-white text-sm mt-0.5">{anomalyScoreDisplay}</div>
                     </div>
-                    <div className="p-2 bg-slate-950 rounded border border-slate-800">
-                      <div className="text-slate-500 text-[10px] uppercase">Attributed VASP</div>
-                      <div className="font-bold text-teal-300 truncate">{vaspDisplay}</div>
+                    <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                      <div className="text-neutral-500 text-[10px] uppercase">Attributed VASP</div>
+                      <div className="font-bold text-emerald-400 text-sm mt-0.5 truncate">{vaspDisplay}</div>
                     </div>
                   </div>
 
-                  <div className="p-2 bg-slate-950 rounded border border-slate-800 space-y-1">
-                    <div className="text-slate-500 text-[10px] uppercase">Detected Typologies</div>
+                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 space-y-1.5">
+                    <div className="text-neutral-500 text-[10px] uppercase">Detected Typologies</div>
                     {typologies === undefined || typologies === null ? (
-                      <div className="text-slate-400 italic">Unavailable</div>
+                      <div className="text-neutral-400 italic">None detected</div>
                     ) : typologies.length === 0 ? (
-                      <div className="text-slate-400">None</div>
+                      <div className="text-neutral-400">None detected</div>
                     ) : (
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-wrap gap-1.5">
                         {typologies.map((t: TypologyFlag | string, idx: number) => (
                           <span
                             key={idx}
-                            className="text-[10px] px-1.5 py-0.2 bg-teal-950 text-teal-300 border border-teal-800 rounded font-bold uppercase"
+                            className="text-[10px] px-2 py-0.5 rounded-full bg-violet-950/40 text-violet-300 border border-violet-800/40 uppercase font-medium"
                           >
                             {String(t)}
                           </span>
@@ -402,18 +408,13 @@ export function TraceForm() {
                       </div>
                     )}
                   </div>
+
+                  <p className="text-[11px] text-neutral-400 text-center pt-1 font-sans">
+                    Opening interactive forensic graph workbench...
+                  </p>
                 </div>
               );
             })()}
-
-            <button
-              type="button"
-              onClick={() => router.push(`/case/${traceResult.case_id}`)}
-              className="w-full py-2 bg-teal-600 hover:bg-teal-500 text-slate-950 font-sans font-bold text-xs rounded transition-colors cursor-pointer flex items-center justify-center gap-1.5"
-            >
-              <span>Open Case Workbench</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
           </div>
         </div>
       )}
