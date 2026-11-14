@@ -4,6 +4,7 @@ import React, { forwardRef } from "react";
 import dynamic from "next/dynamic";
 import { WalletNode, TransferEdge } from "@/lib/types";
 import { GraphViewRef } from "./GraphViewRef";
+import { Loader2 } from "lucide-react";
 
 interface Graph3DWrapperProps {
   nodes?: WalletNode[];
@@ -15,6 +16,7 @@ interface Graph3DWrapperProps {
   onSelectEdge?: (edge: TransferEdge | null) => void;
   showLabels?: boolean;
   selectedClusterAddresses?: string[];
+  timelineCutoffTs?: number | null;
   onFallbackTo2D?: () => void;
 }
 
@@ -23,9 +25,9 @@ const DynamicGraph3D = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="w-full h-full min-h-[420px] bg-slate-950 border border-slate-800 rounded flex flex-col items-center justify-center space-y-3 font-mono text-xs select-none">
-        <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
-        <div className="text-slate-400">Initializing 3D investigation graph...</div>
+      <div className="w-full h-full min-h-[420px] bg-[#030303] border border-white/5 rounded-2xl flex flex-col items-center justify-center space-y-3 font-mono text-xs select-none">
+        <Loader2 className="w-6 h-6 text-white/60 animate-spin" />
+        <div className="text-white/40">Initializing 3D topological space...</div>
       </div>
     ),
   }

@@ -18,6 +18,7 @@ import { getCase, downloadCourtEvidenceBundle } from "@/lib/api";
 import { TraceResult, WalletNode, TransferEdge, WalletCluster } from "@/lib/types";
 import { EvidenceCertModal } from "@/components/case/EvidenceCertModal";
 import { AIInvestigationDocketModal } from "@/components/case/AIInvestigationDocketModal";
+import { TimelineScrubber } from "@/components/graph/TimelineScrubber";
 import {
   ShieldAlert,
   ArrowRightLeft,
@@ -51,6 +52,7 @@ export default function CaseWorkbenchPage({
   const [rightPanelTab, setRightPanelTab] = useState<"node_inspector" | "clusters">("node_inspector");
   const [showLabels, setShowLabels] = useState(true);
   const [graphMode, setGraphMode] = useState<GraphMode>("2D");
+  const [timelineCutoffTs, setTimelineCutoffTs] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -324,6 +326,7 @@ export default function CaseWorkbenchPage({
                   edges={traceData.edges}
                   showLabels={showLabels}
                   selectedClusterAddresses={selectedClusterAddresses}
+                  timelineCutoffTs={timelineCutoffTs}
                   onSelectNode={(node) => {
                     setSelectedNode(node);
                     setSelectedEdge(null);
@@ -342,6 +345,7 @@ export default function CaseWorkbenchPage({
                   selectedEdge={selectedEdge}
                   showLabels={showLabels}
                   selectedClusterAddresses={selectedClusterAddresses}
+                  timelineCutoffTs={timelineCutoffTs}
                   onSelectNode={(node) => {
                     setSelectedNode(node);
                     setSelectedEdge(null);
@@ -418,6 +422,17 @@ export default function CaseWorkbenchPage({
                   <div className="text-[10px] text-white/30 text-right font-mono">
                     {selectedEdge.timestamp ? new Date(selectedEdge.timestamp).toLocaleString() : "N/A"}
                   </div>
+                </div>
+              )}
+
+              {/* Floating Timeline Scrubber Overlay (Item 4) */}
+              {traceData && traceData.edges && traceData.edges.length > 1 && (
+                <div className="absolute bottom-3 right-3 z-20 max-w-[calc(100%-24px)] overflow-x-auto pointer-events-auto">
+                  <TimelineScrubber
+                    edges={traceData.edges}
+                    activeCutoffTs={timelineCutoffTs}
+                    onCutoffChange={setTimelineCutoffTs}
+                  />
                 </div>
               )}
             </div>

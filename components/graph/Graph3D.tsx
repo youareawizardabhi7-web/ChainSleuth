@@ -32,6 +32,7 @@ interface Graph3DProps {
   onSelectEdge?: (edge: TransferEdge | null) => void;
   showLabels?: boolean;
   selectedClusterAddresses?: string[];
+  timelineCutoffTs?: number | null;
   onFallbackTo2D?: () => void;
 }
 
@@ -49,6 +50,7 @@ interface ForceNode {
   x?: number;
   y?: number;
   z?: number;
+  fz?: number;
 }
 
 interface ForceLink {
@@ -84,6 +86,7 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
     onSelectNode,
     onSelectEdge,
     selectedClusterAddresses = [],
+    timelineCutoffTs = null,
     onFallbackTo2D,
   },
   ref
@@ -284,6 +287,10 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
         riskScore: n.riskScore,
       });
 
+      // 2.5D Stepped Z-Axis Layer Elevation (Item 6):
+      // Fixes Z plane per graph layer while allowing organic force simulation in X/Y
+      const stepZ = (layer !== null ? layer : 0) * 85;
+
       return {
         id: n.address,
         label,
@@ -293,15 +300,27 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
         color,
         layer,
         isOrigin,
+        fz: stepZ,
       };
     });
 
-    const filteredEdges = edges.filter(
+    // Filter edges by timeline scrubber cutoff if active
+    const activeEdges = timelineCutoffTs !== null
+      ? edges.filter((e) => {
+          if (!e.timestamp) return true;
+          const ts = new Date(e.timestamp).getTime();
+          return !isNaN(ts) && ts <= timelineCutoffTs;
+        })
+      : edges;
+
+    const filteredEdges = activeEdges.filter(
       (e) => validNodeAddresses.has(e.from) && validNodeAddresses.has(e.to)
     );
 
     const forceLinks: ForceLink[] = filteredEdges.map((e) => {
-      const thickness = Math.min(Math.max(2.5, (e.value / maxVal) * 5), 5);
+      // Logarithmic edge width scaling (Item 3)
+      const logVal = Math.log10(Math.max(1, e.value));
+      const thickness = Math.min(Math.max(1.8, logVal * 1.1), 6.0);
       const isSuspicious = e.value > 10000 || e.token === "USDT";
 
       return {
@@ -316,7 +335,7 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
     });
 
     return { nodes: forceNodes, links: forceLinks };
-  }, [nodes, edges, layerMap, hopFilter]);
+  }, [nodes, edges, layerMap, hopFilter, timelineCutoffTs]);
 
   // Dynamic node color handling based on selection state
   const getNodeColor = useCallback(
@@ -573,10 +592,10 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
         linkDirectionalArrowLength={5}
         linkDirectionalArrowRelPos={0.95}
         linkDirectionalArrowColor={getLinkColor}
-        linkDirectionalParticles={1}
-        linkDirectionalParticleWidth={2}
-        linkDirectionalParticleSpeed={0.005}
-        linkDirectionalParticleColor={getLinkColor}
+        linkDirectionalParticles={(link: any) => Math.max(1, Math.min(4, Math.round((link.width || 2) * 0.7)))}
+        linkDirectionalParticleWidth={(link: any) => Math.min(Math.max(2, (link.width || 2) * 0.7), 4.5)}
+        linkDirectionalParticleSpeed={(link: any) => 0.003 + Math.min(0.012, (link.width || 2) * 0.002)}
+        linkDirectionalParticleColor={(link: any) => (link.suspicious ? "#f87171" : "#38bdf8")}
         linkCurvature={0.1}
         onNodeClick={handleNodeClick}
         onLinkClick={handleLinkClick}
