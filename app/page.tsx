@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatedStepper, Step } from "@/components/ui/AnimatedStepper";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import {
   Search,
   ArrowRight,
@@ -67,11 +68,8 @@ export default function SynapseLandingPage() {
       ───────────────────────────────────────────────────────────────────────────── */}
       <nav className="fixed top-6 left-1/2 -translate-x-1/2 w-[95%] max-w-[672px] z-50 rounded-full bg-[#0a0a0a]/70 backdrop-blur-[16px] border border-white/10 px-5 py-2.5 flex items-center justify-between shadow-[0_10px_35px_-10px_rgba(0,0,0,0.8)]">
         {/* Left Logo */}
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-cyan-400 via-violet-400 to-violet-500 shadow-[0_0_10px_#8b5cf6]" />
-          <span className="font-instrument text-xl font-medium tracking-tight text-white group-hover:text-violet-300 transition-colors">
-            ChainSleuth
-          </span>
+        <Link href="/" className="group">
+          <BrandLogo size="md" />
         </Link>
 
         {/* Center Links (In-page scroll) */}
@@ -832,12 +830,7 @@ export default function SynapseLandingPage() {
       <footer className="relative z-10 bg-[#050505] border-t border-white/5 py-10 px-4 mt-20">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6 text-xs font-mono text-neutral-500">
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-cyan-400 to-violet-500" />
-              <span className="font-instrument text-xl font-medium text-white tracking-tight">
-                ChainSleuth
-              </span>
-            </div>
+            <BrandLogo size="sm" />
             <span className="text-neutral-700 hidden sm:inline">•</span>
             <span className="text-neutral-400 font-sans text-xs">
               Developed by Amit Dey & Abhigyan Paswan

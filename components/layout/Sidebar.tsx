@@ -10,6 +10,7 @@ import {
   Database,
   Activity,
 } from "lucide-react";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 
 const emptySubscribe = () => () => {};
 
@@ -56,11 +57,8 @@ export function Sidebar() {
       <div className="flex flex-col">
         {/* Brand Header */}
         <div className="h-12 px-5 border-b border-white/5 flex items-center">
-          <Link href="/dashboard" className="flex items-center gap-2.5 group">
-            <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-cyan-400 to-violet-500 shadow-[0_0_8px_#8b5cf6]" />
-            <span className="font-instrument text-xl font-medium tracking-tight text-white group-hover:text-violet-300 transition-colors">
-              ChainSleuth
-            </span>
+          <Link href="/dashboard" className="group">
+            <BrandLogo size="md" />
           </Link>
         </div>
 

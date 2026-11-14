@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { X, Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles, Loader2, AlertCircle } from "lucide-react";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { useAppStore } from "@/lib/store";
 
@@ -119,12 +120,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
         {/* Header Row: Logo & Close Button */}
         <div className="flex items-center justify-between mb-6 relative z-10">
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-cyan-400 to-violet-500 shadow-[0_0_8px_#8b5cf6]" />
-            <span className="font-instrument text-xl font-medium text-white tracking-tight">
-              ChainSleuth
-            </span>
-          </div>
+          <BrandLogo size="md" />
 
           <button
             type="button"
