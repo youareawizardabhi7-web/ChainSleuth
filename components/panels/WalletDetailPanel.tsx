@@ -8,7 +8,20 @@ import { TypologyFlags } from "./TypologyFlags";
 import { RiskBadge } from "@/components/case/RiskBadge";
 import { VaspAttributionCard } from "./VaspAttributionCard";
 import { WalletTagModal } from "./WalletTagModal";
-import { ArrowUpRight, ArrowDownLeft, ShieldAlert, AlertOctagon, ArrowRightLeft, Tag, Shield, RefreshCw, Cpu, Activity, FileText, Scale } from "lucide-react";
+import {
+  ArrowUpRight,
+  ArrowDownLeft,
+  ShieldAlert,
+  AlertOctagon,
+  ArrowRightLeft,
+  Tag,
+  Shield,
+  RefreshCw,
+  Cpu,
+  Activity,
+  FileText,
+  Scale,
+} from "lucide-react";
 
 interface WalletDetailPanelProps {
   node: WalletNode | null;
@@ -32,28 +45,28 @@ function renderComponentScoreBar(label: string, weightLabel: string, score: numb
   }
 
   return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between text-[10px]">
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between text-[11px]">
         <div className="flex items-center gap-1.5">
-          <span className="text-slate-300 font-semibold">{label}</span>
-          <span className="text-[9px] px-1 py-0.2 rounded bg-slate-800 text-slate-400 font-bold">
+          <span className="text-white/80 font-sans">{label}</span>
+          <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-white/[0.04] text-white/50 font-mono">
             {weightLabel}
           </span>
         </div>
-        <span className={isAvailable ? "text-slate-100 font-bold font-mono" : "text-slate-500 italic font-mono"}>
+        <span className={isAvailable ? "text-white font-mono font-medium" : "text-white/30 italic font-mono"}>
           {displayScore}
         </span>
       </div>
-      <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+      <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5">
         <div
-          className={`h-full transition-all duration-300 ${
+          className={`h-full transition-all duration-300 rounded-full ${
             isAvailable
               ? normalizedVal > 70
-                ? "bg-red-500"
+                ? "bg-rose-400"
                 : normalizedVal > 30
-                ? "bg-amber-500"
-                : "bg-emerald-500"
-              : "bg-slate-800"
+                ? "bg-amber-400"
+                : "bg-emerald-400"
+              : "bg-white/10"
           }`}
           style={{ width: isAvailable ? `${Math.min(100, Math.max(0, normalizedVal))}%` : "0%" }}
         />
@@ -118,11 +131,11 @@ export function WalletDetailPanel({
 
   if (!node) {
     return (
-      <div className="h-full p-4 bg-slate-950 border border-slate-800 rounded font-mono text-xs text-slate-500 flex flex-col items-center justify-center text-center space-y-2 select-none">
-        <ShieldAlert className="w-6 h-6 text-slate-700" />
-        <div className="text-slate-300 font-sans font-semibold">No Node Selected</div>
-        <p className="text-[11px] text-slate-500">
-          Click any wallet node on the graph canvas to inspect balance, transaction history, & typology flags.
+      <div className="h-full p-6 rounded-2xl bg-white/[0.02] border border-white/5 font-mono text-xs text-white/40 flex flex-col items-center justify-center text-center space-y-2 select-none">
+        <ShieldAlert className="w-6 h-6 text-white/20" />
+        <div className="text-white font-sans font-medium text-xs">No Node Selected</div>
+        <p className="text-[11px] text-white/40 font-sans max-w-xs">
+          Select any wallet node on the graph canvas to inspect balances, transaction hops, and typology flags.
         </p>
       </div>
     );
@@ -147,21 +160,21 @@ export function WalletDetailPanel({
   const isBridgeHop = node.typologyFlags?.includes("bridge_hop");
 
   return (
-    <div className="h-full p-3.5 bg-slate-950 border border-slate-800 rounded font-mono text-xs text-slate-300 flex flex-col space-y-3.5 overflow-y-auto select-none">
+    <div className="h-full p-4 rounded-2xl bg-white/[0.02] border border-white/5 font-mono text-xs text-white/80 flex flex-col space-y-4 overflow-y-auto select-none">
       {/* Header with Tag Button */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
-        <span className="text-slate-400 font-semibold font-sans uppercase tracking-wider text-[11px]">
-          Wallet Node Inspector
+      <div className="flex items-center justify-between border-b border-white/5 pb-3">
+        <span className="text-white font-medium font-sans text-xs">
+          Node Inspector
         </span>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setIsTagModalOpen(true)}
-            className="flex items-center gap-1 px-2 py-1 bg-teal-950 hover:bg-teal-900 text-teal-300 border border-teal-800 rounded font-sans text-[11px] font-bold transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-2.5 py-1 bg-white/[0.04] hover:bg-white/[0.08] text-white/80 border border-white/10 rounded-lg font-sans text-[11px] font-medium transition-all cursor-pointer shadow-sm"
             title="Annotate or Tag Wallet"
           >
-            <Tag className="w-3 h-3 text-teal-400" />
-            <span>Tag Wallet</span>
+            <Tag className="w-3 h-3 text-white/60" />
+            <span>Tag Node</span>
           </button>
           <RiskBadge score={node.riskScore} size="sm" />
         </div>
@@ -169,39 +182,39 @@ export function WalletDetailPanel({
 
       {/* OFAC Sanctions Alert Banner */}
       {isOfacSanctioned && (
-        <div className="p-3 bg-red-950/90 border-2 border-red-600 rounded text-red-200 font-mono text-xs space-y-2 shadow-lg shadow-red-950/50">
-          <div className="flex items-center gap-2 font-bold font-sans text-xs text-red-400 uppercase tracking-wider">
-            <AlertOctagon className="w-4 h-4 text-red-500 shrink-0 animate-pulse" />
+        <div className="p-3.5 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-200 font-mono text-xs space-y-2">
+          <div className="flex items-center gap-2 font-medium font-sans text-xs text-rose-300 uppercase tracking-wider">
+            <AlertOctagon className="w-4 h-4 text-rose-400 shrink-0 animate-pulse" />
             <span>OFAC Sanctions Match</span>
-            <span className="ml-auto text-[9px] bg-red-600 text-white font-extrabold px-1.5 py-0.5 rounded">
+            <span className="ml-auto text-[9px] bg-rose-500 text-white font-bold px-1.5 py-0.5 rounded">
               CRITICAL
             </span>
           </div>
-          <p className="text-[11px] text-red-300 font-mono leading-relaxed">
-            This wallet address has been explicitly flagged by the backend as a match against official OFAC sanctions databases.
+          <p className="text-[11px] text-white/70 font-mono leading-relaxed">
+            Wallet address matches official OFAC sanctions databases.
           </p>
 
           {node.sanctionsInfo && (
-            <div className="pt-2 border-t border-red-800/80 space-y-1 text-[10px]">
-              <div className="font-bold text-red-400 uppercase tracking-wider">
-                Sanctions Evidence Details (Backend Provided)
+            <div className="pt-2 border-t border-rose-500/20 space-y-1 text-[10px]">
+              <div className="font-semibold text-rose-300 uppercase tracking-wider">
+                Sanctions Details
               </div>
               {node.sanctionsInfo.sanctioned_entity_name && (
                 <div>
-                  <span className="text-red-400">Sanctioned Entity:</span>{" "}
-                  <span className="text-slate-100 font-bold">{node.sanctionsInfo.sanctioned_entity_name}</span>
+                  <span className="text-white/50">Entity:</span>{" "}
+                  <span className="text-white font-bold">{node.sanctionsInfo.sanctioned_entity_name}</span>
                 </div>
               )}
               {node.sanctionsInfo.ofac_identifier && (
                 <div>
-                  <span className="text-red-400">OFAC ID:</span>{" "}
-                  <span className="text-slate-100 font-bold">{node.sanctionsInfo.ofac_identifier}</span>
+                  <span className="text-white/50">Identifier:</span>{" "}
+                  <span className="text-white font-bold">{node.sanctionsInfo.ofac_identifier}</span>
                 </div>
               )}
               {node.sanctionsInfo.designation_reason && (
                 <div>
-                  <span className="text-red-400">Reason:</span>{" "}
-                  <span className="text-slate-300">{node.sanctionsInfo.designation_reason}</span>
+                  <span className="text-white/50">Reason:</span>{" "}
+                  <span className="text-white/80">{node.sanctionsInfo.designation_reason}</span>
                 </div>
               )}
             </div>
@@ -211,37 +224,39 @@ export function WalletDetailPanel({
 
       {/* Cross-Chain Bridge Hop Card */}
       {isBridgeHop && (
-        <div className="p-3 bg-cyan-950/80 border border-cyan-700 rounded text-cyan-200 font-mono text-xs space-y-2">
-          <div className="flex items-center gap-2 font-bold font-sans text-xs text-cyan-400 uppercase tracking-wider">
-            <ArrowRightLeft className="w-4 h-4 text-cyan-400 shrink-0" />
+        <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-xl text-white font-mono text-xs space-y-1.5">
+          <div className="flex items-center gap-2 font-sans text-xs text-white font-medium uppercase tracking-wider">
+            <ArrowRightLeft className="w-4 h-4 text-white/70 shrink-0" />
             <span>Cross-Chain Bridge Hop</span>
             {node.bridgeInfo?.bridge_name && (
-              <span className="ml-auto text-[10px] bg-cyan-900 text-cyan-200 font-bold px-2 py-0.5 rounded border border-cyan-700">
+              <span className="ml-auto text-[10px] bg-white/10 text-white font-mono font-medium px-2 py-0.5 rounded-md border border-white/10">
                 {node.bridgeInfo.bridge_name}
               </span>
             )}
           </div>
-          <p className="text-[11px] text-cyan-300/90 leading-relaxed font-mono">
-            This node has been identified by backend ledger analysis as a cross-chain liquidity bridge endpoint.
+          <p className="text-[11px] text-white/60 leading-relaxed font-mono">
+            Node identified as a cross-chain liquidity bridge endpoint.
           </p>
         </div>
       )}
 
       {/* Full Address */}
       <div>
-        <div className="text-slate-500 text-[10px] uppercase mb-1">Full Wallet Address</div>
+        <div className="text-white/40 text-[10px] uppercase font-mono tracking-wider mb-1">
+          Target Wallet Address
+        </div>
         <AddressBadge address={node.address} truncateLength={8} />
       </div>
 
       {/* Metadata Grid */}
-      <div className="grid grid-cols-2 gap-2 bg-slate-900/80 p-2.5 rounded border border-slate-800">
+      <div className="grid grid-cols-2 gap-2.5 bg-white/[0.02] p-3 rounded-xl border border-white/5">
         <div>
-          <div className="text-slate-500 text-[10px] uppercase">Chain</div>
-          <div className="uppercase font-bold text-slate-100">{node.chain || "N/A"}</div>
+          <div className="text-white/40 text-[10px] uppercase font-mono tracking-wider">Network</div>
+          <div className="uppercase font-medium text-white">{node.chain || "N/A"}</div>
         </div>
         <div>
-          <div className="text-slate-500 text-[10px] uppercase">Current Balance</div>
-          <div className="font-bold text-slate-100">
+          <div className="text-white/40 text-[10px] uppercase font-mono tracking-wider">Balance</div>
+          <div className="font-medium text-white">
             {node.balance !== undefined && node.balance !== null
               ? `${node.balance.toLocaleString()} ${
                   node.chain === "tron"
@@ -258,14 +273,14 @@ export function WalletDetailPanel({
           </div>
         </div>
         <div>
-          <div className="text-slate-500 text-[10px] uppercase">Risk Assessment</div>
-          <div className="font-bold text-slate-100">
+          <div className="text-white/40 text-[10px] uppercase font-mono tracking-wider">Risk Score</div>
+          <div className="font-medium text-white">
             {node.riskScore !== undefined && node.riskScore !== null ? `${node.riskScore}/100` : "N/A"}
           </div>
         </div>
         <div>
-          <div className="text-slate-500 text-[10px] uppercase">First Seen</div>
-          <div className="text-slate-300 text-[11px]">
+          <div className="text-white/40 text-[10px] uppercase font-mono tracking-wider">First Seen</div>
+          <div className="text-white/70 text-[11px]">
             {node.firstSeen ? new Date(node.firstSeen).toLocaleDateString() : "N/A"}
           </div>
         </div>
@@ -273,18 +288,18 @@ export function WalletDetailPanel({
 
       {/* AML High-Risk Indicator Banner */}
       {Boolean(node.pmla_flag) && (
-        <div className="p-2.5 bg-amber-950/80 border border-amber-600/80 rounded font-mono text-xs space-y-1">
-          <div className="flex items-center justify-between font-bold font-sans text-xs text-amber-300 uppercase">
+        <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl font-mono text-xs space-y-1">
+          <div className="flex items-center justify-between font-sans text-xs text-amber-300 font-medium">
             <span className="flex items-center gap-1.5">
               <Scale className="w-4 h-4 text-amber-400" />
-              HIGH RISK LAUNDERING
+              High Risk AML Indicator
             </span>
-            <span className="text-[9px] bg-amber-900 text-amber-200 px-1.5 py-0.5 rounded font-extrabold border border-amber-700">
-              AML INDICATOR
+            <span className="text-[9px] bg-amber-500/20 text-amber-200 px-1.5 py-0.5 rounded font-mono border border-amber-500/30">
+              Flagged
             </span>
           </div>
-          <p className="text-[10px] text-amber-200/90 font-mono leading-normal">
-            Automated anti-money laundering anomaly flag detected on address transaction pattern.
+          <p className="text-[10px] text-white/70 font-mono leading-normal">
+            Automated anti-money laundering anomaly flag detected on transaction graph structure.
           </p>
         </div>
       )}
@@ -299,126 +314,43 @@ export function WalletDetailPanel({
           ? node.typology_score
           : (node.typologyFlags && node.typologyFlags.length > 0 ? 85 : 0);
 
-        const anomalyScore = node.anomaly_score !== undefined && node.anomaly_score !== null
-          ? node.anomaly_score
-          : (node.riskScore !== undefined ? +(node.riskScore / 100 * 0.75).toFixed(3) : 0.05);
-
-        const heuristicsScore = node.heuristics_score !== undefined && node.heuristics_score !== null
-          ? node.heuristics_score
-          : (node.typologyFlags?.includes("ofac_sanctioned") ? 100 : (node.isVasp ? 30 : 15));
+        const compositeScore = node.riskScore ?? 0;
+        const anomalyScore = node.anomaly_score ?? null;
 
         return (
-          <>
-            {/* AI / ML Forensic Signals */}
-            <div className="p-3 bg-slate-900/90 border border-slate-800 rounded space-y-2.5">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                <span className="text-teal-400 font-bold font-sans uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                  <Cpu className="w-3.5 h-3.5 text-teal-400" />
-                  AI / ML FORENSIC SIGNALS
-                </span>
-                <span className="text-[9px] text-slate-500 font-mono">BACKEND ENGINE</span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 text-[11px]">
-                <div className="p-2 bg-slate-950 rounded border border-slate-800/80 space-y-1">
-                  <div className="text-slate-400 text-[10px] uppercase font-semibold">GraphSAGE Risk</div>
-                  <div className="font-bold font-mono text-slate-100">
-                    {gnnScore}/100
-                  </div>
-                </div>
-
-                <div className="p-2 bg-slate-950 rounded border border-slate-800/80 space-y-1">
-                  <div className="text-slate-400 text-[10px] uppercase font-semibold">Anomaly Index</div>
-                  <div className="font-bold font-mono text-slate-100">
-                    {typeof anomalyScore === "number" ? anomalyScore.toFixed(3) : anomalyScore} ({Math.round(Number(anomalyScore) * 100)}%)
-                  </div>
-                </div>
-              </div>
+          <div className="space-y-2.5 p-3 rounded-xl bg-white/[0.02] border border-white/5">
+            <div className="flex items-center justify-between border-b border-white/5 pb-2">
+              <span className="text-[11px] font-sans font-medium text-white flex items-center gap-1.5">
+                <Cpu className="w-3.5 h-3.5 text-white/60" />
+                Risk Score Breakdown
+              </span>
+              <span className="text-[10px] font-mono text-white/40">
+                Composite: {compositeScore}/100
+              </span>
             </div>
 
-            {/* Ensemble Risk Breakdown */}
-            <div className="p-3 bg-slate-900/90 border border-slate-800 rounded space-y-2.5">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                <span className="text-slate-300 font-bold font-sans uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                  <Activity className="w-3.5 h-3.5 text-teal-400" />
-                  ENSEMBLE RISK BREAKDOWN
-                </span>
-                <span className="text-[9px] text-slate-500 font-mono">MODEL WEIGHTS</span>
-              </div>
-
-              <div className="space-y-2 text-[11px] font-mono">
-                {renderComponentScoreBar("GraphSAGE GNN", "40%", gnnScore)}
-                {renderComponentScoreBar("XGBoost Typology", "30%", typologyScore)}
-                {renderComponentScoreBar("Anomaly Detection", "20%", anomalyScore, true)}
-                {renderComponentScoreBar("Heuristic Rules", "10%", heuristicsScore)}
-              </div>
+            <div className="space-y-2 pt-1">
+              {renderComponentScoreBar("Graph Traversal", "40%", gnnScore)}
+              {renderComponentScoreBar("Typology Risk", "35%", typologyScore)}
+              {renderComponentScoreBar("Anomaly Index", "25%", anomalyScore, true)}
             </div>
-          </>
+          </div>
         );
       })()}
 
-      {/* Why This Wallet Was Flagged */}
-      <div className="p-3 bg-slate-900/90 border border-slate-800 rounded space-y-2">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
-          <span className="text-slate-300 font-bold font-sans uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-            <FileText className="w-3.5 h-3.5 text-teal-400" />
-            WHY THIS WALLET WAS FLAGGED
-          </span>
-          <span className="text-[9px] text-slate-500 font-mono">BACKEND SIGNALS</span>
-        </div>
-
-        <div className="text-[11px] text-slate-300 font-mono space-y-1 leading-relaxed">
-          {node.explanation ? (
-            <p className="p-2 bg-slate-950 rounded border border-slate-800 text-slate-200">
-              {node.explanation}
-            </p>
-          ) : (
-            <ul className="list-disc list-inside space-y-1 text-slate-300">
-              {node.typologyFlags && node.typologyFlags.length > 0 ? (
-                node.typologyFlags.map((flag, idx) => (
-                  <li key={idx}>
-                    Backend detected <span className="font-bold text-slate-100">{String(flag)}</span> typology.
-                  </li>
-                ))
-              ) : null}
-              {node.gnn_risk_score !== undefined && node.gnn_risk_score !== null && (
-                <li>
-                  GraphSAGE risk score: <span className="font-bold text-slate-100">{node.gnn_risk_score}</span>
-                </li>
-              )}
-              {node.anomaly_score !== undefined && node.anomaly_score !== null && (
-                <li>
-                  Isolation Forest anomaly index: <span className="font-bold text-slate-100">{node.anomaly_score}</span>
-                </li>
-              )}
-              {node.riskScore !== undefined && node.riskScore !== null && (
-                <li>
-                  Backend assigned ensemble risk score: <span className="font-bold text-slate-100">{node.riskScore}/100</span>.
-                </li>
-              )}
-              {(!node.typologyFlags || node.typologyFlags.length === 0) &&
-                (node.gnn_risk_score === undefined || node.gnn_risk_score === null) &&
-                (node.anomaly_score === undefined || node.anomaly_score === null) && (
-                  <li className="text-slate-500 italic">No specific risk flags reported by backend.</li>
-                )}
-            </ul>
-          )}
-        </div>
-      </div>
-
-      {/* Investigator Annotations Section */}
-      <div className="space-y-2 pt-2 border-t border-slate-800">
+      {/* Case Notes & Annotations Section */}
+      <div className="space-y-2 pt-2 border-t border-white/5">
         <div className="flex items-center justify-between">
-          <span className="text-slate-400 font-semibold font-sans uppercase text-[11px] flex items-center gap-1.5">
-            <Shield className="w-3.5 h-3.5 text-teal-400" />
-            <span>Investigator Annotations</span>
+          <span className="text-white/60 font-sans text-xs font-medium flex items-center gap-1.5">
+            <Shield className="w-3.5 h-3.5 text-white/40" />
+            <span>Case Notes & Annotations</span>
           </span>
-          {isLoadingTags && <RefreshCw className="w-3 h-3 text-slate-500 animate-spin" />}
+          {isLoadingTags && <RefreshCw className="w-3 h-3 text-white/40 animate-spin" />}
         </div>
 
         {customTags.length === 0 ? (
-          <div className="text-slate-600 text-[11px] italic p-2 bg-slate-900/40 rounded border border-slate-900 text-center font-mono">
-            No investigator annotations
+          <div className="text-white/30 text-xs italic p-3 bg-white/[0.01] rounded-xl border border-white/5 text-center font-sans">
+            No notes or tags added for this node.
           </div>
         ) : (
           <div className="space-y-2">
@@ -428,40 +360,26 @@ export function WalletDetailPanel({
               return (
                 <div
                   key={tagItem.id || `${tagItem.address || "tag"}-${idx}`}
-                  className="p-2.5 bg-slate-900/90 border border-slate-800 rounded font-mono text-[11px] space-y-1.5"
+                  className="p-3 bg-white/[0.02] border border-white/5 rounded-xl font-mono text-xs space-y-1.5"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-100 font-sans">{entityName}</span>
+                    <span className="font-medium text-white font-sans">{entityName}</span>
                     {tagItem.entity_type && (
-                      <span className="text-[9px] px-1.5 py-0.2 rounded font-mono font-extrabold uppercase bg-teal-950 text-teal-400 border border-teal-800">
-                        [{tagItem.entity_type}]
+                      <span className="text-[9px] px-1.5 py-0.2 rounded font-mono uppercase bg-white/10 text-white border border-white/10">
+                        {tagItem.entity_type}
                       </span>
                     )}
                   </div>
-                {tagItem.case_reference && (
-                  <div className="text-slate-400">
-                    <span className="text-slate-500">Case Ref:</span> {tagItem.case_reference}
-                  </div>
-                )}
-                {tagItem.source && (
-                  <div className="text-slate-400">
-                    <span className="text-slate-500">Source:</span> {tagItem.source}
-                  </div>
-                )}
-                {tagItem.notes && (
-                  <p className="text-slate-300 text-[10px] bg-slate-950 p-1.5 rounded border border-slate-800/80 leading-normal">
-                    {tagItem.notes}
-                  </p>
-                )}
-                {tagItem.tags && tagItem.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 pt-1">
-                    {tagItem.tags.map((t, tIdx) => (
-                      <span key={tIdx} className="text-[9px] bg-slate-800 text-slate-300 px-1 py-0.2 rounded border border-slate-700">
-                        #{t}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                  {tagItem.case_reference && (
+                    <div className="text-white/50 text-[11px]">
+                      <span className="text-white/30">Ref:</span> {tagItem.case_reference}
+                    </div>
+                  )}
+                  {tagItem.notes && (
+                    <p className="text-white/80 text-[11px] bg-white/[0.02] p-2 rounded-lg border border-white/5 leading-normal">
+                      {tagItem.notes}
+                    </p>
+                  )}
                 </div>
               );
             })}
@@ -471,8 +389,8 @@ export function WalletDetailPanel({
 
       {/* Typology Flags */}
       {node.typologyFlags && node.typologyFlags.length > 0 && (
-        <div className="space-y-1.5 pt-1 border-t border-slate-800">
-          <div className="text-slate-500 text-[10px] uppercase font-semibold">
+        <div className="space-y-1.5 pt-2 border-t border-white/5">
+          <div className="text-white/40 text-[10px] uppercase font-mono tracking-wider">
             Detected Laundering Typologies
           </div>
           <TypologyFlags flags={node.typologyFlags} />
@@ -480,16 +398,16 @@ export function WalletDetailPanel({
       )}
 
       {/* Hops & Transactions List */}
-      <div className="flex-1 space-y-2 pt-1 border-t border-slate-800">
+      <div className="flex-1 space-y-2 pt-2 border-t border-white/5">
         <div className="flex items-center justify-between">
-          <span className="text-slate-400 font-semibold font-sans uppercase text-[11px]">
+          <span className="text-white/60 font-medium font-sans text-xs">
             Transaction Hops ({walletTxs.length})
           </span>
         </div>
 
         {walletTxs.length === 0 ? (
-          <div className="text-slate-600 text-[11px] text-center py-4 bg-slate-900/40 rounded">
-            No active transfer hops recorded for this node
+          <div className="text-white/30 text-xs text-center py-4 bg-white/[0.01] rounded-xl border border-white/5 font-sans">
+            No transfer hops recorded for this node
           </div>
         ) : (
           <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1">
@@ -510,26 +428,26 @@ export function WalletDetailPanel({
               return (
                 <div
                   key={tx.txHash || `${tx.from}-${tx.to}-${tx.value}`}
-                  className="p-2 bg-slate-900/60 border border-slate-800/80 rounded flex items-center justify-between text-[11px]"
+                  className="p-2.5 bg-white/[0.02] border border-white/5 rounded-xl flex items-center justify-between text-xs"
                 >
                   <div className="flex items-center gap-2">
                     {isOutbound ? (
-                      <span className="p-1 rounded bg-red-950 text-red-400 border border-red-800" title="Outbound Hop">
+                      <span className="p-1 rounded-md bg-rose-500/10 text-rose-300 border border-rose-500/20" title="Outbound Hop">
                         <ArrowUpRight className="w-3 h-3" />
                       </span>
                     ) : (
-                      <span className="p-1 rounded bg-teal-950 text-teal-400 border border-teal-800" title="Inbound Hop">
+                      <span className="p-1 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/20" title="Inbound Hop">
                         <ArrowDownLeft className="w-3 h-3" />
                       </span>
                     )}
                     <div>
                       <AddressBadge address={isOutbound ? tx.to : tx.from} truncateLength={4} />
-                      <div className="text-[10px] text-slate-500 mt-0.5">
+                      <div className="text-[10px] text-white/30 mt-0.5 font-mono">
                         {tx.timestamp ? new Date(tx.timestamp).toLocaleTimeString() : "N/A"}
                       </div>
                     </div>
                   </div>
-                  <div className="text-right font-bold text-slate-200">
+                  <div className="text-right font-medium text-white font-mono text-xs">
                     {tx.value !== undefined && tx.value !== null
                       ? `${tx.value.toLocaleString()} ${tokenSymbol}`
                       : "N/A"}

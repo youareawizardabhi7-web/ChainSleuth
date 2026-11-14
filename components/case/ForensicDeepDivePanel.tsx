@@ -114,19 +114,16 @@ export function ForensicDeepDivePanel({
   }, [caseId]);
 
   useEffect(() => {
-    let isMounted = true;
-    Promise.resolve().then(() => {
-      if (!isMounted) return;
+    if (activeTab === "bridges" && !bridgesData && !loadingBridges) {
       fetchBridges();
+    } else if (activeTab === "privacy" && !privacyData && !loadingPrivacy) {
       fetchPrivacy();
+    } else if (activeTab === "layering" && !layeringData && !loadingLayering) {
       fetchLayering();
-    });
-    return () => {
-      isMounted = false;
-    };
-  }, [fetchBridges, fetchPrivacy, fetchLayering]);
+    }
+  }, [activeTab, bridgesData, privacyData, layeringData, loadingBridges, loadingPrivacy, loadingLayering, fetchBridges, fetchPrivacy, fetchLayering]);
 
-  const isWalletInGraph = (addr?: string) => {
+  const isWalletInGraph = (addr?: string | null): boolean => {
     if (!addr) return false;
     return graphNodes.some((n) => n.address.toLowerCase() === addr.toLowerCase());
   };
@@ -134,19 +131,19 @@ export function ForensicDeepDivePanel({
   const renderAddressWithAction = (address: string, label: string) => {
     const exists = isWalletInGraph(address);
     return (
-      <div className="flex items-center gap-1.5 font-mono text-[11px]">
-        <span className="text-slate-300 font-semibold" title={address}>
+      <div className="flex items-center gap-1.5 font-mono text-xs">
+        <span className="text-white font-medium" title={address}>
           {truncateHash(address, 6)}
         </span>
         <button
           type="button"
           onClick={() => handleCopy(address)}
           aria-label={`Copy ${label}`}
-          className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-200 transition-colors"
+          className="p-1 hover:bg-white/[0.06] rounded text-white/40 hover:text-white transition-colors"
           title={`Copy ${label}`}
         >
           {copiedText === address ? (
-            <Check className="w-3 h-3 text-teal-400" />
+            <Check className="w-3 h-3 text-emerald-400" />
           ) : (
             <Copy className="w-3 h-3" />
           )}
@@ -155,10 +152,10 @@ export function ForensicDeepDivePanel({
           <button
             type="button"
             onClick={() => onSelectNode(address)}
-            className="px-1.5 py-0.5 bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-800 rounded text-[10px] font-sans font-bold transition-colors cursor-pointer"
-            title="Highlight in Graph Workbench"
+            className="px-2 py-0.5 bg-white/[0.04] hover:bg-white/[0.08] text-white/80 border border-white/10 rounded-md text-[10px] font-sans font-medium transition-all cursor-pointer"
+            title="Highlight in Graph"
           >
-            Inspect in Graph
+            Inspect
           </button>
         )}
       </div>
@@ -166,55 +163,55 @@ export function ForensicDeepDivePanel({
   };
 
   return (
-    <div className="w-full bg-slate-950 border border-slate-800 rounded-lg p-4 font-sans select-none space-y-4">
+    <div className="w-full rounded-2xl bg-white/[0.02] border border-white/5 p-5 font-sans select-none space-y-4">
       {/* Header & Section Sub-Tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-3 gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/5 pb-3 gap-3">
         <div>
-          <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
-            <Layers className="w-4 h-4 text-teal-400" />
+          <h3 className="text-sm font-medium text-white flex items-center gap-2">
+            <Layers className="w-4 h-4 text-white/60" />
             <span>Forensic Deep Dive Analysis</span>
           </h3>
-          <p className="text-xs text-slate-400 font-mono mt-0.5">
-            Real-time ledger intelligence for cross-chain bridges, privacy swappers, and multi-hop layering.
+          <p className="text-xs text-white/40 font-mono mt-0.5">
+            Cross-chain bridge hops, privacy protocols, and multi-hop layering dispersion.
           </p>
         </div>
 
         {/* Sub-Tabs Selector */}
-        <div className="flex items-center bg-slate-900 border border-slate-800 p-1 rounded-md font-mono text-xs shrink-0 flex-wrap sm:flex-nowrap gap-1">
+        <div className="inline-flex p-1 rounded-xl bg-white/[0.03] border border-white/10 font-mono text-xs shrink-0 flex-wrap sm:flex-nowrap gap-1">
           <button
             type="button"
             onClick={() => setActiveTab("bridges")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold transition-colors cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               activeTab === "bridges"
-                ? "bg-slate-800 text-teal-300 border border-teal-800 shadow"
-                : "text-slate-400 hover:text-slate-200"
+                ? "bg-white text-black font-semibold shadow-sm"
+                : "text-white/40 hover:text-white/80"
             }`}
           >
-            <ArrowRightLeft className="w-3.5 h-3.5 text-cyan-400" />
+            <ArrowRightLeft className="w-3.5 h-3.5" />
             <span>Cross-Chain Bridges</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("privacy")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold transition-colors cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               activeTab === "privacy"
-                ? "bg-slate-800 text-purple-300 border border-purple-800 shadow"
-                : "text-slate-400 hover:text-slate-200"
+                ? "bg-white text-black font-semibold shadow-sm"
+                : "text-white/40 hover:text-white/80"
             }`}
           >
-            <ShieldAlert className="w-3.5 h-3.5 text-purple-400" />
+            <ShieldAlert className="w-3.5 h-3.5" />
             <span>Privacy / Swappers</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("layering")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold transition-colors cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               activeTab === "layering"
-                ? "bg-slate-800 text-amber-300 border border-amber-800 shadow"
-                : "text-slate-400 hover:text-slate-200"
+                ? "bg-white text-black font-semibold shadow-sm"
+                : "text-white/40 hover:text-white/80"
             }`}
           >
-            <Layers className="w-3.5 h-3.5 text-amber-400" />
+            <Layers className="w-3.5 h-3.5" />
             <span>Layering Analysis</span>
           </button>
         </div>
@@ -224,22 +221,22 @@ export function ForensicDeepDivePanel({
       {activeTab === "bridges" && (
         <div className="space-y-4">
           {loadingBridges && (
-            <div className="p-8 text-center bg-slate-900/40 rounded border border-slate-900 font-mono text-xs text-slate-400 flex flex-col items-center justify-center gap-2">
-              <RefreshCw className="w-5 h-5 text-teal-400 animate-spin" />
+            <div className="p-8 text-center bg-white/[0.01] rounded-xl border border-white/5 font-mono text-xs text-white/40 flex flex-col items-center justify-center gap-2">
+              <RefreshCw className="w-5 h-5 text-white/60 animate-spin" />
               <span>Loading bridge analysis...</span>
             </div>
           )}
 
           {errorBridges && !loadingBridges && (
-            <div className="p-4 bg-red-950/60 border border-red-800 rounded font-mono text-xs text-red-300 flex items-center justify-between">
+            <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl font-mono text-xs text-rose-300 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
                 <span>Unable to load bridge analysis ({errorBridges})</span>
               </div>
               <button
                 type="button"
                 onClick={fetchBridges}
-                className="px-2.5 py-1 bg-red-900 hover:bg-red-800 text-white rounded font-sans text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
+                className="px-2.5 py-1 bg-white/[0.04] hover:bg-white/[0.08] text-white rounded-lg font-sans text-xs font-medium transition-all cursor-pointer flex items-center gap-1"
               >
                 <RefreshCw className="w-3 h-3" />
                 <span>Retry</span>
@@ -250,18 +247,18 @@ export function ForensicDeepDivePanel({
           {!loadingBridges && !errorBridges && bridgesData && (
             <>
               {/* Summary Header */}
-              <div className="flex items-center justify-between bg-slate-900/80 p-3 rounded border border-slate-800">
-                <span className="text-xs font-mono text-slate-400 uppercase tracking-wider">
+              <div className="flex items-center justify-between bg-white/[0.02] p-3 rounded-xl border border-white/5">
+                <span className="text-xs font-mono text-white/40 uppercase tracking-wider">
                   Total Bridges Detected
                 </span>
-                <span className="text-base font-bold font-mono text-cyan-400 px-2.5 py-0.5 bg-cyan-950 rounded border border-cyan-800">
+                <span className="text-sm font-bold font-mono text-white px-2.5 py-0.5 bg-white/10 rounded-md border border-white/10">
                   {bridgesData.total_bridges_detected}
                 </span>
               </div>
 
               {bridgesData.bridge_hops.length === 0 ? (
-                <div className="p-8 text-center bg-slate-900/30 rounded border border-slate-800/60 font-mono text-xs text-slate-500">
-                  No bridge hops returned for this case.
+                <div className="p-8 text-center bg-white/[0.01] rounded-xl border border-white/5 font-mono text-xs text-white/40">
+                  No bridge hops detected for this case.
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -273,66 +270,66 @@ export function ForensicDeepDivePanel({
                     return (
                       <div
                         key={idx}
-                        className="p-3.5 bg-slate-900/90 border border-slate-800 rounded font-mono text-xs space-y-3"
+                        className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl font-mono text-xs space-y-3"
                       >
                         {/* Source Chain -> Bridge Protocol -> Destination Chain Flow */}
-                        <div className="flex items-center justify-between bg-slate-950 p-2.5 rounded border border-slate-800">
+                        <div className="flex items-center justify-between bg-white/[0.02] p-2.5 rounded-lg border border-white/5">
                           <div className="text-center">
-                            <div className="text-[10px] text-slate-500 uppercase">Source</div>
-                            <div className="font-bold text-slate-200 uppercase">{hop.source_chain}</div>
+                            <div className="text-[10px] text-white/40 uppercase">Source</div>
+                            <div className="font-semibold text-white uppercase">{hop.source_chain}</div>
                           </div>
                           <div className="flex flex-col items-center px-2">
-                            <ArrowRight className="w-4 h-4 text-cyan-400" />
-                            <span className="text-[10px] font-bold text-cyan-300 uppercase mt-0.5">
+                            <ArrowRight className="w-4 h-4 text-white/60" />
+                            <span className="text-[10px] font-medium text-white/80 uppercase mt-0.5">
                               {hop.bridge_protocol}
                             </span>
                           </div>
                           <div className="text-center">
-                            <div className="text-[10px] text-slate-500 uppercase">Destination</div>
-                            <div className="font-bold text-slate-200 uppercase">{hop.destination_chain}</div>
+                            <div className="text-[10px] text-white/40 uppercase">Destination</div>
+                            <div className="font-semibold text-white uppercase">{hop.destination_chain}</div>
                           </div>
                         </div>
 
                         {/* Details */}
-                        <div className="space-y-1.5 text-[11px] pt-1 border-t border-slate-800/80">
+                        <div className="space-y-1.5 text-[11px] pt-1 border-t border-white/5">
                           {hop.token && (
                             <div className="flex justify-between">
-                              <span className="text-slate-500">Token:</span>
-                              <span className="font-bold text-slate-200">{hop.token}</span>
+                              <span className="text-white/40">Token:</span>
+                              <span className="font-medium text-white">{hop.token}</span>
                             </div>
                           )}
                           {hop.amount_usd !== undefined && (
                             <div className="flex justify-between">
-                              <span className="text-slate-500">Amount USD:</span>
-                              <span className="font-bold text-teal-400">
+                              <span className="text-white/40">Amount USD:</span>
+                              <span className="font-medium text-white">
                                 ${hop.amount_usd.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                               </span>
                             </div>
                           )}
                           {hop.destination_wallet && (
                             <div className="flex justify-between items-center">
-                              <span className="text-slate-500">Destination Wallet:</span>
+                              <span className="text-white/40">Destination Wallet:</span>
                               {renderAddressWithAction(hop.destination_wallet, "destination wallet")}
                             </div>
                           )}
 
                           {/* Source Tx Hash */}
                           {hop.source_tx_hash ? (
-                            <div className="flex justify-between items-center pt-1 border-t border-slate-800/60">
-                              <span className="text-slate-500">Source Tx Hash:</span>
+                            <div className="flex justify-between items-center pt-1 border-t border-white/5">
+                              <span className="text-white/40">Source Tx Hash:</span>
                               <div className="flex items-center gap-1.5">
-                                <span className="font-mono text-slate-300" title={hop.source_tx_hash}>
+                                <span className="font-mono text-white/80" title={hop.source_tx_hash}>
                                   {truncateHash(hop.source_tx_hash, 6)}
                                 </span>
                                 <button
                                   type="button"
                                   onClick={() => handleCopy(hop.source_tx_hash)}
                                   aria-label="Copy source transaction hash"
-                                  className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                                  className="p-1 hover:bg-white/[0.06] rounded text-white/40 hover:text-white transition-colors cursor-pointer"
                                   title="Copy source transaction hash"
                                 >
                                   {copiedText === hop.source_tx_hash ? (
-                                    <Check className="w-3 h-3 text-teal-400" />
+                                    <Check className="w-3 h-3 text-emerald-400" />
                                   ) : (
                                     <Copy className="w-3 h-3" />
                                   )}
@@ -342,38 +339,38 @@ export function ForensicDeepDivePanel({
                                     href={sourceExplorerUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center gap-1 px-1.5 py-0.5 bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-800 rounded text-[10px] font-sans font-bold transition-colors cursor-pointer"
-                                    title={`View on ${hop.source_chain || "block"} explorer`}
+                                    className="flex items-center gap-1 px-2 py-0.5 bg-white/[0.04] hover:bg-white/[0.08] text-white/80 border border-white/10 rounded-md text-[10px] font-sans font-medium transition-all cursor-pointer"
+                                    title={`View on explorer`}
                                   >
                                     <span>Explorer</span>
-                                    <ExternalLink className="w-3 h-3 text-cyan-400" />
+                                    <ExternalLink className="w-3 h-3 text-white/60" />
                                   </a>
                                 ) : (
-                                  <span className="text-[10px] text-slate-500 italic bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">
-                                    Explorer unavailable
+                                  <span className="text-[10px] text-white/30 italic">
+                                    Unavailable
                                   </span>
                                 )}
                               </div>
                             </div>
                           ) : null}
 
-                          {/* Destination Tx Hash (if provided by backend) */}
+                          {/* Destination Tx Hash */}
                           {destTxHash ? (
-                            <div className="flex justify-between items-center pt-1 border-t border-slate-800/40">
-                              <span className="text-slate-500">Dest Tx Hash:</span>
+                            <div className="flex justify-between items-center pt-1 border-t border-white/5">
+                              <span className="text-white/40">Dest Tx Hash:</span>
                               <div className="flex items-center gap-1.5">
-                                <span className="font-mono text-slate-300" title={destTxHash}>
+                                <span className="font-mono text-white/80" title={destTxHash}>
                                   {truncateHash(destTxHash, 6)}
                                 </span>
                                 <button
                                   type="button"
                                   onClick={() => handleCopy(destTxHash)}
                                   aria-label="Copy destination transaction hash"
-                                  className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                                  className="p-1 hover:bg-white/[0.06] rounded text-white/40 hover:text-white transition-colors cursor-pointer"
                                   title="Copy destination transaction hash"
                                 >
                                   {copiedText === destTxHash ? (
-                                    <Check className="w-3 h-3 text-teal-400" />
+                                    <Check className="w-3 h-3 text-emerald-400" />
                                   ) : (
                                     <Copy className="w-3 h-3" />
                                   )}
@@ -383,15 +380,15 @@ export function ForensicDeepDivePanel({
                                     href={destExplorerUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center gap-1 px-1.5 py-0.5 bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-800 rounded text-[10px] font-sans font-bold transition-colors cursor-pointer"
-                                    title={`View on ${hop.destination_chain || "block"} explorer`}
+                                    className="flex items-center gap-1 px-2 py-0.5 bg-white/[0.04] hover:bg-white/[0.08] text-white/80 border border-white/10 rounded-md text-[10px] font-sans font-medium transition-all cursor-pointer"
+                                    title={`View on explorer`}
                                   >
                                     <span>Explorer</span>
-                                    <ExternalLink className="w-3 h-3 text-cyan-400" />
+                                    <ExternalLink className="w-3 h-3 text-white/60" />
                                   </a>
                                 ) : (
-                                  <span className="text-[10px] text-slate-500 italic bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">
-                                    Explorer unavailable
+                                  <span className="text-[10px] text-white/30 italic">
+                                    Unavailable
                                   </span>
                                 )}
                               </div>
@@ -412,22 +409,22 @@ export function ForensicDeepDivePanel({
       {activeTab === "privacy" && (
         <div className="space-y-4">
           {loadingPrivacy && (
-            <div className="p-8 text-center bg-slate-900/40 rounded border border-slate-900 font-mono text-xs text-slate-400 flex flex-col items-center justify-center gap-2">
-              <RefreshCw className="w-5 h-5 text-purple-400 animate-spin" />
+            <div className="p-8 text-center bg-white/[0.01] rounded-xl border border-white/5 font-mono text-xs text-white/40 flex flex-col items-center justify-center gap-2">
+              <RefreshCw className="w-5 h-5 text-white/60 animate-spin" />
               <span>Loading privacy analysis...</span>
             </div>
           )}
 
           {errorPrivacy && !loadingPrivacy && (
-            <div className="p-4 bg-red-950/60 border border-red-800 rounded font-mono text-xs text-red-300 flex items-center justify-between">
+            <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl font-mono text-xs text-rose-300 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
                 <span>Unable to load privacy analysis ({errorPrivacy})</span>
               </div>
               <button
                 type="button"
                 onClick={fetchPrivacy}
-                className="px-2.5 py-1 bg-red-900 hover:bg-red-800 text-white rounded font-sans text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
+                className="px-2.5 py-1 bg-white/[0.04] hover:bg-white/[0.08] text-white rounded-lg font-sans text-xs font-medium transition-all cursor-pointer flex items-center gap-1"
               >
                 <RefreshCw className="w-3 h-3" />
                 <span>Retry</span>
@@ -439,66 +436,66 @@ export function ForensicDeepDivePanel({
             <>
               {/* Investigation Alert Banner */}
               {privacyData.privacy_swappers_detected.length > 0 && (
-                <div className="p-3 bg-purple-950/80 border border-purple-700 rounded text-purple-200 font-mono text-xs space-y-1">
-                  <div className="flex items-center gap-2 font-bold font-sans text-xs text-purple-300 uppercase tracking-wider">
-                    <ShieldAlert className="w-4 h-4 text-purple-400 shrink-0 animate-pulse" />
-                    <span>Privacy / Swapper Activity Detected</span>
+                <div className="p-3 bg-white/[0.03] border border-white/10 rounded-xl text-white font-mono text-xs space-y-1">
+                  <div className="flex items-center gap-2 font-medium font-sans text-xs text-white uppercase tracking-wider">
+                    <ShieldAlert className="w-4 h-4 text-white/60 shrink-0 animate-pulse" />
+                    <span>Privacy Protocol Activity Detected</span>
                   </div>
-                  <p className="text-[11px] text-purple-300/90 leading-relaxed font-mono">
-                    Backend forensic analysis returned privacy-swapper activity for this case.
+                  <p className="text-[11px] text-white/60 leading-relaxed font-mono">
+                    Forensic ledger analysis detected interaction with privacy mixing/swapping infrastructure.
                   </p>
                 </div>
               )}
 
               {privacyData.privacy_swappers_detected.length === 0 ? (
-                <div className="p-8 text-center bg-slate-900/30 rounded border border-slate-800/60 font-mono text-xs text-slate-500">
-                  No privacy-swapper findings returned for this case.
+                <div className="p-8 text-center bg-white/[0.01] rounded-xl border border-white/5 font-mono text-xs text-white/40">
+                  No privacy mixer findings detected for this case.
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {privacyData.privacy_swappers_detected.map((item, idx) => {
-                    const subpoenaStatus =
+                    const complianceStatus =
                       item.subpoena_questionnaire_ready === true
                         ? "Available"
                         : item.subpoena_questionnaire_ready === false
-                        ? "Not available"
+                        ? "Pending"
                         : "Unavailable";
 
                     return (
                       <div
                         key={idx}
-                        className="p-3.5 bg-slate-900/90 border border-slate-800 rounded font-mono text-xs space-y-2.5"
+                        className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl font-mono text-xs space-y-2.5"
                       >
-                        <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                          <span className="font-bold text-slate-100 font-sans text-sm">{item.service_name}</span>
-                          <span className="text-[10px] px-2 py-0.5 bg-purple-950 text-purple-300 border border-purple-800 rounded font-extrabold uppercase">
+                        <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                          <span className="font-semibold text-white font-sans text-sm">{item.service_name}</span>
+                          <span className="text-[10px] px-2 py-0.5 bg-white/10 text-white border border-white/10 rounded-md font-mono uppercase">
                             {item.swapper_type || "Swapper"}
                           </span>
                         </div>
 
                         <div className="space-y-1.5 text-[11px]">
                           <div className="flex justify-between">
-                            <span className="text-slate-500">Input Currency:</span>
-                            <span className="font-bold text-slate-200">{item.input_currency}</span>
+                            <span className="text-white/40">Input Asset:</span>
+                            <span className="font-medium text-white">{item.input_currency}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-500">Output Currency:</span>
-                            <span className="font-bold text-purple-300">{item.output_currency}</span>
+                            <span className="text-white/40">Output Asset:</span>
+                            <span className="font-medium text-white">{item.output_currency}</span>
                           </div>
-                          <div className="flex justify-between items-center pt-1 border-t border-slate-800/60">
-                            <span className="text-slate-500">Intercept Address:</span>
+                          <div className="flex justify-between items-center pt-1 border-t border-white/5">
+                            <span className="text-white/40">Intercept Target:</span>
                             {renderAddressWithAction(item.intercept_address, "intercept address")}
                           </div>
                           <div className="flex justify-between items-center pt-1">
-                            <span className="text-slate-500">Subpoena Questionnaire:</span>
+                            <span className="text-white/40">Compliance Directive:</span>
                             <span
-                              className={`font-bold px-1.5 py-0.2 rounded text-[10px] ${
-                                subpoenaStatus === "Available"
-                                  ? "bg-teal-950 text-teal-400 border border-teal-800"
-                                  : "bg-slate-800 text-slate-400 border border-slate-700"
+                              className={`font-medium px-2 py-0.5 rounded-md text-[10px] font-mono ${
+                                complianceStatus === "Available"
+                                  ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"
+                                  : "bg-white/[0.04] text-white/50 border border-white/5"
                               }`}
                             >
-                              {subpoenaStatus}
+                              {complianceStatus}
                             </span>
                           </div>
                         </div>
@@ -516,22 +513,22 @@ export function ForensicDeepDivePanel({
       {activeTab === "layering" && (
         <div className="space-y-4">
           {loadingLayering && (
-            <div className="p-8 text-center bg-slate-900/40 rounded border border-slate-900 font-mono text-xs text-slate-400 flex flex-col items-center justify-center gap-2">
-              <RefreshCw className="w-5 h-5 text-amber-400 animate-spin" />
+            <div className="p-8 text-center bg-white/[0.01] rounded-xl border border-white/5 font-mono text-xs text-white/40 flex flex-col items-center justify-center gap-2">
+              <RefreshCw className="w-5 h-5 text-white/60 animate-spin" />
               <span>Loading layering analysis...</span>
             </div>
           )}
 
           {errorLayering && !loadingLayering && (
-            <div className="p-4 bg-red-950/60 border border-red-800 rounded font-mono text-xs text-red-300 flex items-center justify-between">
+            <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl font-mono text-xs text-rose-300 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
                 <span>Unable to load layering analysis ({errorLayering})</span>
               </div>
               <button
                 type="button"
                 onClick={fetchLayering}
-                className="px-2.5 py-1 bg-red-900 hover:bg-red-800 text-white rounded font-sans text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
+                className="px-2.5 py-1 bg-white/[0.04] hover:bg-white/[0.08] text-white rounded-lg font-sans text-xs font-medium transition-all cursor-pointer flex items-center gap-1"
               >
                 <RefreshCw className="w-3 h-3" />
                 <span>Retry</span>
@@ -541,74 +538,66 @@ export function ForensicDeepDivePanel({
 
           {!loadingLayering && !errorLayering && layeringData && (
             <>
-              {/* Analysis Summary Banner from Backend */}
+              {/* Analysis Summary */}
               {layeringData.summary && (
-                <div className="p-3 bg-slate-900/90 border border-slate-800 rounded font-mono text-xs space-y-1">
-                  <div className="text-[10px] text-slate-500 uppercase font-semibold">Analysis Summary</div>
-                  <p className="text-[11px] leading-relaxed text-slate-300">{layeringData.summary}</p>
+                <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl font-mono text-xs space-y-1">
+                  <div className="text-[10px] text-white/40 uppercase font-mono tracking-wider">Analysis Summary</div>
+                  <p className="text-[11px] leading-relaxed text-white/80 font-sans">{layeringData.summary}</p>
                 </div>
               )}
 
               {/* Summary Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 bg-slate-900/80 p-3 rounded border border-slate-800 font-mono text-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 bg-white/[0.02] p-3 rounded-xl border border-white/5 font-mono text-xs">
                 <div>
-                  <div className="text-[10px] text-slate-500 uppercase">Max Layering Depth</div>
-                  <div className="text-sm font-bold text-amber-400 mt-0.5">
+                  <div className="text-[10px] text-white/40 uppercase">Max Depth</div>
+                  <div className="text-sm font-bold text-white mt-0.5">
                     {layeringData.max_hop_count !== undefined && layeringData.max_hop_count !== null
-                      ? `${layeringData.max_hop_count} ${layeringData.max_hop_count === 1 ? "Hop" : "Hops"}`
+                      ? `${layeringData.max_hop_count} Hops`
                       : layeringData.max_layering_depth !== undefined && layeringData.max_layering_depth !== null
-                      ? `${layeringData.max_layering_depth} ${layeringData.max_layering_depth === 1 ? "Hop" : "Hops"}`
-                      : "Unavailable"}
+                      ? `${layeringData.max_layering_depth} Hops`
+                      : "N/A"}
                   </div>
                 </div>
 
                 <div>
-                  <div className="text-[10px] text-slate-500 uppercase">Total Paths</div>
-                  <div className="text-sm font-bold text-slate-200 mt-0.5">
-                    {layeringData.total_paths_discovered !== undefined && layeringData.total_paths_discovered !== null
-                      ? layeringData.total_paths_discovered
-                      : "Unavailable"}
+                  <div className="text-[10px] text-white/40 uppercase">Total Paths</div>
+                  <div className="text-sm font-bold text-white mt-0.5">
+                    {layeringData.total_paths_discovered ?? "N/A"}
                   </div>
                 </div>
 
                 <div>
-                  <div className="text-[10px] text-slate-500 uppercase">Min Hop Count</div>
-                  <div className="text-sm font-bold text-slate-200 mt-0.5">
-                    {layeringData.min_hop_count !== undefined && layeringData.min_hop_count !== null
-                      ? layeringData.min_hop_count
-                      : "Unavailable"}
+                  <div className="text-[10px] text-white/40 uppercase">Min Hops</div>
+                  <div className="text-sm font-bold text-white mt-0.5">
+                    {layeringData.min_hop_count ?? "N/A"}
                   </div>
                 </div>
 
                 <div>
-                  <div className="text-[10px] text-slate-500 uppercase">Peeling Chains</div>
-                  <div className="text-xs font-bold text-slate-400 mt-0.5">
-                    {layeringData.peeling_chain_count !== undefined && layeringData.peeling_chain_count !== null
-                      ? layeringData.peeling_chain_count
-                      : "Unavailable"}
+                  <div className="text-[10px] text-white/40 uppercase">Peeling Chains</div>
+                  <div className="text-sm font-bold text-white mt-0.5">
+                    {layeringData.peeling_chain_count ?? "N/A"}
                   </div>
                 </div>
 
                 <div>
-                  <div className="text-[10px] text-slate-500 uppercase">Fan-Out Count</div>
-                  <div className="text-xs font-bold text-slate-400 mt-0.5">
-                    {layeringData.fan_out_count !== undefined && layeringData.fan_out_count !== null
-                      ? layeringData.fan_out_count
-                      : "Unavailable"}
+                  <div className="text-[10px] text-white/40 uppercase">Fan-Out Count</div>
+                  <div className="text-sm font-bold text-white mt-0.5">
+                    {layeringData.fan_out_count ?? "N/A"}
                   </div>
                 </div>
 
                 <div>
-                  <div className="text-[10px] text-slate-500 uppercase">Rapid Movement</div>
-                  <div className="text-xs font-bold mt-0.5">
+                  <div className="text-[10px] text-white/40 uppercase">Velocity</div>
+                  <div className="text-xs font-medium mt-1">
                     {layeringData.rapid_movement_detected === true ? (
-                      <span className="text-red-400 flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> Rapid movement detected
+                      <span className="text-rose-400 flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> Rapid
                       </span>
                     ) : layeringData.rapid_movement_detected === false ? (
-                      <span className="text-slate-400">No rapid movement detected</span>
+                      <span className="text-white/60">Standard</span>
                     ) : (
-                      <span className="text-slate-400 font-normal">Unavailable</span>
+                      <span className="text-white/30">N/A</span>
                     )}
                   </div>
                 </div>
@@ -619,42 +608,42 @@ export function ForensicDeepDivePanel({
                 const mules = layeringData.classified_intermediaries || layeringData.intermediary_mules || [];
                 return (
                   <div className="space-y-2">
-                    <div className="text-xs font-bold text-slate-400 font-sans uppercase tracking-wider">
-                      Intermediary Mule Wallets ({mules.length})
+                    <div className="text-xs font-medium text-white/60 font-sans uppercase tracking-wider">
+                      Intermediary Mules ({mules.length})
                     </div>
 
                     {mules.length === 0 ? (
-                      <div className="p-6 text-center bg-slate-900/30 rounded border border-slate-800/60 font-mono text-xs text-slate-500">
-                        No intermediary mule wallets returned for this case.
+                      <div className="p-6 text-center bg-white/[0.01] rounded-xl border border-white/5 font-mono text-xs text-white/40">
+                        No intermediary mule addresses identified for this case.
                       </div>
                     ) : (
-                      <div className="overflow-x-auto border border-slate-800 rounded bg-slate-900/60">
+                      <div className="overflow-x-auto border border-white/5 rounded-xl bg-white/[0.01]">
                         <table className="w-full text-left font-mono text-xs border-collapse">
                           <thead>
-                            <tr className="border-b border-slate-800 text-[10px] text-slate-500 uppercase bg-slate-950">
-                              <th className="p-2.5">Wallet Address</th>
-                              <th className="p-2.5">Role</th>
-                              <th className="p-2.5 text-right">Holding Time</th>
+                            <tr className="border-b border-white/5 text-[10px] text-white/40 uppercase bg-white/[0.02]">
+                              <th className="p-3">Wallet Address</th>
+                              <th className="p-3">Role</th>
+                              <th className="p-3 text-right">Holding Time</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-800/60">
+                          <tbody className="divide-y divide-white/5">
                             {mules.map((mule, idx) => {
                               const holdingTimeText =
                                 mule.holding_time_minutes !== undefined && mule.holding_time_minutes !== null
-                                  ? `${mule.holding_time_minutes} minutes`
-                                  : "Unavailable";
+                                  ? `${mule.holding_time_minutes} min`
+                                  : "N/A";
 
                               return (
-                                <tr key={idx} className="hover:bg-slate-900/90 transition-colors">
-                                  <td className="p-2.5">
+                                <tr key={idx} className="hover:bg-white/[0.02] transition-colors">
+                                  <td className="p-3">
                                     {renderAddressWithAction(mule.address, "intermediary wallet")}
                                   </td>
-                                  <td className="p-2.5">
-                                    <span className="px-1.5 py-0.5 bg-amber-950 text-amber-300 border border-amber-800 rounded text-[10px] font-bold">
+                                  <td className="p-3">
+                                    <span className="px-2 py-0.5 bg-white/10 text-white rounded-md text-[10px] font-mono">
                                       {mule.role}
                                     </span>
                                   </td>
-                                  <td className="p-2.5 text-right text-slate-300 font-bold">
+                                  <td className="p-3 text-right text-white/80 font-mono">
                                     {holdingTimeText}
                                   </td>
                                 </tr>
@@ -671,22 +660,22 @@ export function ForensicDeepDivePanel({
               {/* Laundering Paths Section */}
               {layeringData.paths && (
                 <div className="space-y-2">
-                  <div className="text-xs font-bold text-slate-400 font-sans uppercase tracking-wider">
+                  <div className="text-xs font-medium text-white/60 font-sans uppercase tracking-wider">
                     Laundering Paths Discovered ({layeringData.paths.length})
                   </div>
                   {layeringData.paths.length === 0 ? (
-                    <div className="p-4 text-center bg-slate-900/30 rounded border border-slate-800/60 font-mono text-xs text-slate-500">
-                      No laundering paths discovered.
+                    <div className="p-4 text-center bg-white/[0.01] rounded-xl border border-white/5 font-mono text-xs text-white/40">
+                      No distinct layering paths discovered.
                     </div>
                   ) : (
                     <div className="space-y-2">
                       {layeringData.paths.map((p, idx) => (
-                        <div key={idx} className="p-3 bg-slate-900/80 border border-slate-800 rounded font-mono text-xs space-y-1">
-                          <div className="flex justify-between text-[11px] text-slate-400">
+                        <div key={idx} className="p-3 bg-white/[0.02] border border-white/5 rounded-xl font-mono text-xs space-y-1">
+                          <div className="flex justify-between text-xs text-white/60">
                             <span>Path #{idx + 1}</span>
-                            <span className="text-amber-400 font-bold">{p.hop_count ?? 0} Hops</span>
+                            <span className="text-white font-medium">{p.hop_count ?? 0} Hops</span>
                           </div>
-                          {p.summary && <p className="text-[11px] text-slate-300">{p.summary}</p>}
+                          {p.summary && <p className="text-[11px] text-white/70 font-sans">{p.summary}</p>}
                         </div>
                       ))}
                     </div>

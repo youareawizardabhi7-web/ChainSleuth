@@ -18,7 +18,20 @@ import { getCase, downloadCourtEvidenceBundle } from "@/lib/api";
 import { TraceResult, WalletNode, TransferEdge, WalletCluster } from "@/lib/types";
 import { EvidenceCertModal } from "@/components/case/EvidenceCertModal";
 import { AIInvestigationDocketModal } from "@/components/case/AIInvestigationDocketModal";
-import { ShieldAlert, ArrowRightLeft, X, Boxes, XCircle, FileCheck, Archive, ShieldCheck, Loader2, AlertCircle, Sparkles, FileText } from "lucide-react";
+import {
+  ShieldAlert,
+  ArrowRightLeft,
+  X,
+  Boxes,
+  XCircle,
+  FileCheck,
+  Archive,
+  ShieldCheck,
+  Loader2,
+  AlertCircle,
+  Sparkles,
+  FileText,
+} from "lucide-react";
 
 export default function CaseWorkbenchPage({
   params,
@@ -84,98 +97,105 @@ export default function CaseWorkbenchPage({
     }
   };
 
+  const formattedCaseId = `#CS-${caseId.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8).toUpperCase()}`;
+
   return (
     <AppShell>
-      <div className="flex flex-col space-y-4 font-mono text-xs select-none pr-1">
-        {/* Top Graph Header Toolbar */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-2.5 shrink-0 bg-slate-950">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <ShieldAlert className="w-4 h-4 text-teal-400" />
-              <h1 className="text-sm font-bold font-sans text-slate-100 uppercase tracking-wider">
-                Case Workbench: {caseId}
+      <div className="flex flex-col space-y-4 select-none pb-8">
+        {/* Top Header Bar */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between pb-3.5 border-b border-white/5 gap-3.5">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2.5">
+              <h1 className="font-instrument text-2xl sm:text-3xl font-normal text-white tracking-tight">
+                Case Dossier
               </h1>
+              <span className="font-mono text-xs px-2.5 py-1 rounded-lg bg-white/[0.04] text-white/70 border border-white/10 font-medium">
+                {formattedCaseId}
+              </span>
             </div>
 
             {traceData && (
               <>
-                <span className="text-slate-700">|</span>
-                <span className="text-slate-500 font-sans text-[11px]">Suspect Wallet:</span>
-                <AddressBadge address={traceData.suspect_address} truncateLength={6} />
-                <span className="text-slate-700">|</span>
-                <span className="uppercase text-slate-300 font-bold bg-slate-900 px-2 py-0.5 border border-slate-800 rounded text-[10px]">
+                <span className="text-white/20 hidden sm:inline">•</span>
+                <div className="flex items-center gap-1.5 text-xs text-white/50 font-mono">
+                  <span>Target:</span>
+                  <AddressBadge address={traceData.suspect_address} truncateLength={6} />
+                </div>
+                <span className="uppercase text-white/80 font-mono text-[10px] tracking-wider px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/10 font-medium">
                   {traceData.chain || "TRON"}
                 </span>
               </>
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Action Buttons */}
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={handleDownloadBundle}
               disabled={isDownloadingBundle}
-              className="flex items-center gap-1.5 px-3 py-1 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-emerald-300 font-sans font-bold text-[11px] rounded border border-slate-700 transition-colors shadow cursor-pointer disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] disabled:opacity-40 text-white/80 font-medium text-xs rounded-xl border border-white/10 transition-all cursor-pointer shadow-sm"
               title="Download Evidence Bundle (.ZIP)"
             >
               {isDownloadingBundle ? (
-                <Loader2 className="w-3.5 h-3.5 text-emerald-400 animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
-                <Archive className="w-3.5 h-3.5 text-emerald-400" />
+                <Archive className="w-3.5 h-3.5 text-white/60" />
               )}
-              <span>Download Evidence Bundle</span>
+              <span>Evidence Bundle</span>
             </button>
 
             <button
               type="button"
               onClick={() => setIsCertModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1 bg-slate-900 hover:bg-slate-800 text-teal-300 font-sans font-bold text-[11px] rounded border border-slate-700 transition-colors shadow cursor-pointer"
-              title="View Cryptographic Evidence Certificate"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] text-white/80 font-medium text-xs rounded-xl border border-white/10 transition-all cursor-pointer shadow-sm"
+              title="View Cryptographic Certificate"
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
-              <span>View Certificate</span>
+              <ShieldCheck className="w-3.5 h-3.5 text-white/60" />
+              <span>Certificate</span>
             </button>
 
             <button
               type="button"
               onClick={() => setIsReportModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1 bg-purple-950 hover:bg-purple-900 text-purple-300 font-sans font-bold text-[11px] rounded border border-purple-800 transition-colors shadow cursor-pointer"
-              title="Generate AI Forensic Investigation Docket"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] text-white/80 font-medium text-xs rounded-xl border border-white/10 transition-all cursor-pointer shadow-sm"
+              title="Generate AI Forensic Report"
             >
-              <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-              <span>Generate AI Docket</span>
+              <Sparkles className="w-3.5 h-3.5 text-white/60" />
+              <span>AI Report</span>
             </button>
 
             <Link
               href={`/case/${caseId}/notice`}
-              className="flex items-center gap-1.5 px-3 py-1 bg-teal-600 hover:bg-teal-500 text-slate-950 font-sans font-bold text-[11px] rounded transition-colors shadow cursor-pointer"
-              title="Issue Compliance Asset Freeze Notice"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white text-black hover:bg-white/90 font-medium text-xs rounded-xl transition-all shadow-sm cursor-pointer"
+              title="Issue Compliance Notice"
             >
-              <FileText className="w-3.5 h-3.5 text-slate-950" />
-              <span>Issue Freeze Notice</span>
+              <FileText className="w-3.5 h-3.5" />
+              <span>Compliance Notice</span>
             </Link>
 
             <Link
               href={`/case/${caseId}/fir`}
-              className="flex items-center gap-1.5 px-3 py-1 bg-slate-900 hover:bg-slate-800 text-teal-300 font-sans font-bold text-[11px] rounded border border-slate-700 transition-colors shadow"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] text-white/80 font-medium text-xs rounded-xl border border-white/10 transition-all cursor-pointer shadow-sm"
             >
-              <FileCheck className="w-3.5 h-3.5 text-teal-400" />
-              <span>Incident Docket</span>
+              <FileCheck className="w-3.5 h-3.5 text-white/60" />
+              <span>Case Docket</span>
             </Link>
+
             {traceData && <RiskBadge score={traceData.overall_risk_score} size="md" />}
           </div>
         </div>
 
         {bundleError && (
-          <div className="p-2 bg-red-950/90 border border-red-700 rounded text-red-200 font-mono text-[11px] flex items-center justify-between shadow">
+          <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-200 font-mono text-xs flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
               <span>{bundleError}</span>
             </div>
             <button
               type="button"
               onClick={() => setBundleError(null)}
-              className="text-red-400 hover:text-red-200 font-bold px-2"
+              className="text-rose-400 hover:text-white font-bold px-2 cursor-pointer"
             >
               ×
             </button>
@@ -183,7 +203,7 @@ export default function CaseWorkbenchPage({
         )}
 
         {/* Three-Column Investigation Workspace */}
-        <div className="grid grid-cols-12 gap-3 h-[580px] min-h-[580px]">
+        <div className="grid grid-cols-12 gap-4 h-[600px] min-h-[600px]">
           {/* CENTER: Graph Canvas Area (8 cols) */}
           <div className="col-span-12 lg:col-span-8 flex flex-col space-y-2 h-full min-h-0 relative">
             <GraphControls
@@ -199,36 +219,36 @@ export default function CaseWorkbenchPage({
 
             {/* Floating Active Cluster Banner */}
             {selectedCluster && (
-              <div className="absolute top-14 left-4 z-20 bg-purple-950/90 border border-purple-600 backdrop-blur px-3 py-1.5 rounded text-[11px] font-mono flex items-center gap-3 text-purple-200 shadow-xl">
-                <span className="flex items-center gap-1.5 font-bold font-sans">
-                  <Boxes className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
-                  Cluster Active: {selectedCluster.label || "Cluster"}
+              <div className="absolute top-14 left-4 z-20 bg-[#080808]/90 border border-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-xl text-xs font-mono flex items-center gap-3 text-white shadow-xl">
+                <span className="flex items-center gap-1.5 font-sans font-medium">
+                  <Boxes className="w-3.5 h-3.5 text-white/80" />
+                  Cluster: {selectedCluster.label || "Active"}
                 </span>
-                <span className="text-[10px] bg-purple-900 text-purple-200 px-1.5 py-0.5 rounded font-mono border border-purple-700">
+                <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-md font-mono border border-white/10">
                   {(selectedCluster.member_addresses || []).length} Wallets
                 </span>
                 <button
                   type="button"
                   onClick={() => setSelectedCluster(null)}
-                  className="flex items-center gap-1 px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-rose-300 hover:text-rose-100 rounded border border-slate-700 text-[10px] transition-colors cursor-pointer"
+                  className="flex items-center gap-1 px-2 py-0.5 bg-white/[0.04] hover:bg-white/[0.08] text-rose-300 hover:text-rose-200 rounded-md border border-white/10 text-[10px] transition-colors cursor-pointer"
                 >
                   <XCircle className="w-3 h-3 text-rose-400" />
-                  Clear Cluster Selection
+                  <span>Deselect</span>
                 </button>
               </div>
             )}
 
-            <div className="flex-1 min-h-0 relative border border-slate-800 rounded">
+            <div className="flex-1 min-h-0 relative border border-white/5 rounded-2xl bg-[#030303] overflow-hidden">
               {loading ? (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-slate-950 space-y-3">
-                  <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
-                  <div className="text-slate-400 font-mono text-xs">
-                    Building Cypher path graph topology...
+                <div className="w-full h-full flex flex-col items-center justify-center space-y-3">
+                  <Loader2 className="w-6 h-6 text-white/60 animate-spin" />
+                  <div className="text-white/40 font-mono text-xs">
+                    Synthesizing multi-hop graph topology...
                   </div>
                 </div>
               ) : !traceData || traceData.nodes.length === 0 ? (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-slate-950 space-y-2 text-slate-500 font-mono text-xs">
-                  <ShieldAlert className="w-6 h-6 text-slate-700" />
+                <div className="w-full h-full flex flex-col items-center justify-center space-y-2 text-white/40 font-mono text-xs">
+                  <ShieldAlert className="w-6 h-6 text-white/20" />
                   <div>No investigation transaction path found for this case.</div>
                 </div>
               ) : graphMode === "2D" ? (
@@ -269,52 +289,58 @@ export default function CaseWorkbenchPage({
 
               {/* Transaction Edge Click Popover */}
               {selectedEdge && (
-                <div className="absolute top-4 left-4 z-30 w-80 bg-slate-900/95 backdrop-blur border border-teal-800/80 rounded p-3 text-xs shadow-2xl space-y-2">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
-                    <span className="font-bold text-teal-300 flex items-center gap-1.5">
-                      <ArrowRightLeft className="w-3.5 h-3.5" />
+                <div className="absolute top-4 left-4 z-30 w-80 bg-[#0a0a0a]/95 backdrop-blur-md border border-white/15 rounded-xl p-3.5 text-xs shadow-2xl space-y-2.5">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                    <span className="font-semibold text-white flex items-center gap-1.5 font-sans">
+                      <ArrowRightLeft className="w-3.5 h-3.5 text-white/70" />
                       Transaction Hop Details
                     </span>
                     <button
                       type="button"
                       onClick={() => setSelectedEdge(null)}
-                      className="text-slate-500 hover:text-slate-200"
+                      className="text-white/40 hover:text-white cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
 
                   <div>
-                    <span className="text-slate-500 text-[10px] block">Transaction Hash</span>
+                    <span className="text-white/40 text-[10px] block font-mono uppercase tracking-wider mb-0.5">
+                      Transaction Hash
+                    </span>
                     {selectedEdge.txHash ? (
                       <AddressBadge address={selectedEdge.txHash} truncateLength={8} />
                     ) : (
-                      <span className="text-slate-400">N/A</span>
+                      <span className="text-white/40 font-mono">N/A</span>
                     )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
                     <div>
-                      <span className="text-slate-500 block text-[10px]">From Address</span>
+                      <span className="text-white/40 block text-[10px] font-mono uppercase tracking-wider mb-0.5">
+                        From
+                      </span>
                       {selectedEdge.from ? (
                         <AddressBadge address={selectedEdge.from} truncateLength={4} />
                       ) : (
-                        <span className="text-slate-400">N/A</span>
+                        <span className="text-white/40 font-mono">N/A</span>
                       )}
                     </div>
                     <div>
-                      <span className="text-slate-500 block text-[10px]">To Address</span>
+                      <span className="text-white/40 block text-[10px] font-mono uppercase tracking-wider mb-0.5">
+                        To
+                      </span>
                       {selectedEdge.to ? (
                         <AddressBadge address={selectedEdge.to} truncateLength={4} />
                       ) : (
-                        <span className="text-slate-400">N/A</span>
+                        <span className="text-white/40 font-mono">N/A</span>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-1 border-t border-slate-800 text-[11px]">
-                    <span className="text-slate-400">Transferred Value:</span>
-                    <span className="font-bold text-teal-300">
+                  <div className="flex items-center justify-between pt-2 border-t border-white/10 text-xs font-mono">
+                    <span className="text-white/40">Transferred:</span>
+                    <span className="font-bold text-white">
                       {selectedEdge.value !== undefined && selectedEdge.value !== null
                         ? `${selectedEdge.value.toLocaleString()} ${
                             selectedEdge.token || (traceData?.chain === "bitcoin" ? "BTC" : "N/A")
@@ -323,7 +349,7 @@ export default function CaseWorkbenchPage({
                     </span>
                   </div>
 
-                  <div className="text-[10px] text-slate-500 text-right">
+                  <div className="text-[10px] text-white/30 text-right font-mono">
                     {selectedEdge.timestamp ? new Date(selectedEdge.timestamp).toLocaleString() : "N/A"}
                   </div>
                 </div>
@@ -342,14 +368,14 @@ export default function CaseWorkbenchPage({
             )}
 
             {/* Tab Selector Header */}
-            <div className="flex items-center bg-slate-900 p-1 rounded border border-slate-800 shrink-0 gap-1 font-sans text-xs">
+            <div className="inline-flex w-full p-1 rounded-xl bg-white/[0.03] border border-white/10 shrink-0 gap-1 text-xs">
               <button
                 type="button"
                 onClick={() => setRightPanelTab("node_inspector")}
-                className={`flex-1 py-1.5 px-2 rounded font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer text-[11px] ${
+                className={`flex-1 py-1.5 px-2 rounded-lg font-medium transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs ${
                   rightPanelTab === "node_inspector"
-                    ? "bg-slate-800 text-teal-400 border border-slate-700 shadow"
-                    : "text-slate-400 hover:text-slate-200"
+                    ? "bg-white text-black font-semibold shadow-sm"
+                    : "text-white/40 hover:text-white/80"
                 }`}
               >
                 <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
@@ -359,16 +385,16 @@ export default function CaseWorkbenchPage({
               <button
                 type="button"
                 onClick={() => setRightPanelTab("clusters")}
-                className={`flex-1 py-1.5 px-2 rounded font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer text-[11px] ${
+                className={`flex-1 py-1.5 px-2 rounded-lg font-medium transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs ${
                   rightPanelTab === "clusters"
-                    ? "bg-slate-800 text-purple-400 border border-slate-700 shadow"
-                    : "text-slate-400 hover:text-slate-200"
+                    ? "bg-white text-black font-semibold shadow-sm"
+                    : "text-white/40 hover:text-white/80"
                 }`}
               >
                 <Boxes className="w-3.5 h-3.5 shrink-0" />
                 <span>Forensic Clusters</span>
                 {selectedCluster && (
-                  <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 )}
               </button>
             </div>
@@ -419,6 +445,3 @@ export default function CaseWorkbenchPage({
     </AppShell>
   );
 }
-
-
-

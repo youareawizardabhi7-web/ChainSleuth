@@ -50,18 +50,18 @@ export function VaspAttributionCard({ attribution, caseId }: VaspAttributionCard
   };
 
   return (
-    <div className="p-4 bg-slate-950 border-2 border-teal-500 rounded font-mono text-xs text-slate-100 flex flex-col space-y-4 shadow-2xl select-none relative overflow-hidden">
-      {/* Visual Payoff Banner */}
-      <div className="flex items-center justify-between border-b border-teal-800/80 pb-3">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded bg-teal-950 border border-teal-600 text-teal-300">
-            <Building2 className="w-5 h-5" />
+    <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10 font-mono text-xs text-white/80 flex flex-col space-y-4 shadow-xl select-none relative overflow-hidden">
+      {/* Header Banner */}
+      <div className="flex items-center justify-between border-b border-white/10 pb-3">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-white/80 shrink-0">
+            <Building2 className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-[10px] text-teal-400 font-bold tracking-widest uppercase">
-              VASP MATCH IDENTIFIED
+            <div className="text-[10px] text-white/40 font-mono uppercase tracking-wider">
+              VASP Match Identified
             </div>
-            <div className="text-sm font-bold font-sans text-slate-100">
+            <div className="text-sm font-semibold text-white font-sans">
               {attribution.vasp_name}
             </div>
           </div>
@@ -69,12 +69,12 @@ export function VaspAttributionCard({ attribution, caseId }: VaspAttributionCard
 
         {/* FIU-IND Badge */}
         {attribution.is_fiu_registered ? (
-          <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-teal-950 text-teal-300 border border-teal-700 font-bold uppercase">
-            <CheckCircle2 className="w-3 h-3 text-teal-400" />
+          <span className="flex items-center gap-1.5 text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-medium font-sans">
+            <CheckCircle2 className="w-3 h-3 text-emerald-400" />
             FIU-IND Registered
           </span>
         ) : (
-          <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-amber-950 text-amber-400 border border-amber-700 font-bold uppercase">
+          <span className="flex items-center gap-1.5 text-[10px] px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 font-medium font-sans">
             <AlertTriangle className="w-3 h-3 text-amber-400" />
             Unregistered VASP
           </span>
@@ -82,78 +82,78 @@ export function VaspAttributionCard({ attribution, caseId }: VaspAttributionCard
       </div>
 
       {/* Confidence Score & Plain-English Explanation */}
-      <div className="p-2.5 bg-slate-900/90 border border-slate-800 rounded space-y-1">
+      <div className="p-3 bg-white/[0.02] border border-white/5 rounded-xl space-y-1">
         <div className="flex items-center justify-between">
-          <span className="text-slate-400 text-[10px] uppercase font-semibold">
-            Attribution Confidence Score
+          <span className="text-white/40 text-[10px] uppercase tracking-wider font-mono">
+            Confidence Score
           </span>
-          <span className="text-teal-400 font-bold text-xs font-mono">
+          <span className="text-white font-mono font-medium text-xs">
             {attribution.confidence_score !== undefined && attribution.confidence_score !== null
               ? `${
                   attribution.confidence_score <= 1
                     ? Math.round(attribution.confidence_score * 100)
                     : Math.round(attribution.confidence_score)
-                }% CONFIDENCE`
-              : "Confidence unavailable"}
+                }% Confidence`
+              : "N/A"}
           </span>
         </div>
-        <p className="text-[11px] text-slate-300 font-sans leading-normal">
-          Attribution verified via 1-hop sweep transaction heuristics connecting the suspect money trail directly to {attribution.vasp_name} deposit infrastructure.
+        <p className="text-[11px] text-white/60 font-sans leading-normal">
+          Attribution verified via deposit sweep heuristics connecting suspect trail directly to {attribution.vasp_name} infrastructure.
         </p>
       </div>
 
       {/* Address Distinction Section */}
-      <div className="space-y-3">
-        {/* 1. ACTIONABLE DEPOSIT ADDRESS (Prominent Highlight) */}
-        <div className="p-3 bg-teal-950/60 border-2 border-teal-500/90 rounded space-y-1.5 shadow-lg">
+      <div className="space-y-2.5">
+        {/* Actionable Deposit Address */}
+        <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10 space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5 text-teal-300 font-bold font-sans text-[11px] uppercase tracking-wider">
-              <Target className="w-3.5 h-3.5 text-teal-400 animate-pulse" />
-              ACTIONABLE DEPOSIT ADDRESS
+            <span className="flex items-center gap-1.5 text-white font-medium text-[11px] font-sans">
+              <Target className="w-3.5 h-3.5 text-white/70" />
+              Actionable Deposit Address
             </span>
-            <span className="text-[9px] bg-teal-900/90 text-teal-200 px-1.5 py-0.5 rounded font-bold uppercase border border-teal-700">
-              FREEZE TARGET
+            <span className="text-[9px] bg-white/10 text-white px-2 py-0.5 rounded-md font-mono border border-white/10">
+              Target
             </span>
           </div>
           <div className="pt-0.5">
             <AddressBadge address={attribution.deposit_address} truncateLength={8} />
           </div>
-          <p className="text-[10px] text-teal-200/90 font-mono leading-normal pt-1 border-t border-teal-800/80">
-            Primary KYC-linked exchange account named in Compliance Asset Freeze Directive.
+          <p className="text-[10px] text-white/40 font-mono leading-normal pt-1 border-t border-white/5">
+            Primary KYC-linked account named in compliance notice.
           </p>
         </div>
 
-        {/* 2. EXCHANGE HOT WALLET (Subdued Gray Contrast) */}
-        <div className="p-2.5 bg-slate-900/40 border border-slate-800 rounded space-y-1">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider">
-              <Layers className="w-3 h-3 text-slate-500" />
-              EXCHANGE HOT WALLET
+        {/* Exchange Hot Wallet */}
+        <div className="p-3 rounded-xl bg-white/[0.01] border border-white/5 space-y-1">
+          <div className="flex items-center justify-between text-white/40">
+            <span className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider">
+              <Layers className="w-3 h-3 text-white/40" />
+              Exchange Hot Wallet
             </span>
-            <span className="text-[9px] text-slate-500 font-mono">SHARED POOL</span>
+            <span className="text-[9px] text-white/40 font-mono">Pooled Liquidity</span>
           </div>
           <div>
             <AddressBadge address={attribution.hot_wallet_address} truncateLength={8} />
           </div>
-          <p className="text-[10px] text-slate-500 font-mono">
-            Shared exchange liquidity pool — Do NOT freeze.
+          <p className="text-[10px] text-white/30 font-mono">
+            Shared liquidity pool — do not target for freeze.
           </p>
         </div>
       </div>
 
       {/* Nodal Officer Contact Information */}
-      <div className="p-2.5 bg-slate-900/80 border border-slate-800 rounded space-y-1.5">
-        <div className="text-[10px] text-slate-400 uppercase font-semibold">
-          Designated Nodal Officer Contacts
+      <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 space-y-1.5">
+        <div className="text-[10px] text-white/40 uppercase font-mono tracking-wider">
+          Compliance Contact Details
         </div>
-        <div className="space-y-1 text-[11px]">
-          <div className="flex items-center gap-2 text-slate-200">
-            <Mail className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+        <div className="space-y-1 text-xs">
+          <div className="flex items-center gap-2 text-white/80">
+            <Mail className="w-3.5 h-3.5 text-white/40 shrink-0" />
             <span className="font-sans font-medium">{attribution.nodal_officer_email}</span>
           </div>
           {attribution.nodal_officer_phone && (
-            <div className="flex items-center gap-2 text-slate-200">
-              <Phone className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+            <div className="flex items-center gap-2 text-white/80">
+              <Phone className="w-3.5 h-3.5 text-white/40 shrink-0" />
               <span className="font-mono">{attribution.nodal_officer_phone}</span>
             </div>
           )}
@@ -162,23 +162,22 @@ export function VaspAttributionCard({ attribution, caseId }: VaspAttributionCard
 
       {/* Action Buttons */}
       <div className="space-y-2 pt-1">
-        {/* Evidence Actions Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <button
             type="button"
             onClick={handleExportBundle}
             disabled={isExporting}
-            className="flex items-center justify-center gap-1.5 w-full py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-900 disabled:text-slate-500 text-slate-950 font-sans font-bold text-[11px] rounded transition-colors shadow cursor-pointer disabled:cursor-not-allowed border border-emerald-500/50"
+            className="flex items-center justify-center gap-1.5 w-full py-2 bg-white/[0.04] hover:bg-white/[0.08] disabled:opacity-40 text-white/80 font-medium text-xs rounded-xl border border-white/10 transition-all cursor-pointer shadow-sm"
           >
             {isExporting ? (
               <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
-                <span className="text-slate-200">Exporting...</span>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Exporting...</span>
               </>
             ) : (
               <>
-                <Archive className="w-3.5 h-3.5 text-slate-950" />
-                <span>Download Evidence Bundle</span>
+                <Archive className="w-3.5 h-3.5 text-white/60" />
+                <span>Evidence Bundle</span>
               </>
             )}
           </button>
@@ -186,23 +185,23 @@ export function VaspAttributionCard({ attribution, caseId }: VaspAttributionCard
           <button
             type="button"
             onClick={() => setIsCertModalOpen(true)}
-            className="flex items-center justify-center gap-1.5 w-full py-2 bg-slate-900 hover:bg-slate-800 text-teal-300 font-sans font-bold text-[11px] rounded border border-teal-800/80 transition-colors shadow cursor-pointer"
+            className="flex items-center justify-center gap-1.5 w-full py-2 bg-white/[0.04] hover:bg-white/[0.08] text-white/80 font-medium text-xs rounded-xl border border-white/10 transition-all cursor-pointer shadow-sm"
           >
-            <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
-            <span>View Certificate Details</span>
+            <ShieldCheck className="w-3.5 h-3.5 text-white/60" />
+            <span>Certificate</span>
           </button>
         </div>
 
         {exportError && (
-          <div className="p-2.5 bg-red-950/90 border border-red-700/80 rounded text-red-200 text-[11px] font-mono flex items-start justify-between gap-2 shadow">
+          <div className="p-2.5 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-200 text-xs font-mono flex items-start justify-between gap-2">
             <div className="flex items-start gap-1.5">
-              <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
               <span>{exportError}</span>
             </div>
             <button
               type="button"
               onClick={() => setExportError(null)}
-              className="text-red-400 hover:text-red-200 font-bold ml-1"
+              className="text-rose-400 hover:text-white font-bold ml-1 cursor-pointer"
             >
               ×
             </button>
@@ -212,20 +211,20 @@ export function VaspAttributionCard({ attribution, caseId }: VaspAttributionCard
         {/* Generate Compliance Asset Freeze Notice */}
         <Link
           href={`/case/${caseId}/notice`}
-          className="flex items-center justify-center gap-2 w-full py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-sans font-bold text-xs rounded transition-colors shadow-lg cursor-pointer"
+          className="flex items-center justify-center gap-2 w-full py-2.5 bg-white text-black hover:bg-white/90 font-medium text-xs rounded-xl transition-all shadow-sm cursor-pointer"
         >
           <FileText className="w-4 h-4" />
-          Generate Compliance Asset Freeze Notice
+          <span>Issue Compliance Notice</span>
           <ArrowRight className="w-4 h-4" />
         </Link>
 
-        {/* Compile Cybercrime Case Docket */}
+        {/* Compile Judicial Case Docket */}
         <Link
           href={`/case/${caseId}/fir`}
-          className="flex items-center justify-center gap-2 w-full py-2 bg-slate-900 hover:bg-slate-800 text-teal-300 font-sans font-bold text-xs rounded transition-colors shadow cursor-pointer border border-teal-800/80"
+          className="flex items-center justify-center gap-2 w-full py-2 bg-white/[0.04] hover:bg-white/[0.08] text-white/80 font-medium text-xs rounded-xl border border-white/10 transition-all cursor-pointer shadow-sm"
         >
-          <FileCheck className="w-4 h-4 text-teal-400" />
-          Compile Judicial Case Docket
+          <FileCheck className="w-4 h-4 text-white/60" />
+          <span>Case Docket</span>
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
@@ -238,5 +237,3 @@ export function VaspAttributionCard({ attribution, caseId }: VaspAttributionCard
     </div>
   );
 }
-
-

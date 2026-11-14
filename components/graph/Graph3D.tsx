@@ -609,8 +609,8 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
       />
 
       {/* 3D Investigation Graph Legend Overlay */}
-      <div className="absolute bottom-3 left-3 z-20 bg-slate-900/90 backdrop-blur border border-slate-800 rounded p-2.5 shadow-xl font-mono text-[10px] text-slate-300 pointer-events-auto max-w-[200px] space-y-1.5">
-        <div className="font-bold text-slate-200 tracking-wider uppercase text-[9px] border-b border-slate-800 pb-1 flex items-center justify-between">
+      <div className="absolute bottom-3 left-3 z-20 bg-[#080808]/90 backdrop-blur-md border border-white/10 rounded-xl p-3 shadow-2xl font-mono text-[10px] text-white/70 pointer-events-auto max-w-[200px] space-y-1.5">
+        <div className="font-semibold text-white tracking-wider uppercase text-[9px] border-b border-white/10 pb-1 flex items-center justify-between">
           <span>Investigation Layers</span>
         </div>
         <div className="grid grid-cols-1 gap-1">
@@ -619,7 +619,7 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
               className="w-2.5 h-2.5 rounded-full shrink-0 ring-2 ring-[#f97316]/40"
               style={{ backgroundColor: LAYER_COLORS[0] }}
             />
-            <span className="font-bold text-[#f97316]">ORIGIN (Layer 0)</span>
+            <span className="font-medium text-[#f97316]">ORIGIN (Layer 0)</span>
           </div>
           <div className="flex items-center gap-2">
             <span
@@ -663,28 +663,28 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
             />
             <span>Unreachable</span>
           </div>
-          <div className="flex items-center gap-2 pt-1 border-t border-slate-800/80 justify-between">
+          <div className="flex items-center gap-2 pt-1 border-t border-white/10 justify-between">
             <div className="flex items-center gap-2">
               <span
                 className="w-2.5 h-2.5 rotate-45 shrink-0"
                 style={{ backgroundColor: LAYER_COLORS.vasp }}
               />
-              <span className="text-teal-400 font-semibold">VASP Target</span>
+              <span className="text-white font-medium">VASP Target</span>
             </div>
           </div>
-          <div className="flex items-center gap-2 pt-1 border-t border-slate-800/80">
+          <div className="flex items-center gap-2 pt-1 border-t border-white/10">
             <span
               className="w-2.5 h-2.5 rounded-full shrink-0 ring-2 ring-[#ef4444]/40"
               style={{ backgroundColor: LAYER_COLORS.ofac }}
             />
-            <span className="text-red-400 font-bold">OFAC Sanctioned</span>
+            <span className="text-rose-400 font-medium">OFAC Sanctioned</span>
           </div>
-          <div className="flex items-center gap-2 pt-1 border-t border-slate-800/80">
+          <div className="flex items-center gap-2 pt-1 border-t border-white/10">
             <span
               className="w-2.5 h-2.5 rounded-full shrink-0 ring-2 ring-[#06b6d4]/40"
               style={{ backgroundColor: LAYER_COLORS.bridge }}
             />
-            <span className="text-cyan-400 font-bold">Bridge Hop</span>
+            <span className="text-cyan-400 font-medium">Bridge Hop</span>
           </div>
         </div>
       </div>

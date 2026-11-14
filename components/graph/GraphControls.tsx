@@ -37,11 +37,11 @@ export function GraphControls({
   const { hopFilter, setHopFilter } = useAppStore();
 
   return (
-    <div className="flex items-center justify-between px-3 py-1.5 bg-slate-900 border border-slate-800 rounded font-mono text-xs text-slate-300 select-none">
+    <div className="flex items-center justify-between px-3.5 py-2 bg-white/[0.02] border border-white/5 rounded-xl font-mono text-xs text-white/80 select-none backdrop-blur-md">
       {/* Zoom & View Controls */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1.5">
         {onGraphModeChange && (
-          <div className="mr-1 pr-2 border-r border-slate-800">
+          <div className="mr-2 pr-2 border-r border-white/10">
             <GraphModeToggle mode={graphMode} onChange={onGraphModeChange} />
           </div>
         )}
@@ -49,7 +49,7 @@ export function GraphControls({
         <button
           type="button"
           onClick={onZoomIn}
-          className="p-1.5 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-100 transition-colors"
+          className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/[0.06] transition-all cursor-pointer"
           title="Zoom In"
         >
           <ZoomIn className="w-3.5 h-3.5" />
@@ -58,7 +58,7 @@ export function GraphControls({
         <button
           type="button"
           onClick={onZoomOut}
-          className="p-1.5 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-100 transition-colors"
+          className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/[0.06] transition-all cursor-pointer"
           title="Zoom Out"
         >
           <ZoomOut className="w-3.5 h-3.5" />
@@ -67,7 +67,7 @@ export function GraphControls({
         <button
           type="button"
           onClick={onFit}
-          className="p-1.5 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-100 transition-colors"
+          className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/[0.06] transition-all cursor-pointer"
           title="Fit Graph to View"
         >
           <Maximize2 className="w-3.5 h-3.5" />
@@ -76,8 +76,8 @@ export function GraphControls({
         <button
           type="button"
           onClick={onRelayout}
-          className="p-1.5 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-100 transition-colors flex items-center gap-1"
-          title="Re-layout / Reset View"
+          className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/[0.06] transition-all cursor-pointer flex items-center gap-1"
+          title="Reset Graph Layout"
         >
           <RefreshCw className="w-3.5 h-3.5" />
           <span className="text-[10px] hidden sm:inline">Reset</span>
@@ -86,33 +86,32 @@ export function GraphControls({
         <button
           type="button"
           onClick={onToggleLabels}
-          className="p-1.5 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-100 transition-colors flex items-center gap-1 border-l border-slate-800 ml-1 pl-2"
-          title="Toggle Graph Labels"
+          className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/[0.06] transition-all cursor-pointer flex items-center gap-1.5 border-l border-white/10 ml-1.5 pl-2.5"
+          title="Toggle Graph Node Labels"
         >
           {showLabels ? (
-            <Eye className="w-3.5 h-3.5 text-teal-400" />
+            <Eye className="w-3.5 h-3.5 text-white/90" />
           ) : (
-            <EyeOff className="w-3.5 h-3.5 text-slate-500" />
+            <EyeOff className="w-3.5 h-3.5 text-white/40" />
           )}
           <span className="text-[10px]">{showLabels ? "Hide Labels" : "Show Labels"}</span>
         </button>
       </div>
 
       {/* Hop Depth Filter Slider */}
-      <div className="flex items-center gap-2 border-l border-slate-800 pl-3">
-        <Filter className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-        <span className="text-[11px] text-slate-400">Hop Depth:</span>
+      <div className="flex items-center gap-2.5 border-l border-white/10 pl-3">
+        <Filter className="w-3.5 h-3.5 text-white/40 shrink-0" />
+        <span className="text-[11px] text-white/50">Hop Depth:</span>
         <input
           type="range"
           min={1}
           max={10}
           value={hopFilter}
           onChange={(e) => setHopFilter(Number(e.target.value))}
-          className="w-20 accent-teal-500 bg-slate-800 cursor-pointer"
+          className="w-20 accent-white bg-white/10 cursor-pointer h-1.5 rounded-lg"
         />
-        <span className="w-4 text-center font-bold text-teal-400">{hopFilter}</span>
+        <span className="w-4 text-center font-bold text-white font-mono">{hopFilter}</span>
       </div>
     </div>
   );
 }
-

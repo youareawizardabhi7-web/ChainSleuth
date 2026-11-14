@@ -60,34 +60,34 @@ export function ForensicClustersPanel({
       case "exchange_sweep":
         return {
           label: "VASP SWEEP",
-          colorClass: "bg-teal-950/80 text-teal-300 border-teal-700",
+          colorClass: "bg-emerald-500/10 text-emerald-300 border-emerald-500/20",
         };
       case "syndicate_gas":
       case "syndicate_gas_funder":
         return {
           label: "SYNDICATE GAS",
-          colorClass: "bg-purple-950/80 text-purple-300 border-purple-700",
+          colorClass: "bg-white/10 text-white border-white/20",
         };
       case "layering_cell":
       case "laundering_typology":
         return {
           label: "LAYERING CELL",
-          colorClass: "bg-rose-950/80 text-rose-300 border-rose-700",
+          colorClass: "bg-rose-500/10 text-rose-300 border-rose-500/20",
         };
       case "smurfing_cell":
         return {
           label: "SMURFING CELL",
-          colorClass: "bg-amber-950/80 text-amber-300 border-amber-700",
+          colorClass: "bg-amber-500/10 text-amber-300 border-amber-500/20",
         };
       case "dex_liquidity":
         return {
           label: "DEX LIQUIDITY",
-          colorClass: "bg-cyan-950/80 text-cyan-300 border-cyan-700",
+          colorClass: "bg-cyan-500/10 text-cyan-300 border-cyan-500/20",
         };
       default:
         return {
           label: (type || "CLUSTER").toUpperCase().replace(/_/g, " "),
-          colorClass: "bg-slate-900 text-slate-300 border-slate-700",
+          colorClass: "bg-white/[0.04] text-white/60 border-white/10",
         };
     }
   };
@@ -95,12 +95,12 @@ export function ForensicClustersPanel({
   const visibleSet = new Set(visibleGraphNodeAddresses.map((a) => a.toLowerCase()));
 
   return (
-    <div className="p-3.5 bg-slate-950 border border-slate-800 rounded font-mono text-xs text-slate-300 flex flex-col space-y-3.5 select-none h-full overflow-y-auto min-h-[300px]">
+    <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 font-mono text-xs text-white/80 flex flex-col space-y-3.5 select-none h-full overflow-y-auto min-h-[300px]">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+      <div className="flex items-center justify-between border-b border-white/5 pb-2.5">
         <div className="flex items-center gap-2">
-          <Boxes className="w-4 h-4 text-purple-400" />
-          <span className="text-slate-100 font-bold font-sans uppercase tracking-wider text-xs">
+          <Boxes className="w-4 h-4 text-white/60" />
+          <span className="text-white font-medium font-sans text-xs">
             Forensic Wallet Clusters
           </span>
         </div>
@@ -109,29 +109,29 @@ export function ForensicClustersPanel({
           <button
             type="button"
             onClick={() => onSelectCluster(null)}
-            className="flex items-center gap-1 px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-slate-100 rounded border border-slate-700 text-[10px] font-sans transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2 py-0.5 bg-white/[0.04] hover:bg-white/[0.08] text-white/70 hover:text-white rounded-md border border-white/10 text-[10px] font-sans transition-all cursor-pointer"
           >
             <XCircle className="w-3 h-3 text-rose-400" />
-            <span>Clear Cluster Selection</span>
+            <span>Clear Filter</span>
           </button>
         )}
       </div>
 
       {/* Active Selection Banner */}
       {selectedCluster && (
-        <div className="p-2.5 bg-purple-950/60 border border-purple-600/80 rounded space-y-1">
+        <div className="p-3 bg-white/[0.03] border border-white/10 rounded-xl space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-purple-300 font-bold uppercase tracking-wider font-sans flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
-              ACTIVE GRAPH HIGHLIGHT
+            <span className="text-[10px] text-white/80 font-medium uppercase tracking-wider font-sans flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-white/60 animate-pulse" />
+              Active Graph Highlight
             </span>
-            <span className="text-[9px] bg-purple-900 text-purple-200 px-1.5 py-0.5 rounded border border-purple-700">
-              {(selectedCluster.member_addresses || []).length} WALLETS
+            <span className="text-[9px] bg-white/10 text-white px-2 py-0.5 rounded-md border border-white/10 font-mono">
+              {(selectedCluster.member_addresses || []).length} Wallets
             </span>
           </div>
-          <p className="text-[11px] text-purple-200 font-mono">
-            Highlighting cluster:{" "}
-            <span className="font-bold text-slate-100">
+          <p className="text-xs text-white/60 font-mono">
+            Filtering by:{" "}
+            <span className="font-medium text-white">
               {selectedCluster.label || "Cluster"}
             </span>
           </p>
@@ -141,36 +141,36 @@ export function ForensicClustersPanel({
       {/* Loading State */}
       {loading && (
         <div className="py-12 flex flex-col items-center justify-center space-y-3 text-center">
-          <Loader2 className="w-6 h-6 text-purple-400 animate-spin" />
-          <div className="text-slate-400 font-mono text-xs">Analyzing wallet clusters...</div>
+          <Loader2 className="w-5 h-5 text-white/40 animate-spin" />
+          <div className="text-white/40 font-mono text-xs">Analyzing wallet clusters...</div>
         </div>
       )}
 
       {/* API Error State */}
       {!loading && error && (
-        <div className="p-4 bg-red-950/80 border border-red-800 rounded space-y-2 text-center text-red-200">
-          <AlertCircle className="w-6 h-6 text-red-400 mx-auto" />
-          <div className="font-bold font-sans text-xs">Unable to retrieve forensic clusters.</div>
-          <p className="text-[10px] text-red-300 font-mono">{error}</p>
+        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 space-y-2 text-center text-rose-200">
+          <AlertCircle className="w-5 h-5 text-rose-400 mx-auto" />
+          <div className="font-semibold font-sans text-xs">Unable to retrieve clusters</div>
+          <p className="text-[10px] text-white/70 font-mono">{error}</p>
         </div>
       )}
 
       {/* Empty State */}
       {!loading && !error && clusters.length === 0 && (
-        <div className="py-12 flex flex-col items-center justify-center space-y-2 text-center text-slate-500">
-          <Network className="w-8 h-8 text-slate-700" />
-          <div className="font-sans font-semibold text-slate-300 text-xs">
-            No forensic clusters identified.
+        <div className="py-12 flex flex-col items-center justify-center space-y-2 text-center text-white/40">
+          <Network className="w-7 h-7 text-white/20" />
+          <div className="font-sans font-medium text-white text-xs">
+            No Clusters Detected
           </div>
-          <p className="text-[11px] text-slate-500 max-w-xs font-mono">
-            No algorithmically grouped wallet sub-networks were detected for this investigation case.
+          <p className="text-xs text-white/40 max-w-xs font-sans">
+            No algorithmically grouped wallet sub-networks were detected for this case.
           </p>
         </div>
       )}
 
       {/* Render Clusters List */}
       {!loading && !error && clusters.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {clusters.map((cluster, idx) => {
             const clusterId = cluster.cluster_id || `cluster-${idx}`;
             const isSelected = selectedCluster && selectedCluster.cluster_id === clusterId;
@@ -181,7 +181,6 @@ export function ForensicClustersPanel({
             const entityName = cluster.entity_name;
             const description = cluster.description;
 
-            // Count how many cluster addresses are visible in current graph topology
             const visibleInGraphCount =
               visibleGraphNodeAddresses.length > 0
                 ? addresses.filter((addr) => visibleSet.has(addr.toLowerCase())).length
@@ -191,37 +190,37 @@ export function ForensicClustersPanel({
               <div
                 key={clusterId}
                 onClick={() => onSelectCluster(isSelected ? null : cluster)}
-                className={`p-3 rounded border transition-all cursor-pointer space-y-2.5 ${
+                className={`p-3 rounded-xl border transition-all cursor-pointer space-y-2 ${
                   isSelected
-                    ? "bg-purple-950/80 border-purple-500 ring-1 ring-purple-500/50 shadow-lg"
-                    : "bg-slate-900/90 border-slate-800 hover:border-slate-700"
+                    ? "bg-white/[0.06] border-white/30 shadow-lg"
+                    : "bg-white/[0.02] border-white/5 hover:border-white/15"
                 }`}
               >
                 {/* Cluster Title & Badge */}
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <span
-                      className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-bold border uppercase tracking-wider mb-1 ${badge.colorClass}`}
+                      className={`inline-block px-1.5 py-0.5 rounded-md text-[9px] font-mono border uppercase tracking-wider mb-1 ${badge.colorClass}`}
                     >
                       {badge.label}
                     </span>
-                    <div className="font-bold text-slate-100 font-sans text-xs">{label}</div>
+                    <div className="font-medium text-white font-sans text-xs">{label}</div>
                   </div>
 
                   {/* Risk Score / Volume */}
                   <div className="text-right shrink-0">
                     {cluster.dominant_risk_score !== undefined && (
                       <div>
-                        <span className="text-[9px] text-slate-500 uppercase block font-sans">
-                          Dominant Risk
+                        <span className="text-[9px] text-white/40 uppercase block font-mono">
+                          Risk
                         </span>
-                        <span className="text-rose-400 font-bold text-xs font-mono">
+                        <span className="text-rose-400 font-medium text-xs font-mono">
                           {cluster.dominant_risk_score}/100
                         </span>
                       </div>
                     )}
                     {cluster.total_volume_usdt !== undefined && cluster.total_volume_usdt > 0 && (
-                      <span className="text-[10px] text-teal-400 font-mono block">
+                      <span className="text-[10px] text-emerald-400 font-mono block">
                         ${cluster.total_volume_usdt.toLocaleString()} USDT
                       </span>
                     )}
@@ -230,33 +229,33 @@ export function ForensicClustersPanel({
 
                 {/* Entity Name if available */}
                 {entityName && (
-                  <div className="flex items-center gap-1.5 text-[11px] text-slate-300 font-sans">
-                    <Building className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+                  <div className="flex items-center gap-1.5 text-xs text-white/70 font-sans">
+                    <Building className="w-3.5 h-3.5 text-white/40 shrink-0" />
                     <span>
-                      Entity: <strong className="text-slate-100">{entityName}</strong>
+                      Entity: <strong className="text-white">{entityName}</strong>
                     </span>
                   </div>
                 )}
 
-                {/* Backend Description if available */}
+                {/* Description if available */}
                 {description && (
-                  <p className="text-[11px] text-slate-300 font-sans leading-relaxed bg-slate-950/60 p-2 rounded border border-slate-800/80">
+                  <p className="text-[11px] text-white/60 font-sans leading-relaxed bg-white/[0.02] p-2 rounded-lg border border-white/5">
                     {description}
                   </p>
                 )}
 
                 {/* Cluster Stats */}
-                <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-800/80 font-mono">
+                <div className="flex items-center justify-between text-[10px] text-white/40 pt-1 border-t border-white/5 font-mono">
                   <div className="flex items-center gap-1">
-                    <Layers className="w-3 h-3 text-slate-500" />
+                    <Layers className="w-3 h-3 text-white/40" />
                     <span>
-                      Members: <strong className="text-slate-200">{nodeCount}</strong>
+                      Members: <strong className="text-white">{nodeCount}</strong>
                     </span>
                   </div>
                   {visibleGraphNodeAddresses.length > 0 && (
-                    <div className="text-slate-400">
+                    <div className="text-white/40">
                       Graph:{" "}
-                      <strong className="text-purple-300">
+                      <strong className="text-white/80">
                         {visibleInGraphCount}/{addresses.length}
                       </strong>{" "}
                       visible
@@ -264,14 +263,14 @@ export function ForensicClustersPanel({
                   )}
                 </div>
 
-                {/* Sample Addresses list preview */}
+                {/* Addresses list preview */}
                 {addresses.length > 0 && (
-                  <div className="flex flex-wrap gap-1 pt-1">
+                  <div className="flex flex-wrap gap-1 pt-0.5">
                     {addresses.slice(0, 3).map((addr) => (
                       <AddressBadge key={addr} address={addr} truncateLength={4} />
                     ))}
                     {addresses.length > 3 && (
-                      <span className="text-[9px] text-slate-500 self-center px-1 font-mono">
+                      <span className="text-[9px] text-white/40 self-center px-1 font-mono">
                         +{addresses.length - 3} more
                       </span>
                     )}

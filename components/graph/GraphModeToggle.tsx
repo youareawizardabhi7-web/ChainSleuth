@@ -12,16 +12,16 @@ interface GraphModeToggleProps {
 
 export function GraphModeToggle({ mode, onChange }: GraphModeToggleProps) {
   return (
-    <div className="flex items-center bg-slate-950 border border-slate-800 p-0.5 rounded font-mono text-xs select-none">
+    <div className="inline-flex p-0.5 rounded-lg bg-white/[0.04] border border-white/10 select-none">
       <button
         type="button"
         onClick={() => onChange("2D")}
-        className={`flex items-center gap-1 px-2 py-0.5 rounded text-[11px] transition-colors cursor-pointer ${
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
           mode === "2D"
-            ? "bg-slate-800 text-teal-400 font-bold border border-slate-700 shadow-sm"
-            : "text-slate-400 hover:text-slate-200"
+            ? "bg-white text-black font-semibold shadow-sm"
+            : "text-white/40 hover:text-white/80"
         }`}
-        title="Switch to 2D Cytoscape Graph"
+        title="Switch to 2D Graph View"
         aria-label="2D Graph Mode"
       >
         <Layers className="w-3 h-3" />
@@ -31,12 +31,12 @@ export function GraphModeToggle({ mode, onChange }: GraphModeToggleProps) {
       <button
         type="button"
         onClick={() => onChange("3D")}
-        className={`flex items-center gap-1 px-2 py-0.5 rounded text-[11px] transition-colors cursor-pointer ${
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
           mode === "3D"
-            ? "bg-slate-800 text-teal-400 font-bold border border-slate-700 shadow-sm"
-            : "text-slate-400 hover:text-slate-200"
+            ? "bg-white text-black font-semibold shadow-sm"
+            : "text-white/40 hover:text-white/80"
         }`}
-        title="Switch to 3D WebGL Force Graph"
+        title="Switch to 3D Force Graph View"
         aria-label="3D Graph Mode"
       >
         <Box className="w-3 h-3" />
