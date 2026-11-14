@@ -65,7 +65,7 @@ export function ForensicClustersPanel({
       case "syndicate_gas":
       case "syndicate_gas_funder":
         return {
-          label: "SYNDICATE GAS",
+          label: "GAS FUNDER",
           colorClass: "bg-white/10 text-white border-white/20",
         };
       case "layering_cell":

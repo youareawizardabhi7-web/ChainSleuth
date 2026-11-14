@@ -24,7 +24,11 @@ function sanitizeAdvisory(text: string): string {
     .replace(/Subpoena\s*logs/gi, "Request compliance records")
     .replace(/courtroom admissibility/gi, "audit admissibility")
     .replace(/case diary/gi, "case dossier")
-    .replace(/\bIO\b|\bInvestigating Officer\b/gi, "Investigator");
+    .replace(/\bIO\b|\bInvestigating Officer\b/gi, "Investigator")
+    .replace(/Mule wallet/gi, "Transit address")
+    .replace(/syndicate gas activation lead/gi, "Gas funder identification")
+    .replace(/cybercrime syndicate/gi, "coordinated network")
+    .replace(/tumbler script/gi, "structuring script");
 }
 
 export function InvestigativeAdvisoryPanel({

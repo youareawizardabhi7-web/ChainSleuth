@@ -25,25 +25,25 @@ const TYPOLOGY_CONFIG: Record<
       "Most of the transferred value continues to a new wallet while a smaller portion is repeatedly peeled away to cash out.",
   },
   zero_gas_burner: {
-    title: "Zero-gas burner",
+    title: "Zero-gas wallet",
     icon: Flame,
     badgeStyle: "bg-red-950/90 border-red-800 text-red-400",
     explanation:
-      "Fresh wallet created with zero native gas balance used exclusively for temporary scam fund routing.",
+      "Address initialized with zero native gas balance, relying on external fee sponsorship for token transfers.",
   },
   fan_out: {
-    title: "Fan-out: 12 wallets",
+    title: "Fan-out structuring",
     icon: Share2,
     badgeStyle: "bg-amber-950/90 border-amber-800 text-amber-400",
     explanation:
-      "Large funds split rapidly across multiple sub-wallets within a short window to bypass detection thresholds.",
+      "Funds split rapidly across multiple sub-wallets within a short window to distribute transfer volume.",
   },
   first_funder_match: {
-    title: "First funder match",
+    title: "Common gas funder match",
     icon: Link2,
     badgeStyle: "bg-purple-950/90 border-purple-800 text-purple-400",
     explanation:
-      "Backward gas fee trace links this burner wallet to a master syndicate wallet reused across multiple fraud investigations.",
+      "Reverse gas fee tracing links this address to an external funding account identified across multiple cases.",
   },
   dex_swap: {
     title: "DEX swap hop",
@@ -73,10 +73,10 @@ const TYPOLOGY_CONFIG: Record<
     explanation: "Backend-detected CoinJoin mixing pattern.",
   },
   burner_wallet: {
-    title: "Burner wallet detected",
+    title: "Transit wallet detected",
     icon: Flame,
     badgeStyle: "bg-orange-950/90 border-orange-800 text-orange-400",
-    explanation: "Backend-detected burner wallet pattern.",
+    explanation: "Temporary intermediary address used for rapid fund transit.",
   },
 };
 

@@ -109,15 +109,13 @@ export default function SynapseLandingPage() {
       <section className="relative pt-36 pb-20 md:pt-44 md:pb-28 px-4 flex flex-col items-center justify-center text-center z-10 max-w-6xl mx-auto">
         {/* Massive Editorial Heading */}
         <h1 className="font-instrument text-5xl sm:text-7xl md:text-8xl lg:text-[104px] font-normal tracking-[-0.035em] leading-[0.92] text-white max-w-5xl mb-7">
-          Autonomous Blockchain Forensics & Asset{" "}
+          Cryptocurrency Forensics & Asset{" "}
           <span className="text-shimmer italic font-normal">Intelligence</span>
         </h1>
 
         {/* Subtext */}
         <p className="max-w-2xl text-neutral-400 text-base sm:text-lg md:text-xl font-light leading-relaxed mb-10">
-          Automated multi-hop blockchain ledger walks, syndicate gas fee attribution,
-          exchange deposit unmasking, and compliance asset freeze notices engineered
-          for rapid fraud investigation.
+          Multi-chain transaction graph traversal, gas funder attribution, exchange deposit identification, and formal compliance freeze notices.
         </p>
 
         {/* CTAs */}
@@ -126,7 +124,7 @@ export default function SynapseLandingPage() {
           <Link href="/trace/new" className="shiny-border-btn w-full sm:w-auto">
             <span className="relative z-10 bg-[#0a0a0a] text-white font-medium text-sm sm:text-base px-8 py-3.5 rounded-full flex items-center justify-center gap-2.5 hover:bg-neutral-900 transition-colors">
               <Zap className="w-4 h-4 text-cyan-400" />
-              <span>Start Forensic Trace</span>
+              <span>Start Investigation</span>
               <ArrowRight className="w-4 h-4 text-violet-400" />
             </span>
           </Link>
@@ -153,14 +151,14 @@ export default function SynapseLandingPage() {
             type="text"
             value={quickAddress}
             onChange={(e) => setQuickAddress(e.target.value)}
-            placeholder="Paste suspect wallet (TRON, EVM, Solana, Bitcoin)..."
+            placeholder="Search wallet address (TRON, Base, Ethereum, Solana, Bitcoin)..."
             className="w-full bg-transparent text-xs sm:text-sm text-neutral-200 placeholder-neutral-500 font-mono outline-none py-1.5 pr-2"
           />
           <button
             type="submit"
-            className="bg-white/10 hover:bg-white text-neutral-200 hover:text-black font-semibold text-xs px-4 py-2 rounded-full transition-all duration-200 shrink-0"
+            className="bg-white/10 hover:bg-white text-neutral-200 hover:text-black font-semibold text-xs px-4 py-2 rounded-full transition-all duration-200 shrink-0 cursor-pointer"
           >
-            Walk Ledger
+            Search
           </button>
         </form>
       </section>
@@ -322,11 +320,10 @@ export default function SynapseLandingPage() {
       <section id="workflow" className="relative z-10 max-w-4xl mx-auto px-4 py-20 sm:py-28 scroll-mt-24">
         <div className="text-center max-w-xl mx-auto mb-12">
           <h2 className="font-instrument text-4xl sm:text-5xl text-white font-normal tracking-tight">
-            From Raw Narrative to Courtroom Freeze
+            Investigation Workflow
           </h2>
           <p className="text-neutral-400 text-sm mt-3 font-light leading-relaxed">
-            Step through how ChainSleuth automates the full blockchain forensic and asset recovery
-            lifecycle before criminals can complete cash-outs.
+            From complaint ingestion to multi-hop graph traversal, exchange attribution, and compliance notice generation.
           </p>
         </div>
 
@@ -336,16 +333,14 @@ export default function SynapseLandingPage() {
           backButtonText="← Previous Stage"
           nextButtonText="Next Stage →"
         >
-          {/* Step 1: Intake & Neural NLP Parsing */}
+          {/* Step 1: Intake & NLP Entity Parsing */}
           <Step
-            title="Stage 1: Intake & Neural Entity Extraction"
-            subtitle="AUTONOMOUS EXTRACTION OF UNSTRUCTURED INCIDENT BRIEFS"
+            title="Stage 1: Complaint Intake & Entity Extraction"
+            subtitle="STRUCTURED EXTRACTION OF REPORTED CRYPTO TRANSACTIONS"
           >
             <div className="space-y-4">
               <p className="text-neutral-300 text-sm font-light leading-relaxed">
-                Crypto fraud reports typically begin as complex, unstructured victim statements and investigative briefs. ChainSleuth’s
-                deep language models instantly deconstruct the narrative, isolating suspect wallet addresses,
-                native blockchains, and loss valuations in seconds.
+                Incident reports often arrive as unstructured text. The extraction pipeline parses the narrative to identify suspect addresses, transaction hashes, destination blockchains, and reported loss amounts.
               </p>
 
               {/* Simulated Raw Incident Dossier Card */}
@@ -353,13 +348,13 @@ export default function SynapseLandingPage() {
                 <div className="flex items-center justify-between text-[11px] text-neutral-500 pb-2 border-b border-white/5">
                   <span className="flex items-center gap-1.5">
                     <FileText className="w-3.5 h-3.5 text-neutral-400" />
-                    INGESTED INCIDENT REPORT NARRATIVE
+                    INGESTED COMPLAINT NARRATIVE
                   </span>
-                  <span className="text-emerald-400 font-semibold">COGNITIVE NLP ENGINE</span>
+                  <span className="text-emerald-400 font-semibold">NLP PARSER</span>
                 </div>
                 <p className="text-neutral-400 italic font-sans text-xs leading-relaxed">
-                  "I was induced to transfer 15,000 USDT on TRON network to wallet
-                  TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9 promising 25% weekly returns in a fraudulent mining pool."
+                  &quot;Transferred 15,000 USDT on TRON network to wallet
+                  TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9 promising 25% returns in an investment pool.&quot;
                 </p>
 
                 {/* Extracted Entity Badges */}
@@ -373,7 +368,7 @@ export default function SynapseLandingPage() {
                     <div className="text-[11px] text-white font-mono">TRON (TRC-20)</div>
                   </div>
                   <div className="p-2 rounded-lg bg-emerald-950/30 border border-emerald-800/30">
-                    <div className="text-[10px] text-emerald-400 font-mono">LOSS ESTIMATE</div>
+                    <div className="text-[10px] text-emerald-400 font-mono">REPORTED LOSS</div>
                     <div className="text-[11px] text-white font-mono">15,000 USDT</div>
                   </div>
                 </div>
@@ -381,23 +376,21 @@ export default function SynapseLandingPage() {
             </div>
           </Step>
 
-          {/* Step 2: Multi-Hop BFS Ledger Walk */}
+          {/* Step 2: Multi-Hop Graph Traversal */}
           <Step
-            title="Stage 2: Multi-Hop Value-Weighted Ledger Walk"
-            subtitle="RECURSIVE BFS GRAPH TRAVERSAL & TYPOLOGY PATTERN CLASSIFIERS"
+            title="Stage 2: Multi-Hop Graph Traversal"
+            subtitle="BREADTH-FIRST SEARCH LEDGER WALKING & PATTERN DETECTION"
           >
             <div className="space-y-4">
               <p className="text-neutral-300 text-sm font-light leading-relaxed">
-                ChainSleuth executes an asynchronous breadth-first search (BFS) across blockchain explorer
-                pools. It prunes low-volume noise dust and applies XGBoost classifiers to detect peeling chains
-                and syndicate gas funders.
+                The engine runs breadth-first search (BFS) across blockchain explorer APIs, filtering sub-threshold dust transactions and classifying peeling chains and funding hubs.
               </p>
 
               {/* Hop Breakdown Table */}
               <div className="rounded-2xl border border-white/10 bg-black/60 p-4 font-mono text-xs space-y-3">
                 <div className="flex items-center justify-between text-[11px] text-neutral-500 pb-2 border-b border-white/5">
-                  <span>GRAPH WALK DISCOVERY (5 HOPS)</span>
-                  <span className="text-violet-400 font-semibold">GRAPHSAGE GNN RISK: 39/100</span>
+                  <span>DISCOVERED GRAPH HOPS (5 HOPS)</span>
+                  <span className="text-violet-400 font-semibold">RISK SCORE: 39/100</span>
                 </div>
 
                 <div className="space-y-2">
@@ -426,9 +419,9 @@ export default function SynapseLandingPage() {
                       <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px]">
                         2
                       </span>
-                      <span className="text-neutral-300">First-Funder Syndicate Fee Hub</span>
+                      <span className="text-neutral-300">Gas Funder Address</span>
                     </div>
-                    <span className="text-emerald-400 font-mono">12 Burners Linked</span>
+                    <span className="text-emerald-400 font-mono">Linked Wallets: 12</span>
                   </div>
                 </div>
               </div>
@@ -437,14 +430,12 @@ export default function SynapseLandingPage() {
 
           {/* Step 3: VASP Attribution & KYC Step-Back */}
           <Step
-            title="Stage 3: VASP Attribution & KYC Step-Back"
-            subtitle="OMNIBUS HOT-WALLET STEP-BACK TO ISOLATE INDIVIDUAL BENEFICIARIES"
+            title="Stage 3: Exchange Deposit Attribution"
+            subtitle="IDENTIFYING USER DEPOSIT ADDRESSES FROM EXCHANGE SWEEPS"
           >
             <div className="space-y-4">
               <p className="text-neutral-300 text-sm font-light leading-relaxed">
-                Centralized exchanges (VASPs) aggregate customer deposits into omnibus hot wallets.
-                Freezing a hot wallet disrupts millions of innocent accounts and is legally invalid. ChainSleuth
-                automatically steps back 1 hop to isolate the actionable KYC deposit account.
+                Centralized exchanges pool user deposits into consolidated hot wallets. The step-back algorithm identifies the transaction immediately prior to the sweep, isolating the specific user-assigned deposit address.
               </p>
 
               {/* Step-Back Comparison Box */}
@@ -452,44 +443,40 @@ export default function SynapseLandingPage() {
                 <div className="p-4 rounded-2xl border border-red-500/20 bg-red-950/20">
                   <div className="flex items-center gap-1.5 text-red-400 text-xs font-semibold mb-1">
                     <AlertTriangle className="w-3.5 h-3.5" />
-                    <span>Disregarded Hot Wallet</span>
+                    <span>Exchange Hot Wallet</span>
                   </div>
                   <div className="text-[11px] font-mono text-neutral-400 mb-2 truncate">
                     TCOINDCXHOTSWEEP000000000000
                   </div>
                   <p className="text-[11px] text-neutral-400 font-light leading-relaxed">
-                    Omnibus exchange hot wallet holding aggregated funds. Blanket freezes on this
-                    account are invalid.
+                    Shared liquidity pool address holding commingled exchange funds.
                   </p>
                 </div>
 
                 <div className="p-4 rounded-2xl border border-emerald-500/30 bg-emerald-950/20">
                   <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-semibold mb-1">
                     <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>Actionable KYC Deposit</span>
+                    <span>Actionable Deposit Address</span>
                   </div>
                   <div className="text-[11px] font-mono text-neutral-200 mb-2 truncate">
                     TCOINDCXDEPOSIT998877665544
                   </div>
                   <p className="text-[11px] text-neutral-400 font-light leading-relaxed">
-                    Identified KYC deposit address of the specific mule recipient at CoinDCX
-                    (Neblio Technologies Pvt Ltd).
+                    Specific KYC deposit address linked to the recipient at CoinDCX.
                   </p>
                 </div>
               </div>
             </div>
           </Step>
 
-          {/* Step 4: Asset Freeze Directives & Evidence Seal */}
+          {/* Step 4: Asset Freeze Notices */}
           <Step
-            title="Stage 4: Compliance Freeze Directives & Evidence Seal"
-            subtitle="AUTOMATED ASSET FREEZE NOTICES WITH IMMUTABLE SHA-256 EVIDENCE INTEGRITY"
+            title="Stage 4: Compliance Notice Generation"
+            subtitle="AUTOMATED FREEZE NOTICES WITH CANONICAL EVIDENCE CHECKSUMS"
           >
             <div className="space-y-4">
               <p className="text-neutral-300 text-sm font-light leading-relaxed">
-                Compiles formal asset freeze directives addressed directly to exchange compliance
-                teams, stamped with a deterministic SHA-256 digital evidence seal for complete
-                verifiable integrity and legal hold readiness.
+                Generates formal asset freeze requests directed to exchange compliance departments, accompanied by a SHA-256 evidence certificate verifying graph state.
               </p>
 
               {/* Statutory Certificate Box */}
@@ -497,13 +484,13 @@ export default function SynapseLandingPage() {
                 <div className="flex items-center justify-between pb-2 border-b border-white/5">
                   <span className="text-neutral-400 flex items-center gap-1.5">
                     <FileCheck2 className="w-3.5 h-3.5 text-emerald-400" />
-                    IMMUTABLE DIGITAL EVIDENCE SEAL
+                    DIGITAL EVIDENCE SEAL
                   </span>
-                  <span className="text-emerald-400 font-semibold">VERIFIABLE INTEGRITY</span>
+                  <span className="text-emerald-400 font-semibold">VERIFIED</span>
                 </div>
 
                 <div className="p-2.5 rounded bg-white/[0.02] border border-white/5 space-y-1">
-                  <div className="text-[10px] text-neutral-500">CANONICAL SHA-256 EVIDENCE HASH</div>
+                  <div className="text-[10px] text-neutral-500">SHA-256 EVIDENCE HASH</div>
                   <div className="text-[11px] text-cyan-300 font-mono break-all">
                     c188301585fe33cb1c07621bac19a36ba0fde01d7a057e0bf0e7e6c9bf036c87
                   </div>
@@ -511,13 +498,13 @@ export default function SynapseLandingPage() {
 
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
                   <span className="text-[11px] text-neutral-400">
-                    Target Compliance: <strong className="text-white">compliance@coindcx.com</strong>
+                    Compliance Contact: <strong className="text-white">compliance@coindcx.com</strong>
                   </span>
                   <Link
-                    href="/case/e3ed5035-e9c2-456e-9e48-485762febdf4"
-                    className="text-xs font-semibold text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1"
+                    href="/dashboard"
+                    className="text-xs font-semibold text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1 cursor-pointer"
                   >
-                    <span>View Stored Case Workbench</span>
+                    <span>Open Dashboard</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
@@ -533,66 +520,63 @@ export default function SynapseLandingPage() {
       <section id="features" className="relative z-10 max-w-6xl mx-auto px-4 py-24 sm:py-32 scroll-mt-24">
         <div className="text-center max-w-2xl mx-auto mb-16">
           <h2 className="font-instrument text-4xl sm:text-5xl md:text-6xl text-white font-normal tracking-tight">
-            Designed for Courtrooms. Engineered for Speed.
+            Core Forensic Capabilities
           </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Card 1: Value-Weighted BFS */}
+          {/* Card 1: Multi-Hop Traversal */}
           <div className="synapse-card rounded-3xl p-8 sm:p-10 border border-white/5 bg-white/[0.02] backdrop-blur-sm relative overflow-hidden flex flex-col justify-between">
             <div>
               <div className="w-12 h-12 rounded-2xl bg-cyan-950/60 border border-cyan-800/40 flex items-center justify-center text-cyan-400 mb-6 synapse-icon">
                 <GitBranch className="w-6 h-6" />
               </div>
               <h3 className="font-instrument text-2xl sm:text-3xl font-medium text-white mb-3">
-                Value-Weighted Ledger Walk
+                Multi-Hop Graph Traversal
               </h3>
               <p className="text-neutral-400 text-sm font-light leading-relaxed">
-                Automated multi-hop BFS graph traversal across TRON, EVM, Solana, and Bitcoin.
-                Prunes dust noise and prioritizes peeling volume paths to map complete laundering
-                routes in seconds.
+                Breadth-first search (BFS) traversal across TRON, Base, Ethereum, Solana, and Bitcoin.
+                Filters sub-threshold dust transactions and traces peeling chains to map transaction paths.
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-neutral-500">
-              <span>PRUNING THRESHOLD</span>
-              <span className="text-cyan-400 font-semibold">2.0% ROOT CUTOFF</span>
+              <span>THRESHOLD FILTER</span>
+              <span className="text-cyan-400 font-semibold">2.0% TRANSFER CUTOFF</span>
             </div>
           </div>
 
-          {/* Card 2: Syndicate Gas Attribution */}
+          {/* Card 2: Gas Funder Identification */}
           <div className="synapse-card rounded-3xl p-8 sm:p-10 border border-white/5 bg-white/[0.02] backdrop-blur-sm relative overflow-hidden flex flex-col justify-between">
             <div>
               <div className="w-12 h-12 rounded-2xl bg-violet-950/60 border border-violet-800/40 flex items-center justify-center text-violet-400 mb-6 synapse-icon">
                 <Zap className="w-6 h-6" />
               </div>
               <h3 className="font-instrument text-2xl sm:text-3xl font-medium text-white mb-3">
-                Syndicate Gas Attribution
+                Gas Funder Identification
               </h3>
               <p className="text-neutral-400 text-sm font-light leading-relaxed">
-                Disposable burner wallets start with zero native fuel. Reverse fee tracing isolates
-                the common syndicate gas funder, correlating disparate victim incidents across
-                multiple jurisdictional case files.
+                Traces initial gas funding transactions for unseeded wallets to identify parent sponsor
+                accounts and establish links between related suspect addresses across investigations.
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-neutral-500">
-              <span>FEE CORRELATION</span>
-              <span className="text-violet-400 font-semibold">CROSS-CASE SYNDICATE LINKING</span>
+              <span>PARENT SPONSOR</span>
+              <span className="text-violet-400 font-semibold">FIRST-FUNDER TRACING</span>
             </div>
           </div>
 
-          {/* Card 3: VASP Omnibus Step-Back */}
+          {/* Card 3: VASP Deposit Attribution */}
           <div className="synapse-card rounded-3xl p-8 sm:p-10 border border-white/5 bg-white/[0.02] backdrop-blur-sm relative overflow-hidden flex flex-col justify-between">
             <div>
               <div className="w-12 h-12 rounded-2xl bg-emerald-950/60 border border-emerald-800/40 flex items-center justify-center text-emerald-400 mb-6 synapse-icon">
                 <Building2 className="w-6 h-6" />
               </div>
               <h3 className="font-instrument text-2xl sm:text-3xl font-medium text-white mb-3">
-                Actionable VASP KYC Step-Back
+                VASP Deposit Attribution
               </h3>
               <p className="text-neutral-400 text-sm font-light leading-relaxed">
-                Exchange hot wallets pool millions of deposits together, rendering blanket freezes
-                legally void. ChainSleuth steps back 1 hop prior to the sweep to pinpoint the exact
-                individual KYC deposit target.
+                Detects exchange hot-wallet sweeps and steps back 1 hop to isolate the user-specific
+                deposit account, separating individual accounts from pooled exchange liquidity.
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-neutral-500">
@@ -601,66 +585,63 @@ export default function SynapseLandingPage() {
             </div>
           </div>
 
-          {/* Card 4: 5-Model ML Ensemble */}
+          {/* Card 4: ML Risk Scoring */}
           <div className="synapse-card rounded-3xl p-8 sm:p-10 border border-white/5 bg-white/[0.02] backdrop-blur-sm relative overflow-hidden flex flex-col justify-between">
             <div>
               <div className="w-12 h-12 rounded-2xl bg-violet-950/60 border border-violet-800/40 flex items-center justify-center text-violet-400 mb-6 synapse-icon">
                 <BrainCircuit className="w-6 h-6" />
               </div>
               <h3 className="font-instrument text-2xl sm:text-3xl font-medium text-white mb-3">
-                5-Model ML Ensemble
+                ML-Based Risk Scoring
               </h3>
               <p className="text-neutral-400 text-sm font-light leading-relaxed">
-                GraphSAGE GNN ONNX runtime scores multi-hop network topologies, coupled with XGBoost
-                peeling and smurfing classifiers and Isolation Forest velocity anomaly detection for
-                calibrated 0–100 scoring.
+                Evaluates network topology, velocity patterns, and transaction structures using GraphSAGE
+                GNN and anomaly detection models to calculate a standardized 0–100 risk score.
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-neutral-500">
-              <span>CALIBRATED WEIGHTS</span>
-              <span className="text-violet-400 font-semibold">40% GNN • 30% TYPOLOGY</span>
+              <span>SCORING MODEL</span>
+              <span className="text-violet-400 font-semibold">GNN + TYPOLOGY CLASSIFIERS</span>
             </div>
           </div>
 
-          {/* Card 5: Autonomous Cognitive NLP Extraction */}
+          {/* Card 5: Complaint Parsing */}
           <div className="synapse-card rounded-3xl p-8 sm:p-10 border border-white/5 bg-white/[0.02] backdrop-blur-sm relative overflow-hidden flex flex-col justify-between">
             <div>
               <div className="w-12 h-12 rounded-2xl bg-cyan-950/60 border border-cyan-800/40 flex items-center justify-center text-cyan-400 mb-6 synapse-icon">
                 <Sparkles className="w-6 h-6" />
               </div>
               <h3 className="font-instrument text-2xl sm:text-3xl font-medium text-white mb-3">
-                Cognitive Narrative Extraction
+                Complaint Text Parsing
               </h3>
               <p className="text-neutral-400 text-sm font-light leading-relaxed">
-                Ingests unstructured case dossiers, investigative briefs, and forensic logs.
-                Extracts suspect wallet hashes, destination blockchains, and loss amounts in INR
-                with instant entity structuring.
+                Parses unstructured complaint narratives and incident reports to extract suspect
+                wallet addresses, blockchain networks, and reported loss amounts.
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-neutral-500">
-              <span>NLP PRECISION</span>
-              <span className="text-cyan-400 font-semibold">AUTONOMOUS ENTITY PARSER</span>
+              <span>PARSER ENGINE</span>
+              <span className="text-cyan-400 font-semibold">NLP ENTITY EXTRACTION</span>
             </div>
           </div>
 
-          {/* Card 6: Compliance Freeze Directives */}
+          {/* Card 6: Asset Freeze Notices */}
           <div className="synapse-card rounded-3xl p-8 sm:p-10 border border-white/5 bg-white/[0.02] backdrop-blur-sm relative overflow-hidden flex flex-col justify-between">
             <div>
               <div className="w-12 h-12 rounded-2xl bg-emerald-950/60 border border-emerald-800/40 flex items-center justify-center text-emerald-400 mb-6 synapse-icon">
                 <Scale className="w-6 h-6" />
               </div>
               <h3 className="font-instrument text-2xl sm:text-3xl font-medium text-white mb-3">
-                Compliance Freeze Directives
+                Asset Freeze Notices
               </h3>
               <p className="text-neutral-400 text-sm font-light leading-relaxed">
-                Instantly formats compliance asset freeze notices addressed directly to
-                exchange compliance teams, stamped with deterministic SHA-256 digital
-                evidence certificates for verifiable integrity.
+                Generates formal compliance notices formatted for exchange legal desks, with SHA-256
+                checksums to verify evidence integrity and trace history.
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-neutral-500">
-              <span>EVIDENCE INTEGRITY</span>
-              <span className="text-emerald-400 font-semibold">IMMUTABLE SHA-256</span>
+              <span>VERIFICATION</span>
+              <span className="text-emerald-400 font-semibold">SHA-256 CHECKSUM</span>
             </div>
           </div>
         </div>
@@ -676,11 +657,9 @@ export default function SynapseLandingPage() {
             About ChainSleuth
           </h2>
           <p className="text-neutral-400 text-sm sm:text-base font-light leading-relaxed">
-            ChainSleuth is an autonomous multi-chain cryptocurrency forensics and asset recovery platform
-            engineered to solve the critical 30-minute cash-out window in digital asset fraud. The system
-            automates multi-hop ledger walks, unmasks syndicate laundering structures, and generates
-            court-admissible, cryptographically sealed compliance freeze directives before illicit funds
-            can be liquidated.
+            ChainSleuth is a multi-chain cryptocurrency forensics platform built for investigating
+            financial fraud. The system traces multi-hop transaction graphs across major blockchains,
+            identifies exchange deposit accounts, and generates verified compliance documentation.
           </p>
         </div>
 

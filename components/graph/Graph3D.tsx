@@ -389,41 +389,17 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
       if (n.isOrigin) {
         const group = new THREE.Group();
 
-        // Core Origin Mesh (Emissive Orange Sphere)
-        const coreGeometry = new THREE.SphereGeometry(radius, 24, 24);
+        // Core Origin Mesh (Clean Emissive Orange Sphere)
+        const coreGeometry = new THREE.SphereGeometry(radius * 1.15, 24, 24);
         const coreMaterial = new THREE.MeshStandardMaterial({
           color: "#f97316",
           emissive: "#ea580c",
-          emissiveIntensity: isSelected ? 0.9 : 0.6,
-          roughness: 0.2,
-          metalness: 0.3,
+          emissiveIntensity: isSelected ? 0.9 : 0.5,
+          roughness: 0.25,
+          metalness: 0.2,
         });
         const coreMesh = new THREE.Mesh(coreGeometry, coreMaterial);
         group.add(coreMesh);
-
-        // Outer Emissive Halo Mesh (Transparent Glow Sphere)
-        const haloGeometry = new THREE.SphereGeometry(radius * 1.45, 24, 24);
-        const haloMaterial = new THREE.MeshBasicMaterial({
-          color: "#fb923c",
-          transparent: true,
-          opacity: 0.25,
-          depthWrite: false,
-          side: THREE.DoubleSide,
-        });
-        const haloMesh = new THREE.Mesh(haloGeometry, haloMaterial);
-        group.add(haloMesh);
-
-        // Emissive Accent Ring around Origin
-        const ringGeometry = new THREE.RingGeometry(radius * 1.5, radius * 1.75, 32);
-        const ringMaterial = new THREE.MeshBasicMaterial({
-          color: "#fdba74",
-          side: THREE.DoubleSide,
-          transparent: true,
-          opacity: 0.5,
-        });
-        const ringMesh = new THREE.Mesh(ringGeometry, ringMaterial);
-        ringMesh.rotation.x = Math.PI / 4;
-        group.add(ringMesh);
 
         return group;
       }
@@ -498,14 +474,15 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
 
     return `
       <div style="
-        background: #0f172a;
-        border: 1px solid ${n.isOrigin ? "#f97316" : isOfac ? "#ef4444" : isBridge ? "#06b6d4" : obj.isVasp ? "#14b8a6" : "#334155"};
+        background: rgba(8, 8, 8, 0.95);
+        border: 1px solid ${n.isOrigin ? "rgba(249, 115, 22, 0.4)" : isOfac ? "rgba(239, 68, 68, 0.4)" : isBridge ? "rgba(6, 182, 212, 0.4)" : obj.isVasp ? "rgba(20, 184, 166, 0.4)" : "rgba(255, 255, 255, 0.1)"};
+        backdrop-filter: blur(12px);
         padding: 8px 12px;
-        border-radius: 6px;
-        font-family: monospace;
+        border-radius: 8px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         font-size: 11px;
         color: #f1f5f9;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+        box-shadow: 0 12px 32px rgba(0,0,0,0.8);
         min-width: 180px;
       ">
         ${originHeader}${ofacHeader}${bridgeHeader}
@@ -555,19 +532,19 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
 
   if (!webGlSupported || hasError) {
     return (
-      <div className="w-full h-full min-h-[420px] bg-slate-950 border border-slate-800 rounded flex flex-col items-center justify-center p-6 text-center select-none font-mono">
+      <div className="w-full h-full min-h-[420px] bg-[#050505] border border-white/5 rounded-2xl flex flex-col items-center justify-center p-6 text-center select-none font-mono">
         <AlertCircle className="w-8 h-8 text-amber-400 mb-2" />
-        <div className="text-slate-200 font-sans text-sm font-semibold mb-1">
+        <div className="text-white font-sans text-sm font-semibold mb-1">
           3D Visualization Unavailable
         </div>
-        <div className="text-slate-400 text-xs max-w-sm mb-4">
+        <div className="text-white/40 text-xs max-w-sm mb-4">
           WebGL acceleration is disabled or unsupported in this browser session.
         </div>
         {onFallbackTo2D && (
           <button
             type="button"
             onClick={onFallbackTo2D}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-slate-900 border border-slate-700 text-teal-400 hover:text-teal-300 hover:bg-slate-800 text-xs transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white hover:bg-white/10 text-xs transition-colors cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             Switch to 2D Graph
@@ -580,14 +557,14 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full min-h-[420px] bg-[#0b1329] border border-slate-800 rounded overflow-hidden select-none"
+      className="relative w-full h-full min-h-[420px] bg-[#030303] select-none overflow-hidden"
     >
       <ForceGraph3D
         ref={fgRef as unknown as React.MutableRefObject<ForceGraphMethods>}
         width={dimensions.width}
         height={dimensions.height}
         graphData={graphData}
-        backgroundColor="#0b1329"
+        backgroundColor="#030303"
         nodeThreeObject={getNodeThreeObject}
         nodeThreeObjectExtend={false}
         nodeLabel={getNodeLabel}

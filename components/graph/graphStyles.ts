@@ -85,7 +85,7 @@ export function getCytoscapeStyles(showLabels: boolean = true): cytoscape.Styles
         "font-size": "9px",
         color: "#94a3b8",
         "font-family": "monospace",
-        "text-background-color": "#0f172a",
+        "text-background-color": "#080808",
         "text-background-opacity": 0.85,
         "text-background-padding": "3px",
       },

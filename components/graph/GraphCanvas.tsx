@@ -162,10 +162,10 @@ export const GraphCanvas = forwardRef<GraphViewRef, GraphCanvasProps>(function G
 
 
   return (
-    <div className="relative w-full h-full bg-slate-950 border border-slate-800 rounded select-none overflow-hidden">
+    <div className="relative w-full h-full bg-[#030303] select-none overflow-hidden">
       <div ref={containerRef} className="w-full h-full" />
       {nodes.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center text-slate-500 font-mono text-xs">
+        <div className="absolute inset-0 flex items-center justify-center text-white/40 font-mono text-xs">
           No Graph Topology Loaded
         </div>
       )}
