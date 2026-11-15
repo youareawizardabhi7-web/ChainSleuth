@@ -105,5 +105,12 @@ export function getCytoscapeStyles(showLabels: boolean = true): cytoscape.Styles
         width: 4,
       },
     },
+    {
+      selector: ".timeline-hidden",
+      css: {
+        display: "none",
+        opacity: 0,
+      },
+    },
   ];
 }

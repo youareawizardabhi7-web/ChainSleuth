@@ -304,16 +304,7 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
       };
     });
 
-    // Filter edges by timeline scrubber cutoff if active
-    const activeEdges = timelineCutoffTs !== null
-      ? edges.filter((e) => {
-          if (!e.timestamp) return true;
-          const ts = new Date(e.timestamp).getTime();
-          return !isNaN(ts) && ts <= timelineCutoffTs;
-        })
-      : edges;
-
-    const filteredEdges = activeEdges.filter(
+    const filteredEdges = edges.filter(
       (e) => validNodeAddresses.has(e.from) && validNodeAddresses.has(e.to)
     );
 
@@ -335,7 +326,47 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
     });
 
     return { nodes: forceNodes, links: forceLinks };
-  }, [nodes, edges, layerMap, hopFilter, timelineCutoffTs]);
+  }, [nodes, edges, layerMap, hopFilter]);
+
+  // Set of active node IDs based on timeline
+  const visibleNodeSet = useMemo(() => {
+    if (timelineCutoffTs === null) return null;
+    const set = new Set<string>();
+    edges.forEach((e) => {
+      if (!e.timestamp) {
+        set.add(e.from.toLowerCase());
+        set.add(e.to.toLowerCase());
+        return;
+      }
+      const ts = new Date(e.timestamp).getTime();
+      if (!isNaN(ts) && ts <= timelineCutoffTs) {
+        set.add(e.from.toLowerCase());
+        set.add(e.to.toLowerCase());
+      }
+    });
+    return set;
+  }, [edges, timelineCutoffTs]);
+
+  const isLinkVisible = useCallback(
+    (link: any) => {
+      if (timelineCutoffTs === null) return true;
+      const edgeObj = link.edgeObj as TransferEdge | undefined;
+      if (!edgeObj?.timestamp) return true;
+      const ts = new Date(edgeObj.timestamp).getTime();
+      return !isNaN(ts) && ts <= timelineCutoffTs;
+    },
+    [timelineCutoffTs]
+  );
+
+  const isNodeVisible = useCallback(
+    (node: any) => {
+      if (timelineCutoffTs === null) return true;
+      const n = node as ForceNode;
+      if (n.isOrigin) return true;
+      return visibleNodeSet ? visibleNodeSet.has(n.id.toLowerCase()) : true;
+    },
+    [timelineCutoffTs, visibleNodeSet]
+  );
 
   // Dynamic node color handling based on selection state
   const getNodeColor = useCallback(
@@ -584,6 +615,8 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
         height={dimensions.height}
         graphData={graphData}
         backgroundColor="#030303"
+        nodeVisibility={isNodeVisible}
+        linkVisibility={isLinkVisible}
         nodeThreeObject={getNodeThreeObject}
         nodeThreeObjectExtend={false}
         nodeLabel={getNodeLabel}
@@ -592,7 +625,11 @@ export const Graph3D = forwardRef<Graph3DRef, Graph3DProps>(function Graph3D(
         linkDirectionalArrowLength={5}
         linkDirectionalArrowRelPos={0.95}
         linkDirectionalArrowColor={getLinkColor}
-        linkDirectionalParticles={(link: any) => Math.max(1, Math.min(4, Math.round((link.width || 2) * 0.7)))}
+        linkDirectionalParticles={(link: any) =>
+          isLinkVisible(link)
+            ? Math.max(1, Math.min(4, Math.round((link.width || 2) * 0.7)))
+            : 0
+        }
         linkDirectionalParticleWidth={(link: any) => Math.min(Math.max(2, (link.width || 2) * 0.7), 4.5)}
         linkDirectionalParticleSpeed={(link: any) => 0.003 + Math.min(0.012, (link.width || 2) * 0.002)}
         linkDirectionalParticleColor={(link: any) => (link.suspicious ? "#f87171" : "#38bdf8")}

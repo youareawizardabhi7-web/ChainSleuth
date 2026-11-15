@@ -85,41 +85,12 @@ export const GraphCanvas = forwardRef<GraphViewRef, GraphCanvasProps>(function G
     },
   }));
 
-  // Filter edges and active nodes based on timeline scrubber
-  const { visibleEdges, visibleNodes } = useMemo(() => {
-    if (timelineCutoffTs === null) {
-      return { visibleEdges: edges, visibleNodes: nodes };
-    }
-
-    const filteredEdges = edges.filter((e) => {
-      if (!e.timestamp) return true;
-      const ts = new Date(e.timestamp).getTime();
-      return !isNaN(ts) && ts <= timelineCutoffTs;
-    });
-
-    const activeAddrs = new Set<string>();
-    filteredEdges.forEach((e) => {
-      activeAddrs.add(e.from.toLowerCase());
-      activeAddrs.add(e.to.toLowerCase());
-    });
-
-    // Always keep root origin node
-    if (nodes.length > 0) {
-      activeAddrs.add(nodes[0].address.toLowerCase());
-    }
-
-    const filteredNodes = nodes.filter((n) =>
-      activeAddrs.has(n.address.toLowerCase())
-    );
-
-    return { visibleEdges: filteredEdges, visibleNodes: filteredNodes };
-  }, [nodes, edges, timelineCutoffTs]);
-
+  // Initialize Cytoscape graph instance once with full topology
   useEffect(() => {
     if (!containerRef.current) return;
 
     const elements: cytoscape.ElementDefinition[] = [
-      ...visibleNodes.map((n, idx) => {
+      ...nodes.map((n, idx) => {
         const isOfac = n.typologyFlags?.includes("ofac_sanctioned");
         const isBridge = n.typologyFlags?.includes("bridge_hop");
         const isBurner = n.typologyFlags.length > 0;
@@ -149,7 +120,7 @@ export const GraphCanvas = forwardRef<GraphViewRef, GraphCanvasProps>(function G
           },
         };
       }),
-      ...visibleEdges.map((e) => {
+      ...edges.map((e) => {
         // Logarithmic edge thickness scaling: width between 1.8px and 6.5px
         const logVal = Math.log10(Math.max(1, e.value));
         const thickness = Math.min(Math.max(1.8, logVal * 1.15), 6.5);
@@ -217,8 +188,52 @@ export const GraphCanvas = forwardRef<GraphViewRef, GraphCanvasProps>(function G
 
     return () => {
       cyRef.current?.destroy();
+      cyRef.current = null;
     };
-  }, [visibleNodes, visibleEdges, showLabels, onSelectNode, onSelectEdge]);
+  }, [nodes, edges, showLabels, onSelectNode, onSelectEdge]);
+
+  // Smooth Non-Destructive Timeline Filtering (prevents layout resetting or canvas tearing during replay)
+  useEffect(() => {
+    const cy = cyRef.current;
+    if (!cy) return;
+
+    cy.batch(() => {
+      if (timelineCutoffTs === null) {
+        cy.elements().removeClass("timeline-hidden");
+        return;
+      }
+
+      // 1. Process Edges visibility by timestamp
+      cy.edges().forEach((edge) => {
+        const edgeObj = edge.data("edgeObj") as TransferEdge | undefined;
+        if (!edgeObj?.timestamp) {
+          edge.removeClass("timeline-hidden");
+          return;
+        }
+        const ts = new Date(edgeObj.timestamp).getTime();
+        if (!isNaN(ts) && ts <= timelineCutoffTs) {
+          edge.removeClass("timeline-hidden");
+        } else {
+          edge.addClass("timeline-hidden");
+        }
+      });
+
+      // 2. Process Nodes visibility: keep origin always, reveal others if connected to a visible edge
+      cy.nodes().forEach((node, idx) => {
+        const isOrigin = node.data("role") === "origin" || idx === 0;
+        if (isOrigin) {
+          node.removeClass("timeline-hidden");
+          return;
+        }
+        const visibleConnected = node.connectedEdges(":not(.timeline-hidden)");
+        if (visibleConnected.length > 0) {
+          node.removeClass("timeline-hidden");
+        } else {
+          node.addClass("timeline-hidden");
+        }
+      });
+    });
+  }, [timelineCutoffTs]);
 
   // Effect to highlight cluster nodes
   useEffect(() => {
@@ -232,7 +247,7 @@ export const GraphCanvas = forwardRef<GraphViewRef, GraphCanvasProps>(function G
         }
       });
     }
-  }, [selectedClusterAddresses, visibleNodes]);
+  }, [selectedClusterAddresses, nodes]);
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -352,7 +367,7 @@ export const GraphCanvas = forwardRef<GraphViewRef, GraphCanvasProps>(function G
         </div>
       )}
 
-      {visibleNodes.length === 0 && (
+      {nodes.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center text-white/40 font-mono text-xs">
           No Graph Topology Loaded
         </div>
